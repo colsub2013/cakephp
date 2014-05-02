@@ -1,0 +1,678 @@
+                                          NOTAS EN CAKEPHP
+                                          ================
+
+PROYECTO EN GIT
+===============
+
+Registración en https://github.com/users
+mmcontini08
+mmcontini08@gmail.com
+Sally.2013
+
+https://github.com/colsub2013/cakephp.git
+
+touch README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/colsub2013/cakephp.git
+git push -u origin master
+
+git remote add origin https://github.com/colsub2013/cakephp.git
+git push -u origin master
+
+--------------------------------------------------------------------------------
+ERROR
+=====
+Error: Call to a member function setFlash() on a non-object 
+
+Solución: Se da porque en el AppController extendido no se seteó la variable 
+de sesión:
+
+var $components = array('Session');
+
+--------------------------------------------------------------------------------
+
+ERROR DE TIMEZONE
+=================
+Warning (2): strtotime(): It is not safe to rely on the system's timezone settings. 
+You are *required* to use the date.timezone setting or the date_default_timezone_set() 
+function. In case you used any of those methods and you are still getting this warning, 
+you most likely misspelled the timezone identifier. We selected 'America/Sao_Paulo' 
+for '-3.0/no DST' instead [CORE\Cake\Cache\CacheEngine.php, line 60]
+
+Solución: descomentar la siguiente línea en app/Config/core.php:
+
+/**
+ * Uncomment this line and correct your server timezone to fix
+ * any date & time related errors.
+ */
+	date_default_timezone_set('UTC');
+
+--------------------------------------------------------------------------------
+CÓDIGO PARA LA CAPA MODELO
+==========================
+Para una tabla llamada Posts, Los archivos de clase van en /app/Model, y el 
+archivo creado se almacenará en /app/Model/Post.php. El archivo será algo así 
+como:
+
+class Post extends AppModel {
+  ...
+}
+
+De aquí las convenciones de nombre serán:
+
+. Nombre de Tabla: Posts
+. Nombre de clase controlador: PostsController
+................................................................................
+
+CÓDIGO PARA LA CAPA CONTROLADOR
+===============================
+Aquí es donde se aloja la lógica de negocio de la aplicación. Siguiendo el ej.,
+se crea el archivo /app/Controller/PostsController.php, con la forma:
+
+class PostsController extends AppController {
+  public $helpers = array(’Html’, ’Form’);
+}
+
+Ej.: Cuando los usuarios peticionan www.example.com/posts/index (que es lo mismo
+que www.example.com/posts/), esperan ver una lista de posts. El código para esto:
+
+class PostsController extends AppController {
+  public $helpers = array('Html', 'Form');
+  public function index() {
+    $this->set('posts', $this->Post->find('all'));
+  }
+}
+
+Definiendo la función index() en nuestro PostsController, los usuarios pueden
+acceder a la lógica allí peticionando www.example.com/posts/index.
+
+La única instrucción en la acción usa set() para pasar datos desde el controlador
+a la vista. La línea setea la variable vista llamada 'posts' igual al valor de
+retorno del método find(’all’) del modelo Post.
+
+................................................................................
+
+CÓDIGO PARA LA CAPA DE VISTA
+============================
+Mayormente se compone de HTML mezclado PHP, pero puede terminar siendo XML, CSV 
+ó aún datos binarios. 
+
+Un layout es un código de presentación que está envuelto alrededor de una vista.
+Puede definir múltiples layouts, e intercambiar entre ellos.
+
+Pasar datos a la vista lucirá como:
+// print
+Array
+(
+  [0] => Array
+    (
+      [Post] => Array
+        (
+          [id] => 1
+          [title] => The title
+          [body] => This is the post body.
+          [created] => 2008-02-13 18:34:55
+          [modified] =>
+        )
+    )
+  [1] => Array
+    (
+      [Post] => Array
+        (
+          [id] => 2
+          [title] => A title once again
+          [body] => And the post body follows.
+          [created] => 2008-02-13 18:34:56
+          [modified] =>
+        )
+    )
+  [2] => Array
+    (
+      [Post] => Array
+        (
+          [id] => 3
+          [title] => Title strikes back
+          [body] => This is really exciting! Not.
+          [created] => 2008-02-13 18:34:57
+          [modified] =>
+        )
+    )
+)
+
+Los archivos de vista se almacenan en /app/View (aquí /app/View/Posts/index.ctp) 
+Formateo de datos en una tabla:
+
+<!-- File: /app/View/Posts/index.ctp -->
+<h1>Blog posts</h1>
+<table>
+  <tr>
+    <th>Id</th>
+    <th>Title</th>
+    <th>Body</th>
+    <th>Created</th>
+  </tr>
+  <!-- Here is where we loop through our $posts array, printing out post info -->
+  <?php foreach ($posts as $post): ?> <!-- Esta es la variable que se 'post' fijada por set() en el controlador -->
+  <tr>
+    <td>
+      <?php echo $post['Post']['id']; ?>
+    </td>
+    <td>
+      <?php echo $this->Html->link($post['Post']['title'],
+      array('controller' => 'posts', 'action' => 'view', $post['Post']['id'])); ?>  <!-- link() es un método del helper HtmlHelper  -->
+    </td>
+    <td>
+      <?php echo $post['Post']['body']; ?>
+    </td>
+    <td>
+      <?php echo $post['Post']['created']; ?>
+    </td>
+  </tr>
+  <?php endforeach; ?>
+  <?php unset($post); ?>
+</table>
+
+El objeto $this->Html es una instancia de la clase de CakePHP HtmlHelper (CakePHP
+viene con un set de helpers de vista), salida de formulario, JavaScript y Ajax.
+En el helper visto el método link() generará un enlace HTML con un título dado
+(el 1er argumento) y la URL (el 2do argumento).
+
+Al especificar URLs en en CakePHP, se recomienda usar formato de array (lo que
+permite usar la capacidad de enrutamiento inverso). Puede especificar URLs 
+relativas para la base de la aplicación en la forma /controller/action/param1/param2. 
+
+Aquí ya puede apuntar el navegador a http://www.example.com/posts/index. Debería
+ver su vista, formateada correctamente con enlistamiento y título de los posteos. 
+
+Si ha clickeado en uno de los enlaces que creamos en esta vista (que enlaza un 
+título de posteo a una URL /posts/view/some_id), se verá que la vista no se
+definió. Se los creará en el PostsController:  
+
+class PostsController extends AppController {
+  
+  public $helpers = array(’Html’, ’Form’);
+  
+  public function index() {
+    $this->set(’posts’, $this->Post->find(’all’));
+  }
+
+  public function view($id = null) {
+    if (!$id) {
+      throw new NotFoundException(__(’Invalid post’));
+    }
+    $post = $this->Post->findById($id);
+    if (!$post) {
+      throw new NotFoundException(__(’Invalid post’));
+    }
+    $this->set(’post’, $post);
+  }
+
+}
+
+Se usó findById() en vez de find('all') ya que se busca info de un sólo posteo.
+
+La acción de view toma como parámetro la ID del posteo que queremos ver. Este 
+parámetro se maneja a la acción a través de la URL peticionada. Si un usuario
+peticiona /posts/view/3, se pasa como $id el valor '3'. 
+
+También hacemos un chequeo de error para asegurar que un usuario está en realidad
+accediendo a un registro. Si un usuario peticiona /posts/view, se arrojará un
+NotFoundException y se dejará que el manejo de error de CakePHP tome lugar.
+
+También hubo otro manejo de error para asegurarse que el registro que ha accedido
+un usuario existe.
+
+La vista para la nueva acción de 'view' en /app/View/Posts/view.ctp: 
+
+<!-- File: /app/View/Posts/view.ctp -->
+<h1><?php echo h($post['Post']['title']); ?></h1>
+<p><small>Created: <?php echo $post['Post']['created']; ?></small></p>
+<p><?php echo h($post['Post']['body']); ?></p>
+................................................................................
+
+AGREGAR POSTEOS
+===============
+Para agregar posteos nuevos se crea una acción add() en el PostsController: 
+
+class PostsController extends AppController {
+  public $helpers = array(’Html’, ’Form’, ’Session’);
+  public $components = array(’Session’);
+  
+  public function index() {
+    $this->set(’posts’, $this->Post->find(’all’));
+  }
+
+  public function view($id) {
+    if (!$id) {
+      throw new NotFoundException(__(’Invalid post’));
+    }
+    $post = $this->Post->findById($id);
+    if (!$post) {
+      throw new NotFoundException(__(’Invalid post’));
+    }
+    $this->set(’post’, $post);
+  }
+
+  public function add() {
+    if ($this->request->is(’post’)) {
+      $this->Post->create();
+      if ($this->Post->save($this->request->data)) {
+        $this->Session->setFlash(__(’Your post has been saved.’));
+        return $this->redirect(array(’action’ => ’index’));
+      }
+      $this->Session->setFlash(__(’Unable to add your post.’));
+    }
+  }
+
+}
+
+Nota: $this->request->is() toma como argumento el método de petición
+(get, put, post, delete) ó al algún identificador de petición (Ajax). Ej.:
+$this->request->is('book') no retornará true si datos tipo book fueron posteados.
+
+Nota: Necesita incluir el SessionComponent - y SessionHelper - en cualquier
+controlador donde uno lo usará. Si es necesario, incluirlo en su AppController.    
+
+Lo que hace la acción add(): si el método HTTP de la petición fue POST, este 
+intenta guardar los datos usando el modelo POST. Si por alguna razón este no
+lo almacena, sólo renderiza la vista. Esto nos da chances de mostrar errores
+de validación de usuario ú otras advertencias.
+
+Cada petición CakePHP incluye un objeto CakeRequest que es accesible usando
+$this->request. El objeto de petición puede usarse para controlar el flujo de la 
+aplicación. Aquí se usa CakeRequest::is() para chequear que la petición es una
+petición POST HTTP. 
+
+Cuando un usuario usa un formulario para datos POST a su aplicación, esa info
+está disponible en $this->request->data. Puede usar pr() ó debug() para imprimirlo
+si quiere ver como luce.  
+
+Se usa SessionComponent::setFlash() para setear un mensaje a una variable de 
+sesión para ser mostrada en la página después de la redirección. En el layout
+se tiene a SessionHelper::flash que exhibe el mensaje y limpia la variable de 
+sesión correspondiente. 
+
+La función Controller::redirect redirige a otra URL. El parámetro 
+array(’action’ => ’index’) traduce a posteos / URL (la acción índice de los
+controlador de posts). Con la función Router::url() para ver los formatos
+que que puede especificar una URL para varias funciones CakePHP. 
+
+Llamar al método save() chequeará por errores de validación y aborta el
+almacenamiento si ocurre algo.
+
+Creamos al método create() primero para resetear el estado del modelo para 
+guardar información nueva. Esto no crea un registro en la db, pero limpia 
+Model::$id y setea Model::$data basado en los valores por defecto de su campo DB.
+
+................................................................................
+
+VALIDACIÓN DE DATOS
+===================
+Para esto necesita en sus vistas FormHelper de CakePHP. El FormHelper está
+disponible por defecto para todas las vistas en $this->Form.  
+
+La vista para agregar:
+
+<!-- File: /app/View/Posts/add.ctp -->
+<h1>Add Post</h1>
+<?php
+  echo $this->Form->create(’Post’);
+  echo $this->Form->input(’title’);
+  echo $this->Form->input(’body’, array(’rows’ => ’3’));
+  echo $this->Form->end(’Save Post’);
+?>
+
+Se usa a FormHelper para generar la etiqueta de apertura para un formulario HTML.
+El HTML generado por $this->Form->create(): 
+
+<form id="PostAddForm" method="post" action="/posts/add"> 
+
+Si se llama a create() sin parámetros, se asume que se construye un formulario
+que se envía vía POST a la acción de controlador add() actual (ó la acción 
+edit() cuando el id está incluido en los datos de formulario).
+
+Se usa el método $this->Form->input() para crear elementos de formulario del
+mismo nombre. El 1er parámetro le dice a CakePHP a que campo corresponde,
+y el 2do le permite configurar opciones adicionales (aquí el número de filas
+para el textarea). input() producirá elementos de formulario diferentes basados
+en el campo de modelo especificado. 
+
+La llamada $this->Form->end() genera un botón de envío y finaliza el formulario.
+Si se suministró un String como 1er parámetro para end(), el FormHelper produce
+un botón de envío nombrado acorde junto con la etiqueta de cierre de formulario.
+
+Se actualiza la vista /app/View/Posts/index.ctp para incluir un enlace 'Add Post'
+nuevo. Antes de <table>, agregar la línea:  
+
+<?php echo $this->Html->link(
+    'Add Post',
+    array('controller' => 'posts', 'action' => 'add')
+  ); 
+?>
+
+Las reglas de validación se definen en el modelo. Ajustemos el modelo Post:
+
+class Post extends AppModel {
+  public $validate = array(
+    ’title’ => array(
+      ’rule’ => ’notEmpty’
+    ),
+    ’body’ => array(
+      ’rule’ => ’notEmpty’
+    )
+  );
+}
+
+El array $validate le dice a CakePHP como validar sus datos al llamar al método
+save(). Aquí se especificaron que ambos 'title' y 'body' no estén vacíos. La 
+validación de CakePHP viene con varias reglas pre-cargadas (números de tarjeta
+de crédito, direcciones de e-mail, etc.) y flexibilidad para agregar sus
+propias reglas de validación.   
+
+................................................................................
+
+EDITAR POSTEOS
+==============
+La acción edit() del PostsController luciría como:
+
+  public function edit($id = null) {
+    if (!$id) {
+      throw new NotFoundException(__('Invalid post'));
+    }
+    $post = $this->Post->findById($id);
+    if (!$post) {
+      throw new NotFoundException(__('Invalid post'));
+    }
+    if ($this->request->is(array('post', 'put'))) {
+      $this->Post->id = $id;
+      if ($this->Post->save($this->request->data)) {
+        $this->Session->setFlash(__('Your post has been updated.'));
+        return $this->redirect(array('action' => 'index'));
+      }
+      $this->Session->setFlash(__('Unable to update your post.'));
+    }
+    if (!$this->request->data) {
+      $this->request->data = $post;
+    }
+  }
+
+Esta acción primero asegura que el usuario ha intentado acceder a un registro
+existente. Si ellos no han pasado un parámetro $id, ó el posteo no existe,
+se arrojará un NotFoundException para el ErrorHandler de CakePHP.  
+
+Luego la acción chequea si la petición es POST ó PUT. Si lo es, se usan los 
+datos POST para actualizar nuestro registro POST, ó volver y mostrar los errores
+de validación de usuario.
+
+Si no hay datos seteados para $this->request->data, lo seteamos al post recobrado
+previamente.
+
+La vista edit lucirá como:
+
+<!-- File: /app/View/Posts/edit.ctp -->
+<h1>Edit Post</h1> 
+<?php
+  echo $this->Form->create(’Post’);
+  echo $this->Form->input(’title’);
+  echo $this->Form->input(’body’, array(’rows’ => ’3’));
+  echo $this->Form->input(’id’, array(’type’ => ’hidden’));
+  echo $this->Form->end(’Save Post’);
+?>
+
+Esta vista produce la edición del formulario (con los valores populados), junto
+con los mensajes de error de validación necesarios. 
+
+CakePHP asumirá que uno está editando un modelo si está presente el campo 'id'
+en el array de datos. Si no hay presente ninguna id, CakePHP asumirá que uno 
+está insertando un modelo nuevo al llamarse a save(). 
+
+Se actualiza la vista index para editar posteos específicos:
+
+You can now update your index view with links to edit specific posts:
+
+<!-- File: /app/View/Posts/index.ctp (edit links added) -->
+<h1>Blog posts</h1>
+  <p><?php echo $this->Html->link("Add Post", array(’action’ => ’add’)); ?></p>
+  <table>
+    <tr>
+      <th>Id</th>
+      <th>Title</th>
+      <th>Action</th>
+      <th>Created</th>
+    </tr>
+    <!-- Here’s where we loop through our $posts array, printing out post info -->
+    <?php foreach ($posts as $post): ?>
+    <tr>
+      <td><?php echo $post[’Post’][’id’]; ?></td>
+      <td>
+        <?php
+          echo $this->Html->link(
+            $post[’Post’][’title’],
+            array(’action’ => ’view’, $post[’Post’][’id’])
+          );
+        ?>
+      </td>
+      <td>
+        <?php
+          echo $this->Html->link(
+            ’Edit’,
+            array(’action’ => ’edit’, $post[’Post’][’id’])
+          );
+        ?>
+      </td>
+      <td>
+        <?php echo $post[’Post’][’created’]; ?>
+      </td>
+    </tr>
+    <?php endforeach; ?>
+</table>
+................................................................................
+BORRAR POSTEOS
+==============
+Se comienza con una acción delete() en el PostsController:
+
+public function delete($id) {
+  if ($this->request->is('get')) {
+    throw new MethodNotAllowedException();
+  }
+  if ($this->Post->delete($id)) {
+    $this->Session->setFlash(__('The post with id: %s has been deleted.', h($id)));
+    return $this->redirect(array('action' => 'index'));
+  }
+}
+
+Esta lógica borra el posteo especificado por $id, y usa $this->Session->setFlash()
+para mostrar al usuario un mensaje de confirmación después de redireccionarlos
+a /posts. Si el usuario intenta borrar usando una petición GET, se arroja una 
+excepción. Las excepciones no capturadas son capturadas por el manejador de 
+excepciones de CakePHP, y se muestra una página de error. Hay varias 
+excepciones prefabricadas  que pueden usarse para indicar los variados errores
+HTTP que su aplicación puede necesitar generar.
+
+Ya que sólo estamos ejecutando alguna lógica y redireccionando, esta acción no
+tiene vista. Se deberá actualizar la vista index con los enlaces que le permiten
+a los usuarios borrar posteos, sin embargo:
+
+<!-- File: /app/View/Posts/index.ctp -->
+<h1>Blog posts</h1>
+<p><?php echo $this->Html->link(’Add Post’, array(’action’ => ’add’)); ?></p>
+<table>
+  <tr>
+    <th>Id</th>
+    <th>Title</th>
+    <th>Actions</th>   
+    <th>Created</th>
+  </tr>
+  <!-- Here’s where we loop through our $posts array, printing out post info -->
+  <?php foreach ($posts as $post): ?>
+  <tr>
+    <td><?php echo $post[’Post’][’id’]; ?></td>
+    <td>
+      <?php
+        echo $this->Html->link(
+        $post[’Post’][’title’],
+        array(’action’ => ’view’, $post[’Post’][’id’])
+        );
+      ?>
+    </td>
+    <td>
+      <?php
+        echo $this->Form->postLink(
+        ’Delete’,
+        array(’action’ => ’delete’, $post[’Post’][’id’]),
+        array(’confirm’ => ’Are you sure?’)
+        );
+      ?>
+      <?php
+        echo $this->Html->link(
+        ’Edit’, array(’action’ => ’edit’, $post[’Post’][’id’])
+        );
+      ?>
+    </td>
+    <td>
+      <?php echo $post[’Post’][’created’]; ?>
+    </td>
+  </tr>
+  <?php endforeach; ?>
+</table>
+
+
+--------------------------------------------------------------------------------
+MODIFICACIONES PARA HACER FUNCIONAR EL URL REWRITING
+====================================================
+...
+LoadModule rewrite_module modules/mod_rewrite.so
+...
+
+<Directory "C:/Program Files/Apache Software Foundation/Apache2.2/htdocs">
+    #
+    # Possible values for the Options directive are "None", "All",
+    # or any combination of:
+    #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+    #
+    # Note that "MultiViews" must be named *explicitly* --- "Options All"
+    # doesn't give it to you.
+    #
+    # The Options directive is both complicated and important.  Please see
+    # http://httpd.apache.org/docs/2.2/mod/core.html#options
+    # for more information.
+    #
+    Options Indexes FollowSymLinks
+
+    #
+    # AllowOverride controls what directives may be placed in .htaccess files.
+    # It can be "All", "None", or any combination of the keywords:
+    #   Options FileInfo AuthConfig Limit
+    #
+    AllowOverride All
+
+    #
+    # Controls who can get stuff from this server.
+    #
+    # Order allow,deny
+    Allow from all
+
+</Directory>
+
+
+
+
+--------------------------------------------------------------------------------
+
+CONFIGURACIÓN DE APACHE HTTP SERVER POR DEFECTO  
+===============================================
+Win32 (Apache httpd 2.2):
+
+ServerRoot              ::      "C:/Program Files/Apache Software Foundation/Apache2.2"
+Config File             ::      "C:/Program Files/Apache Software Foundation/Apache2.2/conf/httpd.conf"
+DocumentRoot            ::      "C:/Program Files/Apache Software Foundation/Apache2.2/htdocs"
+ErrorLog                ::      "C:/Program Files/Apache Software Foundation/Apache2.2/logs/error.log"
+AccessLog               ::      "C:/Program Files/Apache Software Foundation/Apache2.2/logs/access.log"
+cgi-bin                 ::      "C:/Program Files/Apache Software Foundation/Apache2.2/cgi-bin/"
+binaries (apachectl)    ::      "C:/Program Files/Apache Software Foundation/Apache2.2/bin"
+
+--------------------------------------------------------------------------------
+CONFIGURACION DE DB (cakephp-master/app/Config)
+===================
+class DATABASE_CONFIG {
+
+	public $default = array(
+		'datasource' => 'Database/Mysql',
+		'persistent' => false,
+		'host' => 'localhost',
+    'port' => '3306',
+		'login' => 'root',
+		'password' => '',
+		'database' => 'nombredb',
+		'prefix' => '',
+		//'encoding' => 'utf8',
+	);
+
+	public $test = array(
+		'datasource' => 'Database/Mysql',
+		'persistent' => false,
+		'host' => 'localhost',
+    'port' => '3306',
+		'login' => 'user',
+		'password' => 'password',
+		'database' => 'test_database_name',
+		'prefix' => '',
+		//'encoding' => 'utf8',
+	);
+}
+
+
+--------------------------------------------------------------------------------
+CONFIGURAR HASHES
+=================
+
+Notice (1024): Please change the value of 'Security.salt' in APP/Config/core.php to a salt value specific to your application. 
+[CORE\Cake\Utility\Debugger.php, line 845]
+
+Antes
+	Configure::write('Security.salt', 'DYhG93b0qyJfIxfs2guVoUubWwvniR2G0FgaC9mi');
+
+Ahora
+  Configure::write('Security.salt', 'DYhG93b0qyJfIxfs2guVoUubWwvniR2G0FgaMaxi');  
+
+Notice (1024): Please change the value of 'Security.cipherSeed' in APP/Config/core.php to a numeric (digits only) 
+seed value specific to your application. [CORE\Cake\Utility\Debugger.php, line 849]
+
+Antes
+  Configure::write('Security.cipherSeed', '76859309657453542496749683645');
+
+Ahora
+  Configure::write('Security.cipherSeed', '76859309657453542496708011978');    
+--------------------------------------------------------------------------------
+
+PLUGIN DEBUGKIT
+===============
+Clone/Copy the files in this directory into app/Plugin/DebugKit
+
+This can be done with the git submodule command
+
+git submodule add https://github.com/cakephp/debug_kit.git app/Plugin/DebugKit
+
+    Ensure the plugin is loaded in app/Config/bootstrap.php by calling CakePlugin::load('DebugKit');
+    Include the toolbar component in your app/Controller/AppController.php:
+
+class AppController extends Controller {
+         public $components = array('DebugKit.Toolbar');
+}
+
+    Set Configure::write('debug', 1); in app/Config/core.php.
+    Make sure to remove the 'sql_dump' element from your layout (usually app/View/Layouts/default.ctp if you want to experience the awesome that is the debug kit SQL log.
+
+Using Composer
+
+Ensure require is present in composer.json. This will install the plugin into Plugin/DebugKit:
+
+{
+    "require": {
+        "cakephp/debug_kit": "2.2.*"
+    }
+}
+
+--------------------------------------------------------------------------------  
