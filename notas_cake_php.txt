@@ -538,6 +538,43 @@ a los usuarios borrar posteos, sin embargo:
   <?php endforeach; ?>
 </table>
 
+Usar postLink() creará un enlace que usa JavaScript para hacer una petición POST 
+para borrar nuestro posteo. Borrar contenido usando peticiones GET es riesgoso,
+ya que crawlers web pueden borrar accidentalmente toda la info.
+
+Nota: este código view también usa el FormHelper para preguntar al usuario con
+un diálogo de confirmación antes de que ellos intenten borrar el posteo.
+................................................................................
+
+RUTAS
+=====
+Por defecto, CakePHP responde a una petición para la raíz de su sitio
+(ej., http://www.example.com) usando sus PagesController, renderizando una 
+view llamada 'home'. En vez de eso se reemplazará esto con nuestro PostsController
+creando una regla de enrutamiento.
+
+El enrutamiento de CakePHP está en /app/Config/routes.php. Querrá comentar la
+línea que define la ruta raíz por defecto. Esto luce como:
+
+Router::connect(
+  ’/’,
+  array(’controller’ => ’pages’, ’action’ => ’display’, ’home’)
+);
+
+Esta línea conecta la URL '/' con la página home por defecto de CakePHP. Queremos
+conectarla con nuestro propio controlador, así reemplazar esa línea con:
+
+Router::connect(’/’, array(’controller’ => ’posts’, ’action’ => ’index’));
+
+Esto debería conectar a usuarios que peticionan '/' a la acción index() de nuestro
+PostsController.
+
+Nota: CakePHP también usa 'enrutamiento inverso'. Si, con la ruta definida arriba,
+uno pasa array(’controller’ => ’posts’, ’action’ => ’index’) a una función que
+espera un array, la URL resultante usada será '/'. Con esto sus rutas definen
+donde va la URL, y también asegura que los enlaces apunten al mismo lugar.
+
+
 
 --------------------------------------------------------------------------------
 MODIFICACIONES PARA HACER FUNCIONAR EL URL REWRITING
