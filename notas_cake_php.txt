@@ -574,8 +574,6 @@ uno pasa array(’controller’ => ’posts’, ’action’ => ’index’) a una función que
 espera un array, la URL resultante usada será '/'. Con esto sus rutas definen
 donde va la URL, y también asegura que los enlaces apunten al mismo lugar.
 
-
-
 --------------------------------------------------------------------------------
 MODIFICACIONES PARA HACER FUNCIONAR EL URL REWRITING
 ====================================================
@@ -612,10 +610,279 @@ LoadModule rewrite_module modules/mod_rewrite.so
     Allow from all
 
 </Directory>
+................................................................................
 
+CONVENCIONES DE CONTROLADOR
+===========================
+Los nombres de clase de Controlador son plurales, camel-case y finalizan con
+Controller. Ej.: PeopleController y LatestArticlesController.
 
+El 1er método que uno escribe para un controlador puede ser index(). Cuando una
+petición especifica un controlador pero no una acción, el comportamiento por 
+defecto de CakePHP es ejecutar index() de ese controlador. Ej.:
 
+. http://www.example.com/apples/ mapea a una llamada en index() del ApplesController
+. http://www.example.com/apples/view/ mapea a una llamada en view() del ApplesController
 
+Puede también cambiar la visibilidad de métodos controlador en CakePHP prefijando
+los nombres de método controlador con guiones. Si un método controlador ha sido
+prefijado con guiones, el método no será accesible directamente desde la web
+pero si lo será para uso interno. Ej.:
+
+class NewsController extends AppController {
+  public function latest() {
+    $this->_findNewArticles();
+  }
+  
+  protected function _findNewArticles() {
+    // Logic to find latest news articles
+  }
+}
+
+Así:
+. http://www.example.com/news/latest/ : será accesible de forma usual al usuario.
+. http://www.example.com/news/_findNewArticles/ : se obtiene un error, ya que 
+método está precedido con un guión bajo. 
+
+Los métodos no-públicos no pueden ser accedidos. 
+
+Consideraciones de URL para nombres de Controlador
+--------------------------------------------------
+Los controladores de palabra única pueden mapearse a una ruta de URL simple en
+minúsculas. Ej.: ApplesController (que estaría definida en el archivo 'ApplesController.php')
+se accede desde http://example.com/apples.
+
+Los controladores de palabra múltiple pueden ser 'inflingidas' de cualquier forma
+que equivalga al nombre del controlador:
+
+• /redApples
+• /RedApples
+• /Red_apples
+• /red_apples
+
+Todos resolverán al índice del controlador RedApples. Pero la convención es que 
+sus URLs estén en minúsculas y con guión bajo, así /red_apples/go_pick es la 
+forma correcta de acceder a la acción RedApplesController::go_pick. 
+
+Convenciones de archivo y nombre de clase
+-----------------------------------------
+Por ej.: para una clase MyNiftyClass, en CakePHP el archivo debería nombrarse
+MyNiftyClass.php. Demás ej. para nombres de aplicación en CakePHP:
+
+. La clase Controlador KissesAndHugsController debería hallarse en un archivo
+  llamado KissesAndHugsController.php
+   
+. La clase Componente MyHandyComponent debería hallarse en un archivo MyHandyComponent
+
+. La clase Modelo OptionValue debería hallarse en un archivo OptionValue.php
+
+. La clase Comportamiento EspeciallyFunkableBehavior debería hallarse en un 
+  archivo EspeciallyFunkableBehavior.php
+  
+. La clase Vista SuperSimpleView debería hallarse en un archivo SuperSimpleView.php
+
+. La clase Helper BestEverHelper debería hallarse en un archivo BestEverHelper.php
+
+Cada archivo debería ubicarse en la carpeta apropiada en /app.
+
+Convenciones de Modelo y Base de Datos
+--------------------------------------
+Los nombres de clase Modelo son únicos y camel-case. Ej.: Person, BigPerson, y ReallyBigPerson. 
+
+Los nombres de tabla correspondientes a modelos CakePHP son plurales y con guión bajo.
+Las tablas subyacentes para los modelos mencionados arriba son people, big_people, and really_big_people,
+respectivamente.
+
+Puede usar la librería de Utilidad Inflector para chequear palabras singular/plural.
+
+Los nombres de Campo con 2 ó más palabras van con guión bajo: first_name.
+
+Las claves foráneas en relaciones hasMany, belongsTo ó hasOne son reconocidas por
+defecto como el nombre único de la tabla relacionada seguido de _id. Así si un
+Baker hasMany Cake, la tabla cakes se referirá a la tabla bakers vía una clave
+foránea. Para una tabla como category_types cuyo nombre contiene varias palabras,
+la clave foránea sería category_type_id.
+
+Unir tablas, usado en relaciones entre modelos hasAndBelongsToMany (HABTM), 
+deberían nombrarse después de las tablas modelo que unirán, arregladas en 
+orden alfabético (apples_zebras en vez de zebras_apples).
+
+Todas las tablas con las que interactúan los modelos CakePHP (con la excepción de
+la unión de tablas) requieren una clave primaria singular para identificar de 
+forma unívoca cada fila. Para modelar una tabla que no tiene ya una clave primaria
+de campo único, la convención de CakePHP es que la clave primaria de campo único
+se agregó a la tabla. Debe agregar una clave primaria de campo único si quiere
+usar ese modelo de tabla.
+
+CakePHP no soporta claves primarias compuestas. Si quiere manipular directamente
+sus datos de unión de tabla, usar directamente llamadas de query ó agregue
+una clave primaria para actuar sobre esa como un modelo normal. Ej.:
+
+CREATE TABLE posts_tags ( id INT(10) NOT NULL AUTO_INCREMENT, post_id INT(10)
+NOT NULL, tag_id INT(10) NOT NULL, PRIMARY KEY(id));
+
+En vez de usar una clave auto-increment como clave primaria, puede también usar
+char(36). CakePHP usará un UUID (String::uuid) único de 36 caracteres cada vez que
+almacene un registro nuevo usando el método Model::save.
+
+Convenciones de Vista
+---------------------
+Los archivos de plantilla de Vista son nombrados después que las funciones controlador
+que exhiben, en forma con guión bajo. La función getReady() de la clase PeopleController
+buscará una plantilla de vista en /app/View/People/get_ready.ctp.
+
+El patrón básico es /app/View/Controller/underscored_function_name.ctp.
+
+Ej. final:
+
+• Tabla en DB: 'people'
+• Clase Modelo: 'Person', hallada en /app/Model/Person.php
+• Clase Controlador: 'PeopleController', hallada en /app/Controller/PeopleController.php
+• Plantilla de Vista, hallada en /app/View/People/index.ctp
+
+Con estas convenciones, CakePHP sabe que una petición a http://example.com/people/
+mapea a una llamada en la función index() del PeopleController, donde el modelo
+Person está disponible automáticamente (y ligado automáticamente a la tabla 
+'People' en la DB), y renderiza a un archivo.   
+................................................................................
+ESTRUCTURA DE CARPETAS DE CAKEPHP
+---------------------------------
+• app
+• lib
+• vendors
+• plugins
+• .htaccess
+• index.php
+• README
+
+Las carpetas principales:
+
+• La carpeta app es donde se ubicarán los archivos de su aplicación.
+• La carpeta lib es donde se almacena el núcleo de CakePHP. No editar archivos
+  ni modificarlos en esta carpeta. En vez de eso modifique las extensiones
+  Application.
+• La carpeta vendors es donde se colocan librerías PHP de tercera parte que 
+  necesita usar en sus aplicaciones de CakePHP.
+
+Carpeta App
+-----------
+
+.Config: Contiene archivos de configuración. Ej.: detalles de conexión a Db, 
+bootstrapping, archivos de configuración del núcleo, etc.
+ 
+.Console: Contiene comandos y tareas de consola para su aplicación. Este
+directorio puede también contener un directorio Templates para personalizar
+la salida.
+
+.Controller: Contiene sus controladores de aplicación y sus componentes.
+
+.Lib: Contiene librerías que no vienen con 3ras partes ó vendedores externos.
+Esto le permite separar sus librerías de organización internas de librerías
+de vendedor.
+
+.Locale: Almacena archivos de String para internacionalización.
+
+.Model: Contiene modelos, comportamientos y datasources de su aplicación.
+
+.Plugin: Contiene paquetes de plugin.
+
+.Test: Contiene todos los test cases y test fixtures de su aplicación. El 
+directorio Test/Case debería reflejar su aplicación y contener 1 ó más test 
+cases por clase en su aplicación. 
+
+.tmp: Es donde CakePHP almacena datos temporales. Usualmente se usa para 
+almacenar descripciones de modelo, logs y a veces info de sesión. Fijarse de
+que esta carpeta exista y sea escribible. En modo debug, CakePHP le 
+advertirá si esta carpeta no es escribible ó está ausente.
+
+.Vendor: Es para cualquiera de las clases ó librerías de 3ra parte. Hacerlo 
+facilita el acceso usando la función App::import('vendor', 'name').
+
+.View: Contiene archivos de presentación: elementos, páginas de error, helpers,
+layouts, y archivos de vista.
+
+.webroot: En una puesta a producción, esta carpeta debería servir como la raíz
+de documentos para su aplicación. Las carpetas aquí alojan hojas de estilo CSS,
+imágenes, y archivos Javascript.
+................................................................................
+Estructura CakePHP
+------------------
+Extensiones Application
+-----------------------
+Los controladores, helpers y modelos tienen c/u una clase padre que puede usar
+para definir cambios a nivel de aplicación. AppController (/app/Controller/AppController.php), 
+AppHelper (/app/View/Helper/AppHelper.php) y AppModel (/app/Model/AppModel.php) 
+son lugares para poner métodos que uno quiere compartir entre todos los 
+controladores, helpers y modelos.
+
+Las definiciones de Ruta le dicen a CakePHP como mapear URLs a acciones controlador.
+El comportamiento por defecto asume que la URL /controller/action/var1/var2 mapea
+a Controller::action($var1, $var2), pero puede usar rutas para personalizar URLs
+y como ellas son interpretadas por su aplicación.
+
+Un plugin es un paquete de modelos, controladores y vistas que cumplen un propósito
+específico que puede abarcar múltiples aplicaciones.  
+
+Extensiones Controller ('Componentes')
+--------------------------------------
+Un Componente es una clase que auxilia en lógica de controlador. Si tiene alguna
+lógica que quiere compartir entre controladores (ó aplicaciones), un componente
+es usualmente provechoso. Ej.: la clase núcleo EmailComponent facilita crear y
+enviar mails. En vez de escribir un método controlador en un único controlador
+que realiza esta lógica, puede empaquetar la lógica tal que esta pueda 
+compartirse.
+
+Los controladores también sientan con callbacks, los que puede necesitar para 
+insertar alguna lógica entre las operaciones núcleo de CakePHP. Callbacks 
+disponibles:
+
+• afterFilter(): Ejecutado después de toda la lógica de control, incluyendo la
+  renderización de la vista
+• beforeFilter(): Ejecutado antes que cualquier lógica de acción de controlador
+• beforeRender(): Ejecutado después de la lógica de controlador, pero antes que
+  la vista sea renderizada
+  
+Extensiones Modelo ('Comportamiento')
+-------------------------------------
+
+Similarly, Behaviors work as ways to add common functionality between models. For example, if you
+store user data in a tree structure, you can specify your User model as behaving like a tree, and gain free
+functionality for removing, adding, and shifting nodes in your underlying tree structure.
+
+Models are also supported by another class called a DataSource. DataSources are an abstraction that enable
+models to manipulate different types of data consistently. While the main source of data in a CakePHP
+application is often a database, you might write additional DataSources that allow your models to represent
+RSS feeds, CSV files, LDAP entries, or iCal events. DataSources allow you to associate records from
+different sources: rather than being limited to SQL joins, DataSources allow you to tell your LDAP model
+that it is associated with many iCal events.
+
+Like controllers, models have callbacks:
+
+• beforeFind()
+• afterFind()
+• beforeValidate()
+• afterValidate()
+• beforeSave()
+• afterSave()
+• beforeDelete()
+• afterDelete()
+
+The names of these methods should be descriptive enough to let you know what they do. You can find the
+details in the models chapter.
+
+View Extensions (“Helpers”)
+
+A Helper is a class that aids in view logic. Much like a component used among controllers, helpers allow presentational
+logic to be accessed and shared between views. One of the core helpers, JsHelper, makes AJAX
+requests within views much easier and comes with support for jQuery (default), Prototype and Mootools.
+
+Most applications have pieces of view code that are used repeatedly. CakePHP facilitates view code reuse
+with layouts and elements. By default, every view rendered by a controller is placed inside a layout. Elements
+are used when small snippets of content need to be reused in multiple views.
+
+SEGUIR 33 
+  
+    
 --------------------------------------------------------------------------------
 
 CONFIGURACIÓN DE APACHE HTTP SERVER POR DEFECTO  
