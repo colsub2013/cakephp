@@ -842,21 +842,24 @@ disponibles:
 • beforeRender(): Ejecutado después de la lógica de controlador, pero antes que
   la vista sea renderizada
   
-Extensiones Modelo ('Comportamiento')
+Extensiones Model ('Behaviour')
 -------------------------------------
+Los comportamientos agregan una funcionalidad común entre modelos. Ej.: si 
+almacena datos de usuario en una estructura de árbol, puede especificar su 
+modelo User como si se comportara como un árbol, y ganar libre funcionalidad
+para quitar, agregar, y desplazar nodos en su estructura de árbol subyacente.
 
-Similarly, Behaviors work as ways to add common functionality between models. For example, if you
-store user data in a tree structure, you can specify your User model as behaving like a tree, and gain free
-functionality for removing, adding, and shifting nodes in your underlying tree structure.
+Los modelos son también soportados por otra clase llamada un DataSource, el que
+es una abstracción que habilita a modelos a manipular tipos diferentes de 
+de datos consistentes. Mientras que la fuente principal de datos en una aplicación
+CakePHP es con frecuencia una DB, puede escribir DataSources adicionales que le
+permiten a sus modelos representar alimentaciones RSS, archivos CSV, entradas
+LDAP, ó eventos iCal. Los DataSources le permiten asociar registros desde 
+fuentes diferentes: en vez de ser limitados por joins SQL, los DataSources le
+permiten decirle a su modelos LDAP que este está asociado con varios eventos
+iCal.
 
-Models are also supported by another class called a DataSource. DataSources are an abstraction that enable
-models to manipulate different types of data consistently. While the main source of data in a CakePHP
-application is often a database, you might write additional DataSources that allow your models to represent
-RSS feeds, CSV files, LDAP entries, or iCal events. DataSources allow you to associate records from
-different sources: rather than being limited to SQL joins, DataSources allow you to tell your LDAP model
-that it is associated with many iCal events.
-
-Like controllers, models have callbacks:
+Los modelos también tienen callbacks:
 
 • beforeFind()
 • afterFind()
@@ -867,18 +870,18 @@ Like controllers, models have callbacks:
 • beforeDelete()
 • afterDelete()
 
-The names of these methods should be descriptive enough to let you know what they do. You can find the
-details in the models chapter.
+Extensiones View ('Helpers')
+----------------------------
+Un helper es una clase que auxilia la lógica de vista. Los helpers permiten que
+la lógica de presentación sea accedida y compartida entre vistas. Uno de los
+helpers núcleo, JsHelper, hace a las peticiones AJAX dentro de vistas más fáciles
+y vienen con soporte para jQuery (por defecto), Prototype y Mootools.
 
-View Extensions (“Helpers”)
-
-A Helper is a class that aids in view logic. Much like a component used among controllers, helpers allow presentational
-logic to be accessed and shared between views. One of the core helpers, JsHelper, makes AJAX
-requests within views much easier and comes with support for jQuery (default), Prototype and Mootools.
-
-Most applications have pieces of view code that are used repeatedly. CakePHP facilitates view code reuse
-with layouts and elements. By default, every view rendered by a controller is placed inside a layout. Elements
-are used when small snippets of content need to be reused in multiple views.
+La mayoría de las aplicaciones tienen piezas de código de vista que son usadas
+repetidamente. CakePHP facilita la reutilización de código de vista con layouts y
+elementos. Por defecto, cada vista renderizada por un controlador se ubica dentro
+de un layout. Los elementos son usados cuando pequeños fragmentos de contenido
+necesitan reutilizarse en vistas múltiples.
 
 SEGUIR 33 
   
