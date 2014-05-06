@@ -996,63 +996,106 @@ AllowOverride se fija a All para el DocumentRoot correcto. Vería algo similar a:
   # Deny from all
 </Directory>
 
-2. Make sure you are loading mod_rewrite correctly. You should see something like:
+2. Asegurarse de cargar mod_rewrite correctamente. Debería ver:
 
 LoadModule rewrite_module libexec/apache2/mod_rewrite.so
 
-In many systems these will be commented out by default, so you may just need to remove the leading
-# symbols.
+Para esto hay que reiniciar el servidor web.
 
-After you make changes, restart Apache to make sure the settings are active.
+Verificar que sus archivos .htaccess están en los directorios correctos.
 
-Verify that your .htaccess files are actually in the right directories. Some operating systems treat files
-that start with ‘.’ as hidden and therefore won’t copy them.
-
-3. Make sure your copy of CakePHP comes from the downloads section of the site or our Git repository,
-and has been unpacked correctly, by checking for .htaccess files.
-
-CakePHP root directory (must be copied to your document; redirects everything to your CakePHP
-app):
+3. El directorio raíz de CakePHP (debe ser copiado a su documento; redirecciona
+todo a su aplicación CakePHP):
 
 <IfModule mod_rewrite.c>
-RewriteEngine on
-RewriteRule ^ $ app/webroot/ [L]
-RewriteRule (.*) app/webroot/ $ 1 [L]
+  RewriteEngine on
+  RewriteRule ^ $ app/webroot/ [L]
+  RewriteRule (.*) app/webroot/ $ 1 [L]
 </IfModule>
 
-CakePHP app directory (will be copied to the top directory of your application by bake):
+El directorio app de CakePHP (sería copiado al directorio principal de su aplicación):
 
 <IfModule mod_rewrite.c>
-RewriteEngine on
-RewriteRule ^ $ webroot/ [L]
-RewriteRule (.*) webroot/ $ 1 [L]
+  RewriteEngine on
+  RewriteRule ^ $ webroot/ [L]
+  RewriteRule (.*) webroot/ $ 1 [L]
 </IfModule>
 
-CakePHP webroot directory (will be copied to your application’s web root by bake):
+El directorio webroot de CakePHP (será copiado a su raíz de la aplicación web):
 
 <IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.*) $ index.php [QSA,L]
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^(.*) $ index.php [QSA,L]
 </IfModule>
 
-If your CakePHP site still has problems with mod_rewrite, you might want to try modifying settings
-for Virtual Hosts. On Ubuntu, edit the file /etc/apache2/sites-available/default (location is distributiondependent).
-In this file, ensure that AllowOverride None is changed to AllowOverride
-All, so you have:
+Si su sitio CakePHP aún tiene problemas con mod_rewrite, puede querer modificar
+la configuración para Hosts Virtuales. Asegurarse que AllowOverride None se 
+cambie a AllowOverride All:  
 
 <Directory />
-Options FollowSymLinks
-AllowOverride All
+  Options FollowSymLinks
+  AllowOverride All
 </Directory>
 <Directory /var/www>
-Options Indexes FollowSymLinks MultiViews
-AllowOverride All
-Order Allow,Deny
+  Options Indexes FollowSymLinks MultiViews
+  AllowOverride All
+  Order Allow,Deny
+  Allow from all
+</Directory>
 
-SEGUIR 40 
-  
+Si uno está instalando CakePHP en un directorio de usuario (http://example.com/~username/cakephp/),
+ó cualquier otra estructura de URL que ya usa mod_rewrite, necesitará agregar 
+sentencias RewriteBase a los archivos .htaccess que usa CakePHP 
+(/.htaccess, /app/.htaccess, /app/webroot/.htaccess).
+
+Esto puede agregarse a la misma sección con la directiva RewriteEngine, por ej.,
+su archivo webroot .htaccess luciría:
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /path/to/cake/app
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^(.*) $ index.php [QSA,L]
+</IfModule>
+
+4. (Opcional) Para mejorar la puesta en marcha de producción, debería evitar
+asuntos inválidos de ser parseados por CakePHP. Modificar su .htaccess webroot a:
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /path/to/cake/app
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_URI} !^/(app/webroot/)?(img|css|js)/(.*) $
+  RewriteRule ^(.*) $ index.php [QSA,L]
+</IfModule>
+
+Lo de arriba evita que asuntos incorrectos sean enviados a index.php y en vez de
+eso exhiban la página 404 del servidor web.
+
+Puede también crear una página 404 coincidente, ó usar el 404 de CakePHP incorporado
+agregando una directiva ErrorDocument:
+
+ErrorDocument 404 /404-not-found
+................................................................................
+
+Encender todo
+-------------
+Si tiene errores relacionados a timezone desde PHP descomentar una línea en 
+app/Config/core.php:
+
+/**
+* Uncomment this line and correct your server timezone to fix
+* any date & time related errors.
+*/
+date_default_timezone_set(’UTC’);
+
+--------------------------------------------------------------------------------
+
+SEGUIR CAP5 (45)  
     
 --------------------------------------------------------------------------------
 
