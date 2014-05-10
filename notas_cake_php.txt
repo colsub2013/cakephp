@@ -1094,8 +1094,116 @@ app/Config/core.php:
 date_default_timezone_set(’UTC’);
 
 --------------------------------------------------------------------------------
+Ciclo de petición CakePHP
+-------------------------
+Ver "imagenes_notas/ciclo_peticion_cakephp.png"
 
-SEGUIR CAP5 (45)  
+El ciclo de petición típico de CakePHP arranca con un usuario que peticiona una
+página ó recurso en su aplicación. Esta petición es primero procesada por un 
+dispatcher que seleccionará el objeto controlador correcto para manejar esto.
+
+Una vez que la petición llega al controlador, este se comunicará con la capa
+Modelo para procesar cualquier extracción de datos ó - operación de guardado 
+que puede necesitarse. Terminada esta comunicación, el controlador procederá a
+delegar al objeto vista correcto la tarea de generar la salida resultante de los
+datos provistos por el modelo.
+
+Generada esta salida, esta se renderiza inmediatamente al usuario. 
+
+--------------------------------------------------------------------------------
+CONTROLADORES
+=============
+Un controlador suele usarse para gestiona la lógica alrededor de un modelo único.
+Ej.: si uno construye un sitio para una panadería (bakery) online, uno puede tener
+un RecipesController que gestione sus recetas y un IngredientsController que 
+gestione sus ingredientes. Se pueden tener también controladores que funcionen con
+más de un modelo. En CakePHP, un controlador se nombra después del modelo primario
+que maneja.
+
+Sus controladores de aplicación extienden la clase AppController, que extiende
+la clase Controller núcleo. La clase AppController puede definirse en  
+/app/Controller/AppController.php y este debería contener métodos que son 
+compartidos entre todos los controladores de su aplicación.
+
+Los controladores proveen un número de métodos que manejan peticiones. Estas son
+llamadas acciones. Por defecto, cada método público en un controlador es una
+acción, y es accesible desde una URL. Una acción es responsable de interpretar
+la petición y crear la respuesta. Usualmente las respuestas están en la forma
+de vista renderizada, pero también hay otros modos de crear respuestas.
+................................................................................
+
+El App Controller
+-----------------
+La clase AppController es la clase padre de todos sus controladores de aplicación.
+AppController mismo extiende la clase Controller incluída en la librería núcleo
+de CakePHP. AppController está definia en /app/Controller/AppController.php como
+sigue:  
+
+class AppController extends Controller {
+}
+
+Los atributos y métodos Controller creados en su AppController estarán disponibles
+para todos sus controladores de la aplicación. 
+
+Mientras que las reglas de herencia orientadas a objeto normales aplican, CakePHP
+hace trabajo adicional cuando se vienen atributos controlador especiales. Para los 
+componentes y helpers usados por un controlador, los arrays de valor AppController
+son mergeados con arreglos de clase controlador hijos. Los valores en la clase
+hijo siempre redefinirán aquellos en AppController.  
+
+Nota: CakePHP mergea las siguientes variables desde el AppController en sus controladores
+de aplicación:
+
+• $components
+• $helpers
+• $uses
+
+Hay que agregar los helpers de formulario y Html por defecto si uno define la
+propiedad $helpers en su AppController.
+
+También llamar a los callbacks de AppController dentro de los callbacks controlador
+hijos para mejorar los resultados:
+
+public function beforeFilter() {
+  parent::beforeFilter();
+}
+
+Parámetros de request
+---------------------
+Cuando es hecha una petición a una aplicación CakePHP, las clases Router y Dispatcher
+de CakePHP usan la configuración de Enrutamiento para hallar y crear el controlador
+correcto. Los datos de petición son encapsulados en un objeto request. CakePHP 
+pone toda la información de request importante en la propiedad $this->request.
+
+Acciones Controller
+-------------------
+Las acciones Controller son 
+
+Controller actions are responsible for converting the request parameters into a response for the browser/user
+making the request. CakePHP uses conventions to automate this process and remove some boilerplate code
+you would otherwise need to write.
+
+By convention, CakePHP renders a view with an inflected version of the action name. Returning to our online
+bakery example, our RecipesController might contain the view(), share(), and search() actions.
+The controller would be found in /app/Controller/RecipesController.php and contain:
+
+# /app/Controller/RecipesController.php
+class RecipesController extends AppController {
+  public function view($id) {
+    //action logic goes here..
+  }
+  
+  public function share($customerId, $recipeId) {
+    //action logic goes here.. 
+  }
+  
+  public function search($query) {
+    //action logic goes here..
+  }
+}
+
+
+SEGUIR CAP5 (52)  
     
 --------------------------------------------------------------------------------
 
