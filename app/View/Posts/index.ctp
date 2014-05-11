@@ -12,7 +12,7 @@
   <tr>
     <td>
       <?php echo $this->Html->link(
-        'Editar',
+        'Modificar',
         array('action' => 'edit', $post['Post']['id'])
       ); ?>
       <?php echo $this->Form->postLink(
@@ -32,7 +32,10 @@
         array('controller' => 'posts', 'action' => 'view', $post['Post']['id'])); ?>
     </td>
     <td>
-      <?php echo $post['Post']['created']; ?>
+      <?php 
+        $date = date("d/m/Y H:i", strtotime($post['Post']['created']));
+        echo $date; 
+      ?>
     </td>
   </tr>
   <?php endforeach; ?>

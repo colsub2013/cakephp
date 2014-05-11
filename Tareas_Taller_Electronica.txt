@@ -66,6 +66,12 @@ SOLUCIÓN: se modificó /app/View/Layouts/default.ctp en la etiqueta <head>:
 T7. Modificar la columna 'Created' para que tome la fecha de creación de
     cada registro en formato dd/mm/aaaa hh:mm
 
+SOLUCIÓN: se modificó /app/View/Posts/index.ctp:    
+  <?php 
+    $date = date("d/m/Y H:i", strtotime($post['Post']['created']));
+    echo $date; 
+  ?>
+
 --------------------------------------------------------------------------------
 [DONE]
 T8. Remover el footer
