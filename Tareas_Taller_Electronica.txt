@@ -8,6 +8,8 @@ T1. El favicon debe ser un archivo con un chip y la pestaña
 SOLUCIÓN: se modificó /app/View/Layouts/default.ctp removiendo contenido en 
 <title>
 
+<h1 class="centrado">Materiales</h1>
+
 --------------------------------------------------------------------------------
 [DONE]  
 T2. Quitar el enlace en el vértice superior izquierdo que hace
@@ -31,8 +33,16 @@ T4. Modificar el nombre del enlace 'Add Post' por 'Agregar Material'
 T5. Mover la columna 'Action' a la izquierda y traducirlo
 
 --------------------------------------------------------------------------------
+[DONE]
+T6. Crear un archivo genérico de JavaScript para la aplicación e incluir
+    la librería de jQuery
 
-T6. Crear un archivo genérico de JavaScript para la aplicación
+SOLUCIÓN: se modificó /app/View/Layouts/default.ctp en la etiqueta <head>:   
+    echo $this->Html->script('jquery-1.11.1');
+    echo $this->Html->script('js.generic');
+    
+    Se agregaron los archivos /app/webroot/js/jquery-1.11.1.js y 
+    /app/webroot/js/js.generic.js
 
 --------------------------------------------------------------------------------
 

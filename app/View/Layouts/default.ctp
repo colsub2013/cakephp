@@ -26,9 +26,12 @@ $cakeDescription = __d('cake_dev', 'Materiales');
 	</title>
 	<?php
 		echo $this->Html->meta('icon');
+#    echo $this->Html->meta('icon', $this->Html->url('/favicon.ico'));
 
 		echo $this->Html->css('cake.generic');
-
+		echo $this->Html->script('jquery-1.11.1');
+    echo $this->Html->script('js.generic');
+    
 		echo $this->fetch('meta');
 		echo $this->fetch('css');
 		echo $this->fetch('script');
@@ -42,6 +45,7 @@ $cakeDescription = __d('cake_dev', 'Materiales');
 
 			<?php echo $this->Session->flash(); ?>
 
+      <!-- este tiene todo el layout -->
 			<?php echo $this->fetch('content'); ?>
 		</div>
 		<div id="footer">
