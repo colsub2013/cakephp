@@ -20,13 +20,30 @@ SOLUCIÓN: se modificó /app/View/Layouts/default.ctp removiendo enlace:
 <h1><?php echo $this->Html->link($cakeDescription, 'http://cakephp.org'); ?></h1>
 
 --------------------------------------------------------------------------------
-
+[DONE]  
 T3. Modificar el título 'Blog Posts' por 'Materiales' y centrarlo
     modificando cake.generic.css
 
---------------------------------------------------------------------------------
+SOLUCIÓN: se modificó /app/View/Posts/index.ctp:
 
-T4. Modificar el nombre del enlace 'Add Post' por 'Agregar Material'
+<h1 class="centrado">Materiales</h1>
+
+y se agregó la clase 'centrado' /app/webroot/css/cake.generic.css:
+
+.centrado {
+  font-size: 20px;
+  text-align:center;
+}
+
+--------------------------------------------------------------------------------
+[DONE]  
+T4. Modificar el nombre del enlace 'Add Post' por 'Agregar Material' 
+
+SOLUCIÓN: en /app/View/Posts/index.ctp:
+<?php echo $this->Html->link(
+    'Agregar Material',
+    array('controller' => 'posts', 'action' => 'add')
+  ); ?>
 
 --------------------------------------------------------------------------------
 
