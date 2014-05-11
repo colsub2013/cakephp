@@ -18,7 +18,7 @@
       <?php echo $this->Form->postLink(
         'Borrar',
         array('action' => 'delete', $post['Post']['id']),
-        array('confirm' => 'Are you sure?')
+        array('confirm' => 'Desea borrar el material seleccionado?')
         );
       ?>
     </td>
@@ -37,7 +37,7 @@
   <?php unset($post); ?>
   <?php echo $this->Html->link(
     'Agregar Material',
-    array('controller' => 'posts', 'action' => 'add')
+    array('controller' => 'posts', 'action' => 'add'), array( 'class' => 'buttonAzul')
   ); ?>
 
 </table>

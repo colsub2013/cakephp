@@ -11,6 +11,6 @@
 <p>
   <?php
     $id = 1;
-    echo $this->Html->link("Volver", array('controller' => 'Posts','action'=> 'back', $id), array( 'class' => 'button')) 
+    echo $this->Html->link("Volver", array('controller' => 'Posts','action'=> 'back', $id), array( 'class' => 'button'))
   ?>
 </p>

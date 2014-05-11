@@ -182,18 +182,54 @@ form .submit input[type=submit] {
   	padding: 8px 10px;
 }
 --------------------------------------------------------------------------------
-
+[DONE]  11/05/14  18:11
 T11. Modificar el banner de modificación de datos en edición cambiando el 
      texto a blanco y fondo a azul reemplazando el texto 'Your post has been
-     submitted' por 'Cambios guardados exitosamente' 
+     updated' por 'Cambios guardados exitosamente' 
+
+SOLUCIÓN:
+Se modificó texto en los métodos view(...), add(), edit(..) y delete(...)  
+de /app/Controller/PostsController.php
      
 --------------------------------------------------------------------------------
-
+[DONE]  11/05/14  17:23
 T12. Enmascarar con CSS el enlace 'Agregar Material' con un botón azul.
 
+SOLUCIÓN: En cake.generic.css
+
+table {
+	border-right:0;
+	clear: both;
+	color: #333;
+	margin-top: 10px;
+	margin-bottom: 10px;
+  width: 100%;
+}
+
+Y en index.ctp:
+
+<?php echo $this->Html->link(
+  'Agregar Material',
+  array('controller' => 'posts', 'action' => 'add'), array( 'class' => 'buttonAzul')
+); ?>
+
+--------------------------------------------------------------------------------
+[DONE]  11/05/14  19:07
+T13. Modificar la pantalla de agregar para que tenga el botón de volver. 
+
+SOLUCIÓN: modificar en app/View/Posts/add.ctp:
+$id = 1;
+echo $this->HTML->link('Volver', array('controller' => 'Posts','action'=> 'back', $id), array( 'class' => 'button'));
+echo $this->Form->end(array('label' => 'Guardar', 'div' => false, 'class' => 'envio'));
+
 --------------------------------------------------------------------------------
 
-T13. Agregar
+T14. Modificar en la tabla del índice los enlaces de 'Modificar' y 'Borrar'
+para que sean transformados en botones.
 
 --------------------------------------------------------------------------------
-                           
+  
+T15. Modificar el pop-up javascript en borrado para que tenga estilos e idiomas 
+similares en la aplicación
+
+--------------------------------------------------------------------------------                           

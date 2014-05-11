@@ -28,9 +28,9 @@ $cakeDescription = __d('cake_dev', 'Materiales');
 		echo $this->Html->meta('icon');
 #    echo $this->Html->meta('icon', $this->Html->url('/favicon.ico'));
 
-		echo $this->Html->css('cake.generic');
+	    echo $this->Html->css('cake.generic');
 		echo $this->Html->script('jquery-1.11.1');
-    echo $this->Html->script('js.generic');
+        echo $this->Html->script('js.generic');
     
 		echo $this->fetch('meta');
 		echo $this->fetch('css');

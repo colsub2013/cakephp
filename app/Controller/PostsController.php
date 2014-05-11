@@ -17,11 +17,11 @@ class PostsController extends AppController {
   
   public function view($id = null) {
     if (!$id) {
-      throw new NotFoundException(__('Invalid post'));
+      throw new NotFoundException(__('Edición inválida'));
     }
     $post = $this->Post->findById($id);
     if (!$post) {
-      throw new NotFoundException(__('Invalid post'));
+      throw new NotFoundException(__('Edición inválida'));
     }
     $this->set('post', $post);
   }
@@ -30,28 +30,28 @@ class PostsController extends AppController {
     if ($this->request->is('post')) {
       $this->Post->create();
       if ($this->Post->save($this->request->data)) {
-        $this->Session->setFlash(__('Your post has been saved.'));
+        $this->Session->setFlash(__('Cambios guardados exitosamente.'));
         return $this->redirect(array('action' => 'index'));
       }
-      $this->Session->setFlash(__('Unable to add your post.'));
+      $this->Session->setFlash(__('No se pudieron realizar los cambios.'));
     }
   }
   
   public function edit($id = null) {
     if (!$id) {
-      throw new NotFoundException(__('Invalid post'));
+      throw new NotFoundException(__('Edición inválida'));
     }
     $post = $this->Post->findById($id);
     if (!$post) {
-      throw new NotFoundException(__('Invalid post'));
+      throw new NotFoundException(__('Edición inválida'));
     }
     if ($this->request->is(array('post', 'put'))) {
       $this->Post->id = $id;
       if ($this->Post->save($this->request->data)) {
-        $this->Session->setFlash(__('Your post has been updated.'));
+        $this->Session->setFlash(__('Cambios guardados exitosamente.'));
         return $this->redirect(array('action' => 'index'));
       }
-      $this->Session->setFlash(__('Unable to update your post.'));
+      $this->Session->setFlash(__('No se pudieron realizar los cambios.'));
     }
     if (!$this->request->data) {
       $this->request->data = $post;
@@ -63,7 +63,7 @@ class PostsController extends AppController {
       throw new MethodNotAllowedException();
     }
     if ($this->Post->delete($id)) {
-      $this->Session->setFlash(__('The post with id: %s has been deleted.', h($id)));
+      $this->Session->setFlash(__('El material con id: %s ha sido borrado.', h($id)));
       return $this->redirect(array('action' => 'index'));
     }
   }
