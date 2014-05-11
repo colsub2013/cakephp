@@ -1,0 +1,56 @@
+                      TAREAS TALLER DE ELECTRÓNICA
+                      ============================
+V1.0
+----
+T1. El favicon debe ser un archivo con un chip y la pestaña
+    debe tener el nombre 'Materiales'
+
+SOLUCIÓN: se modificó /app/View/Layouts/default.ctp removiendo contenido en 
+<title>
+
+--------------------------------------------------------------------------------
+[DONE]  
+T2. Quitar el enlace en el vértice superior izquierdo que hace
+    referencia a CakePHP
+
+SOLUCIÓN: se modificó /app/View/Layouts/default.ctp removiendo enlace: 
+
+<h1><?php echo $this->Html->link($cakeDescription, 'http://cakephp.org'); ?></h1>
+
+--------------------------------------------------------------------------------
+
+T3. Modificar el título 'Blog Posts' por 'Materiales' y centrarlo
+    modificando cake.generic.css
+
+--------------------------------------------------------------------------------
+
+T4. Modificar el nombre del enlace 'Add Post' por 'Agregar Material'
+
+--------------------------------------------------------------------------------
+
+T5. Mover la columna 'Action' a la izquierda y traducirlo
+
+--------------------------------------------------------------------------------
+
+T6. Crear un archivo genérico de JavaScript para la aplicación
+
+--------------------------------------------------------------------------------
+
+T7. Modificar la columna 'Created' para que tome la fecha de creación de
+    cada registro en formato dd/mm/aaaa hh:mm
+
+--------------------------------------------------------------------------------
+[DONE]
+T8. Remover el footer
+
+SOLUCIÓN: 
+<?php echo $this->Html->link(
+		$this->Html->image('cake.power.gif', array('alt' => $cakeDescription, 'border' => '0')),
+		'http://www.cakephp.org/',
+		array('target' => '_blank', 'escape' => false)
+	);
+?>
+--------------------------------------------------------------------------------
+  
+   
+                       
