@@ -10,8 +10,12 @@ SOLUCIÓN: se modificó /app/View/Layouts/default.ctp removiendo contenido en
 
 <h1 class="centrado">Materiales</h1>
 
+Como insertarlo:
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
 --------------------------------------------------------------------------------
-[DONE]  
+[DONE]  10/05/14  
 T2. Quitar el enlace en el vértice superior izquierdo que hace
     referencia a CakePHP
 
@@ -20,7 +24,7 @@ SOLUCIÓN: se modificó /app/View/Layouts/default.ctp removiendo enlace:
 <h1><?php echo $this->Html->link($cakeDescription, 'http://cakephp.org'); ?></h1>
 
 --------------------------------------------------------------------------------
-[DONE]  
+[DONE]  10/05/14
 T3. Modificar el título 'Blog Posts' por 'Materiales' y centrarlo
     modificando cake.generic.css
 
@@ -36,7 +40,7 @@ y se agregó la clase 'centrado' /app/webroot/css/cake.generic.css:
 }
 
 --------------------------------------------------------------------------------
-[DONE]  
+[DONE]  10/05/14
 T4. Modificar el nombre del enlace 'Add Post' por 'Agregar Material' 
 
 SOLUCIÓN: en /app/View/Posts/index.ctp:
@@ -46,11 +50,27 @@ SOLUCIÓN: en /app/View/Posts/index.ctp:
   ); ?>
 
 --------------------------------------------------------------------------------
-
+[DONE]  11/05/14  11:03hs
 T5. Mover la columna 'Action' a la izquierda y traducirlo
 
+SOLUCIÓN: se modificó la columna en /app/View/Posts/index.ctp de la forma:
+
+<td>
+  <?php echo $this->Html->link(
+    'Modificar',
+    array('action' => 'edit', $post['Post']['id'])
+  ); ?>
+  <?php echo $this->Form->postLink(
+    'Borrar',
+    array('action' => 'delete', $post['Post']['id']),
+    array('confirm' => 'Are you sure?')
+    );
+  ?>
+</td>
+
+
 --------------------------------------------------------------------------------
-[DONE]
+[DONE]  10/05/14
 T6. Crear un archivo genérico de JavaScript para la aplicación e incluir
     la librería de jQuery
 
@@ -62,7 +82,7 @@ SOLUCIÓN: se modificó /app/View/Layouts/default.ctp en la etiqueta <head>:
     /app/webroot/js/js.generic.js
 
 --------------------------------------------------------------------------------
-
+[DONE]  10/05/14
 T7. Modificar la columna 'Created' para que tome la fecha de creación de
     cada registro en formato dd/mm/aaaa hh:mm
 
@@ -73,7 +93,7 @@ SOLUCIÓN: se modificó /app/View/Posts/index.ctp:
   ?>
 
 --------------------------------------------------------------------------------
-[DONE]
+[DONE]  10/05/14
 T8. Remover el footer
 
 SOLUCIÓN: 
@@ -84,6 +104,21 @@ SOLUCIÓN:
 	);
 ?>
 --------------------------------------------------------------------------------
+[DONE]  11/05/14  11:17
+T9. Modificar la columna 'id' de la tabla y hacerla tipo hidden:
+
+SOLUCIÓN: Se agregó en /app/View/Posts/index.ctp (columna 'Acciones') un campo 
+hidden:  
+
+<td>
+  <input type="hidden" id="id_<?php echo $post['Post']['id']; ?>" value="<?php echo $post['Post']['id']; ?>" />
+  <?php echo $this->Html->link(
+    'Modificar',
+    array('action' => 'edit', $post['Post']['id'])
+  ); ?>
+  ...
+--------------------------------------------------------------------------------
+  
   
    
                        

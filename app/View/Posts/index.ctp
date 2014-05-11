@@ -3,7 +3,6 @@
 <table>
   <tr>
     <th>Acciones</th>
-    <!-- <th>Id</th> -->
     <th>Nombre</th>
     <th>Fecha de Creaci&oacute;n</th>
   </tr>
@@ -11,6 +10,7 @@
   <?php foreach ($posts as $post): ?> <!-- Esta es la variable que se 'post' fijada por set() en el controlador -->
   <tr>
     <td>
+      <input type="hidden" id="id_<?php echo $post['Post']['id']; ?>" value="<?php echo $post['Post']['id']; ?>" />
       <?php echo $this->Html->link(
         'Modificar',
         array('action' => 'edit', $post['Post']['id'])
@@ -22,11 +22,6 @@
         );
       ?>
     </td>
-    <!--
-    <td>
-      <?php echo $post['Post']['id']; ?>
-    </td>
-    -->
     <td>
       <?php echo $this->Html->link($post['Post']['title'],
         array('controller' => 'posts', 'action' => 'view', $post['Post']['id'])); ?>
