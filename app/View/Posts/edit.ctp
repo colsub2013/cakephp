@@ -6,4 +6,6 @@
   echo $this->Form->input('body', array('rows' => '3'));
   echo $this->Form->input('id', array('type' => 'hidden'));
   echo $this->Form->end('Save Post');
+  $id = 1;
+  echo $this->Html->link("Volver", array('controller' => 'Posts','action'=> 'back', $id), array( 'class' => 'button'));
 ?>

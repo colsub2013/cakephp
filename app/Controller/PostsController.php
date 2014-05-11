@@ -68,4 +68,8 @@ class PostsController extends AppController {
     }
   }
   
+  public function back($id) {
+    return $this->redirect(array('action' => 'index'));
+  }
+  
 }
