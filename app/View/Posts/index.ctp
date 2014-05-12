@@ -11,15 +11,21 @@
   <tr>
     <td>
       <input type="hidden" id="id_<?php echo $post['Post']['id']; ?>" value="<?php echo $post['Post']['id']; ?>" />
-      <?php echo $this->Html->link(
-        'Modificar',
-        array('action' => 'edit', $post['Post']['id'])
-      ); ?>
-      <?php echo $this->Form->postLink(
-        'Borrar',
-        array('action' => 'delete', $post['Post']['id']),
-        array('confirm' => 'Desea borrar el material seleccionado?')
+      <?php
+        echo $this->Html->image(
+            'editar.png', array(
+                'alt' => 'Modificar',
+                'url' => array('action' => 'edit', $post['Post']['id'])
+            )
         );
+      ?>
+      <?php
+          echo $this->Form->postLink(
+              $this->Html->image('borrar.png',
+                 array("alt" => __('Delete'), "title" => __('Delete'))),
+              array('action' => 'delete', $post['Post']['id']),
+              array('escape' => false, 'confirm' => __('Desea eliminar este material?'))
+          );
       ?>
     </td>
     <td>

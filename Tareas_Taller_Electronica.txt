@@ -223,9 +223,28 @@ echo $this->HTML->link('Volver', array('controller' => 'Posts','action'=> 'back'
 echo $this->Form->end(array('label' => 'Guardar', 'div' => false, 'class' => 'envio'));
 
 --------------------------------------------------------------------------------
-
+[DONE]  11/05/14  22:17
 T14. Modificar en la tabla del índice los enlaces de 'Modificar' y 'Borrar'
-para que sean transformados en botones.
+para que sean transformados en íconos que puedan ser clickeables.
+
+SOLUCIÓN: en index.ctp 
+
+<?php
+  echo $this->Html->image(
+    'editar.png', array(
+        'alt' => 'Modificar',
+        'url' => array('action' => 'edit', $post['Post']['id'])
+    )
+  );
+?>
+<?php
+  echo $this->Form->postLink(
+    $this->Html->image('borrar.png',
+       array("alt" => __('Delete'), "title" => __('Delete'))),
+    array('action' => 'delete', $post['Post']['id']),
+    array('escape' => false, 'confirm' => __('Desea eliminar este material?'))
+  );
+?>
 
 --------------------------------------------------------------------------------
   

@@ -22,29 +22,7 @@
     <favorites_list name="cakephp-master" />
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file leaf-file-name="add.ctp" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app/View/Posts/add.ctp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="9" column="0" selection-start="271" selection-end="498" vertical-scroll-proportion="0.20619947" vertical-offset="0" max-vertical-offset="742">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="edit.ctp" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/View/Posts/edit.ctp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="5" column="67" selection-start="176" selection-end="204" vertical-scroll-proportion="-3.4" vertical-offset="0" max-vertical-offset="323">
-              <folding />
-            </state>
-          </provider>
-          <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
-            <state />
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf />
   </component>
   <component name="FindManager">
     <FindUsagesManager>
@@ -57,11 +35,11 @@
         <option value="$PROJECT_DIR$/app/Model/Post.php" />
         <option value="$PROJECT_DIR$/app/View/Layouts/default.ctp" />
         <option value="$PROJECT_DIR$/app/Controller/PostsController.php" />
-        <option value="$PROJECT_DIR$/app/View/Posts/index.ctp" />
         <option value="$PROJECT_DIR$/app/View/Posts/view.ctp" />
         <option value="$PROJECT_DIR$/app/View/Posts/edit.ctp" />
         <option value="$PROJECT_DIR$/app/webroot/css/cake.generic.css" />
         <option value="$PROJECT_DIR$/app/View/Posts/add.ctp" />
+        <option value="$PROJECT_DIR$/app/View/Posts/index.ctp" />
       </list>
     </option>
   </component>
@@ -143,7 +121,7 @@
     <property name="recentsLimit" value="5" />
     <property name="restartRequiresConfirmation" value="true" />
     <property name="FullScreen" value="false" />
-    <property name="SearchEverywhereHistory" value="ed&#10;add&#10;cake.ge&#10;add.ct&#10;posts&#10;formh&#10;postscontrolle&#10;edit.ctp&#10;Html&#10;default.ctp&#10;index&#10;formhelper&#10;form.php&#10;edit&#10;index.&#10;default&#10;FormHelpe&#10;view.ctp" />
+    <property name="SearchEverywhereHistory" value="htmlhe&#10;index&#10;ed&#10;add&#10;cake.ge&#10;add.ct&#10;posts&#10;formh&#10;postscontrolle&#10;edit.ctp&#10;Html&#10;default.ctp&#10;formhelper&#10;form.php&#10;edit&#10;index.&#10;default&#10;FormHelpe&#10;view.ctp" />
   </component>
   <component name="RunManager">
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
@@ -174,8 +152,8 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1440" height="870" extended-state="1" />
-    <editor active="true" />
+    <frame x="0" y="0" width="1440" height="870" extended-state="0" />
+    <editor active="false" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
@@ -188,7 +166,7 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25139666" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25139666" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -290,15 +268,6 @@
         <state line="109" column="0" selection-start="4697" selection-end="4697" vertical-scroll-proportion="0.33251834" vertical-offset="1428" max-vertical-offset="4930" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/Cake/View/Helper/HtmlHelper.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="331" column="25" selection-start="11747" selection-end="11752" vertical-scroll-proportion="0.18289086" vertical-offset="5214" max-vertical-offset="21063">
-          <folding>
-            <marker date="1398522207000" expanded="false" signature="-1:-1" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/View/Posts/view.ctp">
       <provider selected="true" editor-type-id="text-editor">
         <state line="15" column="4" selection-start="454" selection-end="454" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="357">
@@ -327,16 +296,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/View/Posts/index.ctp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="74" selection-start="337" selection-end="337" vertical-scroll-proportion="0.22109826" vertical-offset="0" max-vertical-offset="816">
-          <folding />
-        </state>
-      </provider>
-      <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
-        <state />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/View/Layouts/default.ctp">
       <provider selected="true" editor-type-id="text-editor">
         <state line="13" column="34" selection-start="522" selection-end="522" vertical-scroll-proportion="0.31936416" vertical-offset="0" max-vertical-offset="1088">
@@ -360,6 +319,23 @@
     <entry file="file://$PROJECT_DIR$/app/View/Posts/add.ctp">
       <provider selected="true" editor-type-id="text-editor">
         <state line="9" column="0" selection-start="271" selection-end="498" vertical-scroll-proportion="0.20619947" vertical-offset="0" max-vertical-offset="742">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/View/Posts/index.ctp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="28" column="8" selection-start="516" selection-end="1077" vertical-scroll-proportion="0.59693164" vertical-offset="48" max-vertical-offset="918">
+          <folding />
+        </state>
+      </provider>
+      <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/Cake/View/Helper/HtmlHelper.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="784" column="28" selection-start="27236" selection-end="27242" vertical-scroll-proportion="8.741888" vertical-offset="7112" max-vertical-offset="21063">
           <folding />
         </state>
       </provider>
