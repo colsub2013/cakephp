@@ -247,8 +247,44 @@ SOLUCIÓN: en index.ctp
 ?>
 
 --------------------------------------------------------------------------------
-  
-T15. Modificar el pop-up javascript en borrado para que tenga estilos e idiomas 
-similares en la aplicación
+[DONE]  12/05/14  20:49  
+T15. Crear una tabla nueva en la DB CakePHP llamada 'T_MATERIAL' la cual tiene
+que tener los siguientes campos:
+
+materiales
+----------
+. id_material  INTEGER NOT NULL AUTOINCREMENT UNSIGNED
+. nombre  varchar(50)
+. descripcion TEXT
+. id_tipomaterial INTEGER NOT NULL (FK)
+. creado  DATETIME
+. modificado DATETIME
+
+y otra relacionada con el tipo de material (electronica, electricidad, ferreteria)
+
+tiposmaterial
+-------------
+. id_tipomaterial INTEGER NOT NULL AUTOINCREMENT UNSIGNED
+. tipomaterial  varchar(50)
+
+Y exportar los datos a cakephp.sql utilizando el siguiente comando (password
+vacío):
+
+C:\java_installed\MySQL Server 5.6\bin>mysqldump -u root -p --databases cakephp > cakephp.sql
+
+
+La configuración del datasource está en app/Config/database.php:
+
+public $default = array(
+	'datasource' => 'Database/Mysql',
+	'persistent' => false,
+	'host' => 'localhost',
+  'port' => '3306',
+	'login' => 'root',
+	'password' => '',
+	'database' => 'cakephp',
+	'prefix' => '',
+	//'encoding' => 'utf8',
+);
 
 --------------------------------------------------------------------------------                           

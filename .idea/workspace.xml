@@ -79,6 +79,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -113,7 +114,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -152,28 +152,28 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1440" height="870" extended-state="0" />
+    <frame x="0" y="0" width="1440" height="870" extended-state="1" />
     <editor active="false" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3997396" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25139666" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3997396" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -197,23 +197,17 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/app/View/Posts/view.ctp">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="4" selection-start="455" selection-end="455" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="357">
-          <folding />
-        </state>
+        <state line="15" column="4" selection-start="455" selection-end="455" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="357" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/View/Posts/edit.ctp">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="0" selection-start="529" selection-end="529" vertical-scroll-proportion="0.0" vertical-offset="221" max-vertical-offset="323">
-          <folding />
-        </state>
+        <state line="13" column="0" selection-start="529" selection-end="529" vertical-scroll-proportion="0.0" vertical-offset="221" max-vertical-offset="323" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/Cake/View/Helper/FormHelper.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1758" column="51" selection-start="56336" selection-end="56341" vertical-scroll-proportion="0.0" vertical-offset="29656" max-vertical-offset="50796">
-          <folding />
-        </state>
+        <state line="1758" column="51" selection-start="56336" selection-end="56341" vertical-scroll-proportion="0.0" vertical-offset="29656" max-vertical-offset="50796" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Model/Post.php">
@@ -223,9 +217,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Controller/PostsController.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="47" selection-start="195" selection-end="195" vertical-scroll-proportion="0.0" vertical-offset="170" max-vertical-offset="357">
-          <folding />
-        </state>
+        <state line="10" column="47" selection-start="195" selection-end="195" vertical-scroll-proportion="0.0" vertical-offset="170" max-vertical-offset="357" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Model/AppModel.php">
@@ -270,74 +262,56 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/View/Posts/view.ctp">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="4" selection-start="454" selection-end="454" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="357">
-          <folding />
-        </state>
+        <state line="15" column="4" selection-start="454" selection-end="454" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="357" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Controller/PostsController.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="29" column="16" selection-start="641" selection-end="642" vertical-scroll-proportion="-4.509804" vertical-offset="178" max-vertical-offset="1275">
-          <folding />
-        </state>
+        <state line="29" column="16" selection-start="641" selection-end="642" vertical-scroll-proportion="-4.509804" vertical-offset="178" max-vertical-offset="1275" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/webroot/css/cake.generic.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="314" column="1" selection-start="4970" selection-end="4970" vertical-scroll-proportion="0.19107392" vertical-offset="5201" max-vertical-offset="13481">
-          <folding />
-        </state>
+        <state line="314" column="1" selection-start="4970" selection-end="4970" vertical-scroll-proportion="0.19107392" vertical-offset="5201" max-vertical-offset="13481" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/Cake/View/Helper/FormHelper.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1768" column="29" selection-start="56851" selection-end="56860" vertical-scroll-proportion="-0.10998553" vertical-offset="29911" max-vertical-offset="50575">
-          <folding />
-        </state>
+        <state line="1768" column="29" selection-start="56851" selection-end="56860" vertical-scroll-proportion="-0.10998553" vertical-offset="29911" max-vertical-offset="50575" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/View/Layouts/default.ctp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="34" selection-start="522" selection-end="522" vertical-scroll-proportion="0.31936416" vertical-offset="0" max-vertical-offset="1088">
-          <folding />
-        </state>
-      </provider>
       <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
         <state />
+      </provider>
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="13" column="34" selection-start="522" selection-end="522" vertical-scroll-proportion="0.31936416" vertical-offset="0" max-vertical-offset="1088" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/View/Posts/edit.ctp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="67" selection-start="176" selection-end="204" vertical-scroll-proportion="-3.4" vertical-offset="0" max-vertical-offset="323">
-          <folding />
-        </state>
-      </provider>
       <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
         <state />
+      </provider>
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="5" column="67" selection-start="176" selection-end="204" vertical-scroll-proportion="-3.4" vertical-offset="0" max-vertical-offset="323" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/View/Posts/add.ctp">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="0" selection-start="271" selection-end="498" vertical-scroll-proportion="0.20619947" vertical-offset="0" max-vertical-offset="742">
-          <folding />
-        </state>
+        <state line="9" column="0" selection-start="271" selection-end="498" vertical-scroll-proportion="0.20619947" vertical-offset="0" max-vertical-offset="742" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/View/Posts/index.ctp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="28" column="8" selection-start="516" selection-end="1077" vertical-scroll-proportion="0.59693164" vertical-offset="48" max-vertical-offset="918">
-          <folding />
-        </state>
-      </provider>
       <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
         <state />
+      </provider>
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="28" column="8" selection-start="516" selection-end="1077" vertical-scroll-proportion="0.59693164" vertical-offset="48" max-vertical-offset="918" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/Cake/View/Helper/HtmlHelper.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="784" column="28" selection-start="27236" selection-end="27242" vertical-scroll-proportion="8.741888" vertical-offset="7112" max-vertical-offset="21063">
-          <folding />
-        </state>
+        <state line="784" column="28" selection-start="27236" selection-end="27242" vertical-scroll-proportion="8.741888" vertical-offset="7112" max-vertical-offset="21063" />
       </provider>
     </entry>
   </component>
