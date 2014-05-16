@@ -287,4 +287,26 @@ public $default = array(
 	//'encoding' => 'utf8',
 );
 
---------------------------------------------------------------------------------                           
+--------------------------------------------------------------------------------  
+
+T16. Readaptar los cambios en el punto anterior y adaptarlos al nuevo ABM:
+
+MODELO
+------
+. 
+
+VISTA
+-----
+. add.ctp:  Campos de inputText 
+. edit.ctp:  Campos de inputText 
+. view.ctp: Impresión de los campos
+. default.ctp:  Contiene el array 'content' con el contenido de los registros 
+  a actualizar 
+. index.ctp:  Contiene el array $post el cual contiene todos los registros de la
+  DB  
+
+CONTROLADOR
+-----------
+. Post.php: Para efectuar validaciones en el servidor
+. PostsController.php: Contiene las funciones index(), view($id = null), add(),
+  edit($id = null), delete($id), back($id)                              
