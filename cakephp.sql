@@ -34,12 +34,12 @@ CREATE TABLE `materiales` (
   `id_material` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `nombre` varchar(50) NOT NULL DEFAULT '',
   `descripcion` text,
-  `id_tipomaterial` int(10) unsigned NOT NULL DEFAULT '0',
+  `id_tipo` int(10) unsigned NOT NULL DEFAULT '0',
   `creado` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `modificado` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id_material`),
-  KEY `FK_t_material_1` (`id_tipomaterial`),
-  CONSTRAINT `FK_t_material_1` FOREIGN KEY (`id_tipomaterial`) REFERENCES `tiposmaterial` (`id_tipomaterial`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `FK_t_material_1` (`id_tipo`),
+  CONSTRAINT `FK_t_material_1` FOREIGN KEY (`id_tipo`) REFERENCES `tiposmaterial` (`id_tipo`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -87,9 +87,9 @@ DROP TABLE IF EXISTS `tiposmaterial`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `tiposmaterial` (
-  `id_tipomaterial` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_tipo` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `tipomaterial` varchar(50) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id_tipomaterial`)
+  PRIMARY KEY (`id_tipo`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

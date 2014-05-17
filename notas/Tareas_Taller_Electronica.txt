@@ -271,7 +271,7 @@ Y exportar los datos a cakephp.sql utilizando el siguiente comando (password
 vacío):
 
 C:\java_installed\MySQL Server 5.6\bin>mysqldump -u root -p --databases cakephp > cakephp.sql
-
+                                        mysql -u root -p < cakephp.sql
 
 La configuración del datasource está en app/Config/database.php:
 
@@ -309,4 +309,6 @@ CONTROLADOR
 -----------
 . Post.php: Para efectuar validaciones en el servidor
 . PostsController.php: Contiene las funciones index(), view($id = null), add(),
-  edit($id = null), delete($id), back($id)                              
+  edit($id = null), delete($id), back($id)  
+  
+insert into materiales values (1, 'CI', 'Circuito Integrado', 1, NOW(), NOW())                              

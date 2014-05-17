@@ -6,6 +6,7 @@
  * Time: 09:53
  */
 
+App::uses('AppModel', 'Model');
 class Material extends AppModel {
 
   public $validate = array(

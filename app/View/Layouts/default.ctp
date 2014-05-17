@@ -47,6 +47,7 @@ $cakeDescription = __d('cake_dev', 'Materiales');
 
       <!-- este tiene todo el layout -->
 			<?php echo $this->fetch('content'); ?>
+      
 		</div>
 		<div id="footer">
 		</div>
