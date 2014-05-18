@@ -19,18 +19,17 @@ de renderización más comunes:
 
 Plantillas de Vista
 -------------------
+Por defecto 
 
 By default CakePHP view files are written in plain PHP and have a default extension of .ctp (CakePHP Template).
 These files contain all the presentational logic needed to get the data it received from the controller
-in a format that is ready for the audience you’re serving to. If you’d prefer using a templating language like
-Twig, or Smarty, a subclass of View will bridge your templating language and CakePHP.
+in a format that is ready for the audience you’re serving to. 
 
 A view file is stored in /app/View/, in a subfolder named after the controller that uses the file. It has a
 filename corresponding to its action. For example, the view file for the Products controller’s “view()” action
 would normally be found in /app/View/Products/view.ctp.
 
-The view layer in CakePHP can be made up of a number of different parts. Each part has different uses, and
-will be covered in this chapter:
+The view layer in CakePHP can be made up of a number of different parts:
 
 • views: Views are the part of the page that is unique to the action being run. They form the meat of
 your application’s response.

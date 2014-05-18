@@ -83,4 +83,161 @@ Este muestra como usar modelos que ya están enlazados (linked).
 Más sobre modelos
 -----------------
 
-SEGUIR(207)
+Asociaciones: Enlazar modelos
+-----------------------------
+En CakePHP, los enlaces entre modelos son manejados a través de asociaciones.
+
+Definir relaciones entre objetos diferentes en su aplicación debería ser un 
+proceso natural. Ej.: en una DB recipe (receta), una receta puede tener varias
+reseñas (reviews), las reseñas pueden tener un único autor, y los autores pueden
+tener varias recetas.
+
+Relationship Types
+..................
+Los 4 tipos de asociación en CakePHP son: hasOne, hasMany, belongsTo, y hasAndBelongsToMany
+(HABTM).
+
+---------------------------------------------------------------------------------------------------
+| Relación       | Tipo de asociación  | Ejemplo                                                  |
+---------------------------------------------------------------------------------------------------
+| one to one     | hasOne              | Un usuario tiene un único perfil.                        |
+| one to many    | hasMany             | Un usuario puede tener múltiples recetas.                |
+| many to one    | belongsTo           | Muchas recetas pueden pertenecer a un usuario.           |
+| many to many   | hasAndBelongsToMany | Las recetas tienen, y pertenecen a varios ingredientes.  |
+---------------------------------------------------------------------------------------------------
+
+Las asociaciones son definidas creando una variable de clase nombrada después de la 
+asociación que uno está definiendo. La variable de clase puede ser tanto un
+string como un array multidimensional usado para definir cosas específicas de 
+asociación.
+
+class User extends AppModel {
+  public $hasOne = ’Profile’;
+  public $hasMany = array(
+    ’Recipe’ => array(
+      ’className’ => ’Recipe’,
+      ’conditions’ => array(’Recipe.approved’ => ’1’),
+      ’order’ => ’Recipe.created DESC’
+    )
+  );
+}
+
+En el ej. de arriba, la 1ra instancia de la palabra 'Recipe' es lo que se denomina
+un 'Alias'. Este es un identificador para la relación, y puede ser cualquiera que
+elija. Usualmente, uno eligirá el mismo nombre que la clase que este referencia.
+Pero, los alias para cada modelo deben ser únicos a través de la aplicación. 
+Ej.: es apropiado tener:
+
+class User extends AppModel {
+
+  public $hasMany = array(
+    ’MyRecipe’ => array(
+      ’className’ => ’Recipe’,
+    )
+  );
+
+  public $hasAndBelongsToMany = array(
+    ’MemberOf’ => array(
+      ’className’ => ’Group’,
+    )
+  );
+  
+}
+
+class Group extends AppModel {
+  
+  public $hasMany = array(
+    ’MyRecipe’ => array(
+      ’className’ => ’Recipe’,
+    )
+  );
+
+  public $hasAndBelongsToMany = array(
+    ’Member’ => array(
+      ’className’ => ’User’,
+    )
+  );
+}
+
+pero lo siguiente no funcionará bien en todas las circunstancias:
+
+class User extends AppModel {
+
+  public $hasMany = array(
+    ’MyRecipe’ => array(
+      ’className’ => ’Recipe’,
+    )
+  );
+
+  public $hasAndBelongsToMany = array(
+    ’Member’ => array(
+      ’className’ => ’Group’,
+    )
+  );
+
+}
+
+class Group extends AppModel {
+
+  public $hasMany = array(
+    ’MyRecipe’ => array(
+      ’className’ => ’Recipe’,
+    )
+  );
+
+  public $hasAndBelongsToMany = array(
+    ’Member’ => array(
+      ’className’ => ’User’,
+    )
+  );
+
+}
+
+because here we have the alias ‘Member’ referring to both the User (in Group) and the Group (in User)
+model in the HABTM associations. Choosing non-unique names for model aliases across models can cause
+unexpected behavior.
+
+CakePHP will automatically create links between associated model objects. So for example in your User
+model you can access the Recipe model as:
+
+$this->Recipe->someFunction();
+
+Similarly in your controller you can access an associated model simply by following your model associations:
+
+$this->User->Recipe->someFunction();
+
+Note: Remember that associations are defined ‘one way’. If you define User hasMany Recipe, that has no
+effect on the Recipe Model. You need to define Recipe belongsTo User to be able to access the User model
+from your Recipe model.
+
+hasOne
+
+Let’s set up a User model with a hasOne relationship to a Profile model.
+
+First, your database tables need to be keyed correctly. For a hasOne relationship to work, one table has to
+contain a foreign key that points to a record in the other. In this case, the profiles table will contain a field
+called user_id. The basic pattern is:
+
+hasOne: the other model contains the foreign key.
+
+Relation Schema
+Apple hasOne Banana bananas.apple_id
+User hasOne Profile profiles.user_id
+Doctor hasOne Mentor mentors.doctor_id
+
+Note: It is not mandatory to follow CakePHP conventions. You can easily override the use of any foreignKey
+in your associations definitions. Nevertheless, sticking to conventions will make your code less
+repetitive and easier to read and maintain.
+
+The User model file will be saved in /app/Model/User.php. To define the ‘User hasOne Profile’ association,
+add the $hasOne property to the model class. Remember to have a Profile model in /app/Model/Profile.php,
+or the association won’t work:
+
+class User extends AppModel {
+  public $hasOne = ’Profile’;
+}
+
+There are two ways to describe this relationship in your model files. The simplest method is to set the
+$hasOne attribute to a string containing the class name of the associated model, as we’ve done above.
+
+SEGUIR(210)
