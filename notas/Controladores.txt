@@ -468,7 +468,7 @@ especificar tamaños de página, condiciones de find del modelo y más.
 
 
 Controller::requestAction(string $url, array $options)
-......................
+......................................................
 Esta función llama a una acción de controlador desde cualquier ubicación y retorna
 datos de la acción. El $url pasado es una URL relativa de CakePHP 
 (/nombrecontrolador/nombreaccion/parametros). Para pasar datos extra a la acción
@@ -559,29 +559,36 @@ echo $this->requestAction(
   array(’pass’ => array(5))
 );
 
-Note: Unlike other places where array URLs are analogous to string URLs, requestAction()
-treats them differently.
+Nota: A diferencia de otros lugares donde URLs de array son análogos a URLs de 
+string, requestAction() los trata de forma diferente.
 
-When using an array url in conjunction with requestAction() you must specify all
-parameters that you will need in the requested action. This includes parameters like
-$this->request->data. In addition to passing all required parameters, named and pass parameters
-must be done in the second array as seen above.
+Al usar una url array en conjunción con requestAction() debe especificar todos
+los parámetros que necesitará en la acción peticionada. Esto incluye parámetros
+como $this->request->data. En adición a pasar todos los parámetros requeridos
+los parámetros nombrados y de paso deben ser hechos en el 2do array.
 
 Controller::loadModel(string $modelClass, mixed $id)
-The loadModel() function comes handy when you need to use a model which is not the controller’s
-default model or its associated model:
+....................................................
+La función loadModel() es provechosa cuando necesita usar un modelo que no es
+el modelo por defecto del controlador ó su modelo asociado:
+
 $this->loadModel(’Article’);
-$recentArticles = $this->Article->find(
-’all’,
-array(’limit’ => 5, ’order’ => ’Article.created DESC’)
-);
+$recentArticles = 
+  $this->Article->find(
+    ’all’,
+    array(
+      ’limit’ => 5, 
+      ’order’ => ’Article.created DESC’
+    )
+  );
 $this->loadModel(’User’, 2);
 $user = $this->User->read();
 
-Controller Attributes
+Atributos de Controlador
+------------------------
 
-For a complete list of controller attributes and their descriptions visit the CakePHP API2.
 
 
-SEGUIR CAP5 (60)  
+
+SEGUIR CAP5 (61)  
     

@@ -1,0 +1,86 @@
+MODELOS
+=======
+Las clases del modelo pueden usarse para acceder a:
+
+. Tablas de base de datos
+. Archivos
+. Web Services externos
+. Eventos iCal
+
+Un modelo puede asociarse con otros. Ej.: un Recipe puede asociarse con un Author
+como también un Ingredient.
+
+Entender Modelos
+----------------
+Un modelo representa modelo de datos. 
+
+Ej. de definición de modelo en CakePHP:
+
+App::uses(’AppModel’, ’Model’);
+class Ingredient extends AppModel {
+  public $name = ’Ingredient’;
+}
+
+Con sólo una declaración, el modelo Ingredient es dotado con toda la funcionalidad
+que necesita para crear consultas y almacenar y borrar datos. Estos métodos vienen
+de la clase Modelo de CakePHP por herencia. El modelo Ingredient extiende 
+el modelo de aplicación, AppModel, que a su vez extiende la clase Model interna
+de CakePHP. 
+
+Es esta clase Model núcleo que otorga la funcionalidad en su modelo Ingredient.
+App::uses(’AppModel’, ’Model’) asegura que el modelo es cargado cuando se
+necesite.
+
+La clase intermedia, AppModel, está vacía. Si no la ha creado, se tomará de la
+carpeta núcleo de CakePHP. Redefinir el AppModel le permite definir funcionalidad
+que debería estar disponible a todos los modelos dentro de su aplicación. Para
+hacerlo, necesita crear su propio archivo AppModel.php que reside en la carpeta
+Model, como lo hace con todos los otros modelos de su aplicación. Crear un proyecto
+usando Bake generará automáticamente este archivo por uno.
+
+De vuelta en el modelo Ingredient, crear el archivo PHP en el directorio /app/Model/.
+Por convención, este debería tener el mismo nombre que la clase, que para este ej.
+es Ingredient.php.
+
+Nota: CakePHP creará dinámicamente un objeto modelo para uno si este no puede 
+hallar un archivo correspondiente en /app/Model. Esto significa que si su 
+archivo modelo no se nombra correctamente (ej., se nombra ingredient.php ó 
+Ingredients.php en vez de Ingredient.php), CakePHP usará una instancia de AppModel
+en vez de su archivo modelo (que CakePHP asume perdido). Si uno intenta usar 
+un método que ha definido en su modelo, ó un comportamiento unido a su modelo,
+y uno está obteniendo errores SQL que que son el nombre del método que uno está
+llamando, es una señal segura que CakePHP no puede hallar su modelo y necesita
+chequear los nombres de archivo, su caché de aplicación, ó ambos.
+
+Nota: Algunos nombres de clase no son útiles para nombres de modelo. Ej.: 'File'
+no puede usarse, ya que 'File' es una clase que ya existe en el núcleo CakePHP.
+
+Definido su modelo, este puede ser accedido desde dentro de su Controller. CakePHP
+hará al modelo disponible automáticamente para acceso cuando su nombre coincida
+con el del controlador. Ej.: un controlador llamado IngredientsController inicializará
+automáticamente el modelo Ingredient y lo anexará al controlador en $this->Ingredient:
+
+class IngredientsController extends AppController {
+  public function index() {
+    //grab all ingredients and pass it to the view:
+    $ingredients = $this->Ingredient->find(’all’);
+    $this->set(’ingredients’, $ingredients);
+  }
+}
+
+Los modelos asociados están disponibles a través del modelo principal. En el 
+siguiente ej., Recipe tiene una asociación con el modelo Ingredient:
+
+class Recipe extends AppModel {
+  public function steakRecipes() {
+    $ingredient = $this->Ingredient->findByName(’Steak’);
+    return $this->findAllByMainIngredient($ingredient[’Ingredient’][’id’]);
+  }
+}
+
+Este muestra como usar modelos que ya están enlazados (linked).
+
+Más sobre modelos
+-----------------
+
+SEGUIR(207)
