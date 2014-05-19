@@ -19,21 +19,182 @@ de renderización más comunes:
 
 Plantillas de Vista
 -------------------
-Por defecto 
+Por defecto los archivos de vista de CakePHP están escritos en PHP plano y tienen
+extensión .ctp (Plantilla CakePHP). Estos archivos contienen toda la lógica de
+presentación necesaria para obtener los datos que este recibió del controlador
+en un formato que está listo para la audiencia a la que uno sirve.
 
-By default CakePHP view files are written in plain PHP and have a default extension of .ctp (CakePHP Template).
-These files contain all the presentational logic needed to get the data it received from the controller
-in a format that is ready for the audience you’re serving to. 
+Un archivo de vista se almacena en /app/View/, en una subcarpeta nombrada después
+del controlador que usa el archivo. Tiene un nombre de archivo correspondiente
+a su acción. Ej.: el archivo de vista para la acción 'view()' del controlador de
+'Products' se encontraría normalmente en /app/View/Products/view.ctp. 
 
-A view file is stored in /app/View/, in a subfolder named after the controller that uses the file. It has a
-filename corresponding to its action. For example, the view file for the Products controller’s “view()” action
-would normally be found in /app/View/Products/view.ctp.
+La capa de vista en CakePHP puede hacerse de un número de partes diferentes:
 
-The view layer in CakePHP can be made up of a number of different parts:
+. Vistas (Views): las Views son parte de la página que es única a la acción que
+se está corriendo. Forman la carne de la respuesta de su aplicación.
 
-• views: Views are the part of the page that is unique to the action being run. They form the meat of
-your application’s response.
+. Elements: pequeños fragmentos de código de vista reutilizables. Los elementos
+son usualmente renderizados dentro de vistas.
 
-• elements: smaller, reusable bits of view code. Elements are usually rendered inside views.
+. Layouts: archivos de vista que contienen código de presentación que envuelve
+varias interfaces en su aplicación. La mayoría de las vistas son renderizadas
+dentro de un layout.
 
-SEGUIR(86)
+. helpers: estas clases encapsulan lógica de vista que es necesaria en varios 
+lugares en la capa de vista. Estos pueden ayudar a construir formularios, construir
+funcionalidad AJAX, datos de paginación del modelo, ó servir alimentaciones RSS.
+  
+Extender Vistas
+---------------
+Las extensiones de Vista le permite envolver una vista en otra. Ej.: su aplicación
+tiene una barra lateral que necesita cambiar dependiendo de la vista específica
+siendo renderizada. Extender un archivo de vista común, puede evitar repetir
+el marcado común para su barra lateral, y sólo definir las partes que cambian:
+
+// app/View/Common/view.ctp
+<h1><?php echo $this->fetch(’title’); ?></h1>
+<?php echo $this->fetch(’content’); ?>
+
+<div class="actions">
+  <h3>Related actions</h3>
+  <ul>
+    <?php echo $this->fetch(’sidebar’); ?>
+  </ul>
+</div>
+
+El archivo de vista de arriba podría usarse como una vista padre. Esta espera que
+la vista que extiende definirá los bloques de título y barra lateral. El
+bloque de contenido contendrá todo el contenido no capturado de la vista que se
+extiende. Asumiendo que nuestro archivo de vista tiene una variable $post con los
+datos sobre nuestro post, la vista luciría:
+
+<?php
+  // app/View/Posts/view.ctp
+  $this->extend(’/Common/view’);
+  $this->assign(’title’, $post);
+  $this->start(’sidebar’);
+?>
+<li>
+  <?php
+    echo $this->Html->link(
+      ’edit’, array(
+        ’action’ => ’edit’,
+        $post[’Post’][’id’]
+      )
+    ); 
+  ?>
+</li>
+<?php $this->end(); ?>
+// The remaining content will be available as the ’content’ block
+// in the parent view.
+<?php echo h($post[’Post’][’body’]);
+
+La vista post de arriba muestra como uno puede extender una vista, y popular un
+set de bloques. Cualquier contenido ya no definido en un bloque definido será
+capturado y puesto en un bloque especial nombrado 'content'. Cuando una vista
+contiene una llamada a extend(), la ejecución continúa hasta el fondo del 
+archivo de vista actual. Una vez que este está completo, la vista extendida 
+será renderizada. Llamar a extend() más de una vez en un archivo de vista 
+redefinirá la vista padre que se procesará luego:
+
+$this->extend(’/Common/view’);
+$this->extend(’/Common/index’);
+
+El resultado de arriba resultará en /Common/index.ctp siendo renderizado como 
+la vista padre a la vista actual.
+
+Puede anidar vistas extendidas tantas veces como necesite. Cada vista puede 
+extender otra vista si se desea. Cada vista padre obtendrá el contenido 
+de la vista previa así como el bloque content.
+
+Nota: Debería evitar usar 'content' como un nombre de bloque en su aplicación.
+CakePHP lo usa para contenido sin capturar en vistas extendidas.
+
+Usar bloques de vista
+---------------------
+Los bloques de vista reemplazan $scripts_for_layout y proveen una API flexible
+que le permite definir ranuras ó bloques en sus vistas/layouts que serán definidas
+en algún lado. Ej.: los bloques son ideales para implementar cosas como barras
+laterales, ó regiones para cargar bienes (assets) en el fondo / cima del layout.
+Los bloques pueden ser definidos de 2 modos: ya sea como un bloque de captura,
+ó por asignación directa. Los métodos start(), append() y end() le permiten 
+trabajar con bloques de captura:
+
+// create the sidebar block.
+$this->start(’sidebar’);
+echo $this->element(’sidebar/recent_topics’);
+echo $this->element(’sidebar/recent_comments’);
+$this->end();
+
+// Append into the sidebar later on.
+$this->append(’sidebar’);
+echo $this->element(’sidebar/popular_topics’);
+$this->end();
+
+Puede también anexar dentro de un bloque usando start() en múltiples ocasiones.
+assign() puede ser usado para limpiar (clear) ó sobreescribir un bloque a la vez:
+
+// Clear the previous content from the sidebar block.
+$this->assign(’sidebar’, ’’);
+
+En 2.3, se agregaron métodos nuevos para trabajar con bloques. El método prepend()
+se agregó al contenido prepend() para un bloque existente:
+
+// Prepend to sidebar
+$this->prepend(’sidebar’, ’this content goes on top of sidebar’);
+
+El método startIfEmpty() puede usarse para iniciar un bloque sólo si este está
+vacío ó indefinido. Si el bloque ya existe, el contenido capturado será 
+descartado. Esto es útil cuando quiere definir condicionalmente el contenido por
+defecto para un bloque si este no existe realmente:
+ 
+// In a view file.
+// Create a navbar block
+$this->startIfEmpty(’navbar’);
+echo $this->element(’navbar’);
+echo $this->element(’notifications’);
+$this->end();
+
+// In a parent view/layout
+<?php $this->startIfEmpty(’navbar’); ?>
+<p>If the block is not defined by now - show this instead</p>
+<?php $this->end(); ?>
+// Somewhere later in the parent view/layout
+echo $this->fetch(’navbar’);
+
+En el ej. de arriba, el bloque navbar solo contendrá el contenido agregado en 
+la 1er sección. Ya que el bloque fue definido en la vista hijo, el contenido por
+defecto con <p> será descartado.
+
+Nota: Debería evitar usar content como un nombre de bloque. Este es usado 
+por CakePHP internamente para vistas extendidas, y contenido de vista en el layout.
+
+Exhibir bloques
+...............
+Puede exhibir bloques con el método fetch(), el cual da salida a un bloque, retornando
+'' si un bloque no existe:
+
+echo $this->fetch(’sidebar’);
+
+Puede también usar fetch para mostrar contenido condicionalmente que que debería
+rodear un bloque si este existe. Esto es útil en layouts, ó vistas extendidas
+donde uno quiere mostrar encabezados ú otro marcado de forma condicional:
+
+// in app/View/Layouts/default.ctp
+<?php if ($this->fetch(’menu’)): ?>
+  <div class="menu">
+    <h3>Menu options</h3>
+    <?php echo $this->fetch(’menu’); ?>
+  </div>
+<?php endif; ?>
+
+Como en 2.3.0, puede también proveer un valor por defecto para un bloque si este
+no tienen ningún contenido. Esto le permite agregar contenido de posición 
+(placeholder) para estados vacíos. Puede proveer un valor por defecto usando
+el 2do argumento:
+
+<div class="shopping-cart">
+<h3>Your Cart</h3>
+
+SEGUIR(88)

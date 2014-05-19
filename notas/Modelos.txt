@@ -193,51 +193,120 @@ class Group extends AppModel {
 
 }
 
-because here we have the alias ‘Member’ referring to both the User (in Group) and the Group (in User)
-model in the HABTM associations. Choosing non-unique names for model aliases across models can cause
-unexpected behavior.
+debido a que aquí tenemos el alias 'Member' que se refiere a ambos User (en Group)
+y el modelo Group (en User) en las asociaciones HABTM. Elegir nombres no únicos
+para alias de modelo a través de modelos pueden originar un comportamiento
+inesperado. 
 
-CakePHP will automatically create links between associated model objects. So for example in your User
-model you can access the Recipe model as:
+CakePHP creará automáticamente enlaces entre los objetos modelo asociados. Ej.: 
+en su modelo User uno puede acceder al modelo Recipe como:
 
 $this->Recipe->someFunction();
 
-Similarly in your controller you can access an associated model simply by following your model associations:
+Similarmente en su controlador uno puede acceder a un modelo asociado simplemente
+siguiendo sus asociaciones de modelo:
 
 $this->User->Recipe->someFunction();
 
-Note: Remember that associations are defined ‘one way’. If you define User hasMany Recipe, that has no
-effect on the Recipe Model. You need to define Recipe belongsTo User to be able to access the User model
-from your Recipe model.
+Nota: las asociaciones son definidas en 'un sentido'. Si define User hasMany Recipe,
+esto no tiene efecto en el Modelo Recipe. Necesita definir Recipe belongsTo User 
+para ser capaz de acceder al modelo User desde su modelo Recipe.
 
 hasOne
+......
+Se va a configurar un modelo User con una relación hasOne para un modelo Profile.
 
-Let’s set up a User model with a hasOne relationship to a Profile model.
+Primero, sus tablas en la DB necesitan tener las claves correctamente. Para que 
+funcione una relación hasOne, una tabla tiene que contener una clave foránea
+que apunta a un registro en la otra. En este caso, la tabla profiles contendrá
+un campo llamado user_id. El patrón básico:
 
-First, your database tables need to be keyed correctly. For a hasOne relationship to work, one table has to
-contain a foreign key that points to a record in the other. In this case, the profiles table will contain a field
-called user_id. The basic pattern is:
+hasOne: el otro modelo contiene la clave foránea.
+°°°°°°
+---------------------------------------------
+| Relación              | Esquema           | 
+---------------------------------------------
+| Apple hasOne Banana   | bananas.apple_id  |
+| User hasOne Profile   | profiles.user_id  |
+| Doctor hasOne Mentor  | mentors.doctor_id |
+---------------------------------------------
 
-hasOne: the other model contains the foreign key.
+Nota: no es obligatorio seguir las convenciones CakePHP. Puede redefinir el uso
+de cualquier clave foránea en sus definiciones de asociaciones.
 
-Relation Schema
-Apple hasOne Banana bananas.apple_id
-User hasOne Profile profiles.user_id
-Doctor hasOne Mentor mentors.doctor_id
-
-Note: It is not mandatory to follow CakePHP conventions. You can easily override the use of any foreignKey
-in your associations definitions. Nevertheless, sticking to conventions will make your code less
-repetitive and easier to read and maintain.
-
-The User model file will be saved in /app/Model/User.php. To define the ‘User hasOne Profile’ association,
-add the $hasOne property to the model class. Remember to have a Profile model in /app/Model/Profile.php,
-or the association won’t work:
-
+El archivo modelo User será almacenado en /app/Model/User.php. Para definir la 
+asociación ‘User hasOne Profile’, agregar la propiedad $hasOne a la clase modelo.
+Recordar tener un modelo Profile en /app/Model/Profile.php, ó la asociación no
+funcionará: 
+ 
 class User extends AppModel {
   public $hasOne = ’Profile’;
 }
 
-There are two ways to describe this relationship in your model files. The simplest method is to set the
-$hasOne attribute to a string containing the class name of the associated model, as we’ve done above.
+Hay 2 modos de describir esta relación en sus archivos modelo. El método más
+simple es fijar el atributo $hasOne a un string que contiene el nombre de clase
+del modelo asociado, como se ha hecho arriba.
 
-SEGUIR(210)
+Si necesita más control, puede definir sus asociaciones usando sintaxis de array.
+Ej.: puede querer limitar la asociación para incluir sólo ciertos registros.
+
+class User extends AppModel {
+  public $hasOne = array(
+    ’Profile’ => array(
+      ’className’ => ’Profile’,
+      ’conditions’ => array(’Profile.published’ => ’1’),
+      ’dependent’ => true
+    )
+  );
+}
+
+Las claves posibles para los arrays de asociación hasOne incluyen:
+
+• className: el nombre de clase del modelo siendo asociado al modelo actual. Si 
+uno está definiendo una relación ‘User hasOne Profile’, la clave className sería
+igual a ‘Profile’. 
+
+• foreignKey: el nombre de la clave foránea hallada en el otro modelo. Esto es
+útil si necesita definir relaciones hasOne múltiples. El valor por defecto para 
+esta clave es el '_', el nombre único del modelo actual, con sufijo ‘_id’. En el
+ej. de arriba, este sería por defecto ‘user_id’.
+
+• conditions: un array de condiciones compatibles con find() ó strings SQL como  
+array(‘Profile.approved’ => true).
+
+• fields: una lista de campos a ser recobrados cuando son extraídos los datos de
+modelo asociados. Retorna todos los campos por defecto.
+
+• order: un array de cláusulas de orden compatibles con find() ó strings SQL como
+array(‘Profile.last_name’ => ‘ASC’).
+
+• dependent: cuando se fija a true la clave dependent, y el método delete() del 
+modelo es llamado con el parámetro cascade fijado a true, los registros de modelo
+asociado también son borrados. En este caso, se lo fija a true tal que borrar
+un User también borrará su Profile asociado.
+ 
+Definida esta asociación, las operaciones de find en el modelo User también 
+extraerá un registro relacionado a Profile si este existe:
+
+//Sample results from a $this->User->find() call.
+Array
+(
+  [User] => Array
+  (
+    [id] => 121
+    [name] => Gwoo the Kungwoo
+    [created] => 2007-05-01 10:31:01
+  )
+  [Profile] => Array
+  (
+    [id] => 12
+    [user_id] => 121
+    [skill] => Baking Cakes
+    [created] => 2007-05-01 10:31:01
+  )
+)
+
+belongsTo
+.........
+
+SEGUIR(211)
