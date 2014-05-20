@@ -308,5 +308,119 @@ Array
 
 belongsTo
 .........
+Ahora que se tiene el acceso a datos Profile desde el modelo User, se define una
+asociación belongsTo en el modelo Profile para obtener acceso a los datos User
+relacionados. La asociación belongsTo es un complemento natural a las asociaciones
+hasOne y hasMany: nos permite ver los datos desde la otra dirección.
 
-SEGUIR(211)
+Cuando se hacen claves a sus tablas de DB para una relación belongsTo, seguir la
+convención:
+
+belongsTo: el modelo actual contiene la clave foránea.
+
+-----------------------------------------------
+| Relación                | Schema            |
+-----------------------------------------------
+| Banana belongsTo Apple  | bananas.apple_id  |
+| Profile belongsTo User  | profiles.user_id  |
+| Mentor belongsTo Doctor | mentors.doctor_id |
+-----------------------------------------------
+
+Consejo: Si un modelo (tabla) contiene una clave foránea, esta pertenece a
+(belongsTo) otro modelo (tabla).
+
+Podemos definir la asociación belongsTo en nuestro modelo Profile en 
+/app/Model/Profile.php usando la sintaxis string como sigue:
+
+class Profile extends AppModel {
+  public $belongsTo = ’User’;
+}
+
+Podemos también definir una relación mas específica usando la sintaxis de array:
+
+class Profile extends AppModel {
+  public $belongsTo = array(
+    ’User’ => array(
+      ’className’ => ’User’,
+      ’foreignKey’ => ’user_id’
+    )
+  );
+}
+
+Las claves posibles para arrays de asociación belongsTo incluyen:
+
+• className: El nombre de clase del modelo siendo asociado al modelo actual.
+Si uno está definiendo una relación 'Profile belongsTo User', la clave className
+debería ser igual a 'User'.
+
+• foreignKey: El nombre de la clave foránea hallada en modelo actual. Esto es útil
+si uno necesita definir relaciones belongsTo múltiples. El valor por defecto para
+esta clave está con '_', nombre único del otro modelo, con el sufijo '_id'. 
+
+• conditions: Un array de condiciones compatible con find() or strings SQL como
+array(’User.active’ => true)   
+
+• type: El tipo del join a usar en la consulta SQL. El valor por defecto es ‘LEFT’.
+El valor ‘INNER’ puede ser útil (cuando se usó con algunas condiciones) cuando
+quiere todo de su parte principal y modelos asociados ó absolutamente nada.
+
+• fields: Una lista de campos a ser recobrados cuando son extraídos los datos
+de modelo asociados. Retorna todos los campos por defecto.
+    
+• order: un array de cláusulas de orden find() compatibles ó strings SQL como
+array(’User.username’ => ’ASC’)
+
+• counterCache: si se fija a true, el Modelo asociado incrementará ó decrementará
+automáticamente el campo “[singular_model_name]_count” en la tabla foránea siempre
+y cuando haga un save() ó delete(). Si este es un string, luego este es el nombre
+de campo a usar. El valor en el campo counter representa el número de filas 
+relacionadas. Uno puede también especificar cachés de conteo múltiples definiendo
+un array. 
+
+• counterScope: Array de condiciones opcional a usar para actualizar el campo
+counter cache. Definida esta asociación, las operaciones de find en el modelo
+Profile también extraerán un registro User relacionado si este existe:
+
+//Sample results from a $this->Profile->find() call.
+Array
+  (
+    [Profile] => Array
+  (
+    [id] => 12
+    [user_id] => 121
+    [skill] => Baking Cakes
+    [created] => 2007-05-01 10:31:01
+  )
+    [User] => Array
+  (
+    [id] => 121
+    [name] => Gwoo the Kungwoo
+    [created] => 2007-05-01 10:31:01
+  )
+)
+
+hasMany
+.......
+Próximo paso: definir una asociación “User hasMany Comment”. Una asociación hasMany
+nos permitirá extraer comentarios de un usuario cuando extraemos un registro User.
+
+Con las claves para tablas de DB para una relación hasMany, seguir la convención:
+
+hasMany: el otro modelo contiene la clave foránea.
+
+-------------------------------------------------
+| Relation                | Schema              |
+-------------------------------------------------
+| User hasMany Comment    | Comment.user_id     |
+| Cake hasMany Virtue     | Virtue.cake_id      |
+| Product hasMany Option  |  Option.product_id  |
+-------------------------------------------------
+
+Podemos definir la asociación hasMany en nuestro modelo User en /app/Model/User.php
+usando la sintaxis de string que sigue:
+
+
+
+
+
+(213)
