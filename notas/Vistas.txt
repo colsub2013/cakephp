@@ -195,6 +195,106 @@ no tienen ningún contenido. Esto le permite agregar contenido de posición
 el 2do argumento:
 
 <div class="shopping-cart">
-<h3>Your Cart</h3>
+  <h3>Your Cart</h3>
+  <?php echo $this->fetch(’cart’, ’Your cart is empty’); ?>
+</div>
 
-SEGUIR(88)
+El argumento $default se agregó en 2.3.
+
+Using blocks for script and CSS files
+-------------------------------------
+Los bloques reemplazan la variable de layout $scripts_for_layout deprecada. En
+vez de eso debería usar bloques. El HtmlHelper se une en bloques de vista, y sus
+métodos script(), css(), y meta() pueden cada uno actualizar un bloque con el 
+mismo nombre cuando se usa con la opción inline = false:
+
+<?php
+  // in your view file
+  $this->Html->script(’carousel’, array(’inline’ => false));
+  $this->Html->css(’carousel’, null, array(’inline’ => false));
+?>
+// In your layout file.
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><?php echo $this->fetch(’title’); ?></title>
+    <?php echo $this->fetch(’script’); ?>
+    <?php echo $this->fetch(’css’); ?>
+  </head>
+  // rest of the layout follows
+
+El HtmlHelper también le permite controlar a que bloque van los scripts y CSS:
+
+// in your view
+$this->Html->script(’carousel’, array(’block’ => ’scriptBottom’));
+
+// in your layout
+echo $this->fetch(’scriptBottom’);
+
+Layouts
+.......
+Un layout contiene código de presentación que se envuelve alrededor de una vista.
+Todo lo que querría ver en todas sus vistas debería ponerse en el layout.
+
+El layout por defecto de CakePHP se ubica en /app/View/Layouts/default.ctp. Si
+quiere cambiar completamente como se ve su aplicación, empezar con esto, ya que
+el código de vista renderizado por controlador se ubica dentro del layout por 
+defecto cuando la página es renderizada.
+
+Otros archivos de layout debería ubicarse en /app/View/Layouts. Al crear un layout,
+necesita decirle a CakePHP donde poner la salida de sus vistas. Para hacerlo,
+asegurarse de que su layout incluya un lugar para $this->fetch(’content’). Ej.
+de como debería lucir un layout por defecto:
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><?php echo $this->fetch(’title’); ?></title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <!-- Include external files and scripts here (See HTML helper for more info.) -->
+    <?php
+      echo $this->fetch(’meta’);
+      echo $this->fetch(’css’);
+      echo $this->fetch(’script’);
+    ?>
+  </head>
+  <body>
+  <!-- If you’d like some sort of menu to show up on all of your views, include it here -->
+    <div id="header">
+      <div id="menu">...</div>
+    </div>
+    <!-- Here’s where I want my views to be displayed -->
+    <?php echo $this->fetch(’content’); ?>
+    <!-- Add a footer to each displayed page -->
+    <div id="footer">...</div>
+  </body>
+</html>
+
+Nota: fetch(’content’) es un reemplazo para $content_for_layout y las líneas
+fetch(’meta’), fetch(’css’) y fetch(’script’) son contenidas en la variable
+$scripts_for_layout.
+
+Los bloques script, css y meta contienen cualquier contenido definido en las 
+vistas usando el helper HTML incorporado. Útil para incluir archivos CSS y 
+Javascript desde vistas.
+
+Nota: Al usar HtmlHelper::css() ó HtmlHelper::script() en archivos de vista,
+especificar 'false' para la opción 'inline' para poner la fuente HTML en un 
+bloque con el mismo nombre.   
+
+El bloque 'content' contiene los contenidos de la vista renderizada.
+
+$title_for_layout contiene el título de página. Esta variable es generada 
+automáticamente, pero uno puede redefinirla fijándola en su controlador / vista.
+
+Fijar el título para el layout es más fácil hacerlo en el controlador, fijando
+la variable $title_for_layout:
+
+class UsersController extends AppController {
+  public function view_active() {
+    $this->set(’title_for_layout’, ’View Active Users’);
+  }
+}
+
+
+SEGUIR(91)
