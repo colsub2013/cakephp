@@ -419,8 +419,66 @@ hasMany: el otro modelo contiene la clave foránea.
 Podemos definir la asociación hasMany en nuestro modelo User en /app/Model/User.php
 usando la sintaxis de string que sigue:
 
+class User extends AppModel {
+  public $hasMany = ’Comment’;
+}
+
+Podríamos también definir una relación mas específica usando sintaxis de array:
+
+class User extends AppModel {
+  public $hasMany = array(
+    ’Comment’ => array(
+      ’className’ => ’Comment’,
+      ’foreignKey’ => ’user_id’,
+      ’conditions’ => array(’Comment.status’ => ’1’),
+      ’order’ => ’Comment.created DESC’,
+      ’limit’ => ’5’,
+      ’dependent’ => true
+    )
+  );
+}
+
+Las claves posibles para arrays de asociación hasMany incluyen:
+
+• className: el nombre de clase del modelo siendo asociado al modelo actual. Si 
+  uno está definiendo una relación ‘User hasMany Comment’, la clave className
+  debería ser igual a ‘Comment’.
+  
+• foreignKey: el nombre de la clave foránea hallada en el otro modelo. Esto es 
+  útil si necesita definir relaciones hasMany múltiples. El valor por defecto para
+  esta clave es '_', nombre único del modelo actual, con el sufijo ‘_id’.
+
+• conditions: un array de condiciones compatibles con find() ó strings SQL como
+  array(‘Comment.visible’ => true).
+
+• order: un array de cláusulas de orden compatibles con find() ó strings SQL como
+  array(‘Profile.last_name’ => ‘ASC’).  
+
+• limit: el número máximo de filas asociadas que uno quiere retornar.
+
+• offset: el número de filas asociadas para saltear (dadas el orden y condiciones
+  actuales) antes de extraer y asociar.
+
+• dependent: cuando se setea a true, es posible el borrado de modelo recursivo.
+  En este ej., los registros Comment serán borrados cuando su registro User 
+  asociado ha sido borrado.
+
+• exclusive: cuando se setea a true, el borrado de modelo recursivo hace el borrado
+  con una llamada deleteAll(), en vez de borrar cada entidad separadamente. Esto
+  mejora la performance.
 
 
 
+
+
+• finderQuery: A complete SQL query CakePHP can use to fetch associated model records. This
+should be used in situations that require highly customized results. If a query you’re building requires
+a reference to the associated model ID, use the special {$__cakeID__$} marker in the
+query. For example, if your Apple model hasMany Orange, the query should look something
+like this: SELECT Orange.* from oranges as Orange WHERE Orange.apple_id
+= {$__cakeID__$};
+
+Once this association has been defined, find operations on the User model will also fetch related Comment
+records if they exist:
 
 (213)
