@@ -296,5 +296,168 @@ class UsersController extends AppController {
   }
 }
 
+Puede también fijar la variable title_for_layout desde dentro del archivo de vista:
 
-SEGUIR(91)
+$this->set(’title_for_layout’, $titleContent);
+
+Puede crear varios layouts como quiera: sólo ubíquelos en el directorio app/View/Layouts,
+e intercambiar entre ellos dentro de sus acciones controlador usando la propiedad
+$layout de la vista:
+
+// from a controller
+public function admin_view() {
+  // stuff
+  $this->layout = ’admin’;
+}
+
+// from a view file
+$this->layout = ’loggedin’;
+
+Ej.: si una sección de mi sitio incluyó un espacio para banner de avisos (ad), puedo
+crear un layout nuevo con el menor espacio de publicidad y especificarlo como el
+layout para todas las acciones de controlador usando algo como:
+
+class UsersController extends AppController {
+  public function view_active() {
+    $this->set(’title_for_layout’, ’View Active Users’);
+    $this->layout = ’default_small_ad’;
+  }
+
+  public function view_image() {
+    $this->layout = ’image’;
+    //output user image
+  }
+}
+
+CakePHP tiene 2 layouts núcleo característicos (junto al layout por defecto de
+CakePHP) que uno puede usar:
+
+. ‘ajax’: útil para elaboración de respuestas AJAX - es un layout vacío (la
+  mayoría de las llamadas AJAX sólo requieren un pequeño marcado en el retorno.
+  en vez de una interfaz completamente renderizada).  
+
+. ‘flash’: se usa para mensajes mostrados por el método Controller::flash().
+
+Los otros 3 layouts, xml, js y rss existen en el núcleo para servir contenido 
+que no es text/html.
+
+Usar layouts desde plugins
+..........................
+Si quiere usar un layout que existe en un plugin, puede usar sintaxis de plugin.
+Ej.: para usar el layout de contenido desde el plugin Contacts:
+
+class UsersController extends AppController {
+  public function view_active() {
+    $this->layout = ’Contacts.contact’;
+  }
+}
+
+Elementos
+---------
+Algunas aplicaciones tienen pequeños bloques de código de presentación que 
+necesitan repetirse de página a página, a veces en lugares diferentes del layout.
+CakePHP puede ayudarle a repetir partes de su página web que necesitan reusarse.
+Estas partes reutilizables son llamadas 'Elementos'. Avisos, cajas de ayuda,
+controles de navegación, menús extra, formularios de login, y callouts son 
+con frecuencia implementados en CakePHP como elementos. Los 'Elementos' pueden
+usarse para hacer una vista más legible, poniendo el renderizado de repetir 
+elementos en su propio archivo. Estos pueden también ayudarlo a reutilizar
+fragmentos de contenido en su aplicación.
+
+Los 'Elementos' viven en la carpeta /app/View/Elements/, y tienen la extensión de
+archivo .ctp. Son salida usando el método element de la vista:
+
+echo $this->element(’helpbox’);
+
+Pasar variables dentro de un Elemento
+.....................................
+Puede pasar datos a un elemento a través del 2do argumento del elemento:
+
+echo $this->element(’helpbox’, array(
+  "helptext" => "Oh, this text is very helpful."
+));
+
+Dentro del archivo elemento, todas las variables pasadas están disponibles como 
+miembros del array de parámetro (del mismo modo que Controller::set() en el 
+controlador funciona con los archivos de vista). En el ej. de arriba, el archivo
+/app/View/Elements/helpbox.ctp puede usar la variable $helptext:
+
+// inside app/View/Elements/helpbox.ctp
+echo $helptext; //outputs "Oh, this text is very helpful."
+
+El método View::element() también soporta opciones para el elemento. Las opciones
+soportadas son ‘cache’ y ‘callbacks’. Ej.:
+
+echo $this->element(’helpbox’, 
+  array(
+    "helptext" => "This is passed to the element as $helptext",
+    "foobar" => "This is passed to the element as $foobar",
+  ),
+  array(
+    // uses the "long_view" cache configuration
+    "cache" => "long_view",
+    // set to true to have before/afterRender called for the element
+    "callbacks" => true
+  )
+);
+
+El cacheo de elemento es facilitado a través de la clase Cache. Puede configurar
+elementos para ser almacenados en cualquier configuración de Cache que ha 
+establecido. Esto le da flexibilidad para decidir donde y por cuanto los elementos
+son almacenados. Para cachear versiones diferentes del mismo elemento en una
+aplicación, proveer un valor de clave de cache único usando el formato:
+
+$this->element(’helpbox’, array(), array(
+  "cache" => array(’config’ => ’short’, ’key’ => ’unique value’)
+  )
+);
+
+You can take full advantage of elements by using requestAction(), which fetches view variables from
+a controller action and returns them as an array. This enables your elements to perform in true MVC style.
+Create a controller action that prepares the view variables for your elements, then call requestAction()
+inside the second parameter of element() to feed the element the view variables from your controller.
+
+To do this, in your controller add something like the following for the Post example:
+
+class PostsController extends AppController {
+  // ...
+  public function index() {
+    $posts = $this->paginate();
+    if ($this->request->is(’requested’)) {
+      return $posts;
+    } else {
+      $this->set(’posts’, $posts);
+    }
+  }
+}
+
+And then in the element we can access the paginated posts model. To get the latest five posts in an ordered
+list, we would do something like the following:
+
+<h2>Latest Posts</h2>
+<?php
+  $posts = $this->requestAction(
+    ’posts/index/sort:created/direction:asc/limit:5’
+  );
+?>
+<ol>
+<?php foreach ($posts as $post): ?>
+<li><?php echo $post[’Post’][’title’]; ?></li>
+<?php endforeach; ?>
+</ol>
+
+Caching Elements
+................
+Puede tomar ventaja del cacheo de vista de CakePHP si suministra un parámetro de
+caché. Si se lo fija a true, cacheará el elemento en la configuración Cache por
+'defecto'. Sino, puede setear que configuración de cache debería usarse. Ej. de
+cachear un elemento:
+
+echo $this->element(’helpbox’, array(), array(’cache’ => true));
+
+Si renderiza el mismo elemento más de una vez en una vista y tiene el cacheo 
+habilitado, fijar el parámetro 'key' a un nombre diferente cada vez. Esto evitará
+que cada llamada sucesiva sobreescriva el resultado cacheado de la llamada del
+element() previo. Ej.:
+
+SEGUIR(94)
