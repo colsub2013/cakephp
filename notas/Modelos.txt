@@ -467,18 +467,66 @@ Las claves posibles para arrays de asociación hasMany incluyen:
   con una llamada deleteAll(), en vez de borrar cada entidad separadamente. Esto
   mejora la performance.
 
+• finderQuery: Una consulta SQL completa de CakePHP que se usa para extraer registros
+  de modelo asociado. Si una consulta que uno construye requiere una referencia
+  al ID de modelo asociado, usar el marcador especial {$__cakeID__$} en la
+  consulta. Ej.: si su modelo Apple hasMany Orange, la consulta debería lucir como:
+  SELECT Orange.* from oranges as Orange WHERE Orange.apple_id = {$__cakeID__$};    
 
+Definida esta asociación, las operaciones find en el modelo User también extraerán
+los registros Comment relacionados si existen:
 
+//Sample results from a $this->User->find() call.
+Array
+(
+  [User] => Array
+    (
+      [id] => 121
+      [name] => Gwoo the Kungwoo
+      [created] => 2007-05-01 10:31:01
+    )
+  [Comment] => Array
+    (
+      [0] => Array
+        (
+          [id] => 123
+          [user_id] => 121
+          [title] => On Gwoo the Kungwoo
+          [body] => The Kungwooness is not so Gwooish
+          [created] => 2006-05-01 10:31:01
+        )
+      [1] => Array
+        (
+          [id] => 124
+          [user_id] => 121
+          [title] => More on Gwoo
+          [body] => But what of the ’ Nut?
+          [created] => 2006-05-01 10:41:01
+        )
+    )
+)
 
+Necesita una asociación Comment belongsTo User complementaria para obtener los
+datos desde ambas direcciones. Esto permite obtener datos Comment desde User.
+Agregar la asociación Comment belongsTo User en el modelo Comment le habilita
+a obtener datos User desde el modelo Comment, completando la conexión y permitiendo
+el flujo de información desde ya sea la perspectiva del modelo.
 
-• finderQuery: A complete SQL query CakePHP can use to fetch associated model records. This
-should be used in situations that require highly customized results. If a query you’re building requires
-a reference to the associated model ID, use the special {$__cakeID__$} marker in the
-query. For example, if your Apple model hasMany Orange, the query should look something
-like this: SELECT Orange.* from oranges as Orange WHERE Orange.apple_id
-= {$__cakeID__$};
+counterCache - Cachear su count()
+.................................
+Esta función le ayuda a cachear el contenido de datos relacionados. En vez de 
+contar los registros manualmente vía find(’count’), el modelo en sí mismo rastrea
+cualquier agregado / borrado a través del modelo $hasMany asociado e incrementa / 
+decrementa un campo entero dedicado dentro de la tabla modelo padre.
 
-Once this association has been defined, find operations on the User model will also fetch related Comment
-records if they exist:
+El nombre del campo consiste de un  nombre de modelo único seguido por un '_' y 
+la palabra 'count':
 
-(213)
+my_model_count
+
+Digamos que tiene un modelo llamado ImageComment y otro llamado Image. Debería
+agregar un campo INT nuevo a la tabla 'images' y nombrarla 'image_comment_count'.  
+
+Más ejemplos:
+
+(215)
