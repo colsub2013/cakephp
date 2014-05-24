@@ -446,8 +446,8 @@ list, we would do something like the following:
 <?php endforeach; ?>
 </ol>
 
-Caching Elements
-................
+Cachear elementos
+.................
 Puede tomar ventaja del cacheo de vista de CakePHP si suministra un parámetro de
 caché. Si se lo fija a true, cacheará el elemento en la configuración Cache por
 'defecto'. Sino, puede setear que configuración de cache debería usarse. Ej. de
@@ -457,7 +457,205 @@ echo $this->element(’helpbox’, array(), array(’cache’ => true));
 
 Si renderiza el mismo elemento más de una vez en una vista y tiene el cacheo 
 habilitado, fijar el parámetro 'key' a un nombre diferente cada vez. Esto evitará
-que cada llamada sucesiva sobreescriva el resultado cacheado de la llamada del
+que cada llamada sucesiva sobreescriba el resultado cacheado de la llamada del
 element() previo. Ej.:
 
-SEGUIR(94)
+echo $this->element(
+  ’helpbox’,
+  array(’var’ => $var),
+  array(’cache’ => array(’key’ => ’first_use’, ’config’ => ’view_long’)
+);
+
+echo $this->element(
+  ’helpbox’,
+  array(’var’ => $differenVar),
+  array(’cache’ => array(’key’ => ’second_use’, ’config’ => ’view_long’)
+);
+
+Lo de arriba asegurará que ambos resultados element son cacheados de forma
+separada. Si quiere que todos los cacheos de elemento usen la misma configuración
+de caché, puede evitar alguna repetición fijando View::$elementCache a la 
+configuración de caché que quiere usar. CakePHP usará esta configuración 
+cuando no se de nada. 
+
+Peticionar elementos desde un plugin
+....................................
+
+2.0
+...
+Para cargar un elemento desde un plugin, usar la opción plugin:
+
+echo $this->element(’helpbox’, array(), array(’plugin’ => ’Contacts’));
+
+2.1
+...
+Si uno está usando un plugin y desea usar elementos desde dentro del plugin, 
+use la sintaxis familiar de plugin. Si la vista está siendo renderizada desde un
+controlador / acción plugin, el nombre del plugin será prefijado automáticamente
+sobre todos los elementos utilizados, a menos que otro nombre de plugin esté
+presente. Si el elemento no existe en el plugin, este mirará en la carpeta 
+principal APP:
+
+echo $this->element(’Contacts.helpbox’);
+
+Si su vista es una parte de un plugin, puede omitir el nombre de plugin. Ej.:
+si uno está en el ContactsController del plugin Contacts, lo siguiente:
+
+echo $this->element(’helpbox’);
+// and
+echo $this->element(’Contacts.helpbox’);
+
+es equivalente y resultará en el mismo elemento siendo renderizado.
+
+Cambio en v.2.1: la opción $options[plugin] fue deprecada y se agregó soporte
+para Plugin.element.
+
+Crear sus propias clases de vista
+---------------------------------
+Puede necesitar crear clases de vista personalizadas para habilitar tipos nuevos
+de vistas de datos, ó agregar lógica personalizada de renderización de vista 
+adicional a su aplicación. Convenciones de clases de vista:
+
+• Los archivos de clase View deberían ponerse en App/View. Ej.: App/View/PdfView.php
+• Las clases View deberían tener el sufijo 'View'. Ej.: PdfView.
+• Al referenciar nombres de clase de vista debería omitir el sufijo View. Ej.:
+  $this->viewClass = ’Pdf’;.
+
+Uno también querrá extender View para asegurarse que las cosas funcionen:
+
+// in App/View/PdfView.php
+App::uses(’View’, ’View’);
+class PdfView extends View {
+  public function render($view = null, $layout = null) {
+    // custom logic here.
+  }
+}
+
+Reemplazar el método 'render' le deja tomar control completo sobre como su 
+contenido es renderizado.
+
+API View 
+--------
+Clase View
+..........
+Los métodos View son accesibles en todas las vistas, elementos y archivos de 
+layout. Para llamar a cualquier método view usar $this->method():
+
+View::set(string $var, mixed $value)
+Las Views tienen un método set() que es análogo al set() hallado en objetos Controller.
+Usar set() desde su archivo vista agregará las variables al layout y elementos 
+que serán posteriormente renderizados.  
+
+En su archivo vista puede hacer:
+
+$this->set(’activeMenuButton’, ’posts’);
+
+En su layout, la variable $activeMenuButton estará disponible y contiene el valor
+'posts'.
+
+View::get(string $var, $default = null)
+Obtener el valor de una viewVar con el nombre $var.
+
+Puede proveer un valor por defecto en caso que la variable ya no esté fijada.
+Cambiado en v.2.5: el argumento $default fue agregado en 2.5.
+
+View::getVar(string $var)
+Obtiene el valor del viewVar con el nombre $var.
+Deprecado desde v.2.3: usar View::get(). 
+
+View::getVars()
+Obtiene una lista de todas las variables de vista disponibles en el ámbito
+de renderización actual. Retorna un array de nombre de variables.
+
+View::element(string $elementPath, array $data, array $options = array())
+Renderiza un elemento ó vista parcial. 
+
+View::uuid(string $object, mixed $url)
+Genera un ID DOM único no aleatorio para un objeto, basado en el tipo de objeto
+y URL. Este método se usa con frecuencia por helpers que necesitan generar 
+ID's de DOM únicos para elementos como el JsHelper:
+
+$uuid = $this->uuid(
+  ’form’,
+  array(’controller’ => ’posts’, ’action’ => ’index’)
+);
+//$uuid contains ’form0425fe3bad’
+
+View::addScript(string $name, string $content)
+Agrega contenido al buffer de scripts interno. Este buffer es hecho disponible
+en el layout como $scripts_for_layout. Este método es útil al crear helpers
+que necesitan agregar javascript ó css directamente al layout. Los scripts
+agregados desde el layout y elementos en el layout no serán agregados a 
+$scripts_for_layout. Este método se usa con frecuencia desde dentro de helpers,
+como helpers JsHelper y HtmlHelper. Deprecado en v.2.1. 
+
+View::blocks()
+Obtiene los nombres de todos los bloques definidos como un array.
+
+View::start($name)
+Comienzan un bloque de captura para un bloque de vista. 
+Nuevo en v.2.1.
+
+View::end()
+Finaliza el bloque de captura más abierto en la parte superior.
+Nuevo en v.2.1.
+
+View::append($name, $content)
+Agregado al bloque con $name. 
+Nuevo en v.2.1.
+
+View::prepend($name, $content)
+Anteponer al bloque con $name. 
+Nuevo en v.2.3.
+
+View::startIfEmpty($name)
+Inicia un bloque si este está vacío. Todo el contenido en el bloque será capturado
+y descartado si el bloque ya está definido.
+Nuevo en v.2.3.
+
+View::assign($name, $content)
+Asigna el valor de un bloque. Esto sobreescribirá cualquier contenido existente.
+Nuevo en v.2.1.
+
+View::fetch($name, $default = ‘’)
+Extrae el valor de un bloque. Si un bloque está vacío ó indefinido, se retornará ''.
+Nuevo en v.2.1.
+
+View::extend($name)
+Extiende el view/element/layout actual con el nombrado (en argumento). 
+Nuevo en v.2.1.
+
+property View::$layout
+Fija al layout la vista actual que será contenida (wrapped in).
+
+property View::$elementCache
+La configuración de caché usada para elementos de caché. Fijar esta propiedad
+cambiará la configuración por defecto usada para elementos de caché. Este 
+valor por defecto puede ser redefinido usando la opción 'cache' en el método
+element.
+
+property View::$request
+Una instancia de CakeRequest. Usar esta instancia para acceder a información sobre
+la petición actual.
+
+property View::$output
+Contiene el último contenido renderizado desde una vista, ya sea el archivo de
+vista, ó el contenido de layout. Deprecado en v.2.1: Usar 
+$view->Blocks->get(’content’); en lugar de eso.
+
+property View::$Blocks
+Una instancia de ViewBlock. Usada para proveer funcionalidad de bloque de vista
+en la renderización de la vista.
+New in version 2.1.
+
+Más sobre vistas
+----------------
+
+Temas (Themes)
+..............
+Puede tomar ventaja de temas, haciendo fácil intercambiar el look and feel de 
+su página rápido y fácil.
+
+Para usar temas, especificar el nombre de tema en su controlador:
+
+SEGUIR(97)
