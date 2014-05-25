@@ -658,4 +658,231 @@ su página rápido y fácil.
 
 Para usar temas, especificar el nombre de tema en su controlador:
 
-SEGUIR(98)
+class ExampleController extends AppController {
+  public $theme = ’Example’;
+}
+
+Cambiado en v.2.1: las versiones anteriores a 2.1 requirieron fijar 
+$this->viewClass = ’Theme’. 2.1 quita este requerimiento como ya que la 
+clase View normal soporta themes.
+
+Puede también fijar ó cambiar el nombre de theme dentro de una acción ó dentro
+las funciones de callback beforeFilter ó beforeRender:
+
+$this->theme = ’AnotherExample’;
+
+Los archivos de vista necesitan estar en la carpeta /app/View/Themed/. Dentro de
+la carpeta themed, crear una carpeta usando el mismo nombre que su nombre de 
+theme. Ej.: el theme de arriba debería ser hallado en /app/View/Themed/AnotherExample.
+CakePHP espera nombres de theme en camel case. Mas allá de eso, la estructura
+de carpeta dentro de /app/View/Themed/Example/ es exactamente la misma que
+/app/View/.  
+
+Ej.: el archivo de vista para una acción de edit de un controlador Posts debería
+residir en /app/View/Themed/Example/Posts/edit.ctp. Los archivos de layout 
+deberían residir en /app/View/Themed/Example/Layouts/.
+
+Si un archivo de vista no puede hallarse en theme, CakePHP intentará ubicar el
+archivo de vista en la carpeta /app/View/. Así, puede crear archivos de vista
+maestros y redefinirlos en una base caso por caso dentro de su carpeta theme.
+
+Haberes (assets) de Theme
+.........................
+Los themes pueden contener haberes estáticos así como archivos de vista. Un theme
+puede incluir cualquiera de los haberes necesarios en su directorio webroot. Esto
+le permite un empaquetado y distribución de themes sencillo. En desarrollo, las
+peticiones para los haberes de theme serán manejadas por el Dispatcher. Para
+mejorar la performance en producción, se recomienda symlink ó copiar haberes de
+theme en en el webroot de la aplicación.  
+
+Para usar el webroot theme nuevo crear directorios como:
+
+app/View/Themed/<themeName>/webroot<path_to_file>
+
+en su theme. El Dispatcher lo manejará hallando los haberes de theme correctos
+en sus rutas de vista.
+
+Todos los helpers incorporados de CakePHP son conscientes de themes y crearán
+las rutas correctas de forma automática. Como los archivos de vista, si un 
+archivo no está en la carpeta theme, será por defecto en la carpeta principal webroot:
+
+//When in a theme with the name of ’purple_cupcake’
+$this->Html->css(’main.css’);
+
+//creates a path like
+/theme/purple_cupcake/css/main.css
+
+//and links to
+app/View/Themed/PurpleCupcake/webroot/css/main.css
+
+Increasing performance of plugin and theme assets
+
+It’s a well known fact that serving assets through PHP is guaranteed to be slower than serving those assets
+without invoking PHP. And while the core team has taken steps to make plugin and theme asset serving
+as fast as possible, there may be situations where more performance is required. In these situations it’s
+recommended that you either symlink or copy out plugin/theme assets to directories in app/webroot
+with paths matching those used by CakePHP.
+
+• app/Plugin/DebugKit/webroot/js/my_file.js se vuelve app/webroot/debug_kit/js/my_file.js
+
+• app/View/Themed/Navy/webroot/css/navy.css se vuelve app/webroot/themed/Navy/css/navy.css
+
+Media Views
+-----------
+
+clase MediaView
+...............
+Deprecado en v.2.3: Usar en vez de eso 'Enviar Archivos'.
+
+Media views le permite enviar archivos binarios al usuario. Ej.: puede desear
+tener un directorio de archivos fuera de webroot para evitar a los usuarios
+de enlazarlos directamente. Puede usar el Media view para extraer (pull) el 
+archivo desde dentro de una carpeta /app/, permitiéndole realizar autenticación
+antes de entregar el archivo al usuario.
+
+Para usar el Media view, necesita decirle a su controlador de usar la clase
+MediaView en vez de la clase View por defecto. Después de eso, sólo pasar 
+parámetros adicionales para especificar donde está ubicado su archivo:
+
+class ExampleController extends AppController {
+  public function download() {
+    $this->viewClass = ’Media’;
+    // Download app/outside_webroot_dir/example.zip
+    $params = array(
+      ’id’ => ’example.zip’,
+      ’name’ => ’example’,
+      ’download’ => true,
+      ’extension’ => ’zip’,
+      ’path’ => APP . ’outside_webroot_dir’ . DS
+    );
+    $this->set($params);
+  }
+}
+
+Ej. de renderizar un archivo cuyo mime type no está incluido en el array $mimeType
+de MediaView. Estamos también usando una ruta relativa que estará por defecto 
+en su carpeta app/webroot:
+
+public function download() {
+  $this->viewClass = ’Media’;
+  // Render app/webroot/files/example.docx
+  $params = array(
+    ’id’ => ’example.docx’,
+    ’name’ => ’example’,
+    ’extension’ => ’docx’,
+    ’mimeType’ => array(
+      ’docx’ => ’application/vnd.openxmlformats-officedocument’ .
+      ’.wordprocessingml.document’
+    ),
+    ’path’ => ’files’ . DS
+  );
+  $this->set($params);
+}
+
+Parámetros ajustables (settables)
+---------------------------------
+id La ID es el nombre de archivo ya que este reside en el servidor de archivo 
+   incluyendo la extensión de archivo
+
+name El nombre le permite especificar un nombre de archivo alternativo para ser
+     enviado al usuario. Especificar el nombre sin la extensión de archivo
+     
+download Un valor boolean que indica si los headers deberían ser fijados a 
+         forzar la descarga
+         
+extension La extensión de archivo. Este es emparejado contra una lista interna de
+          mime types aceptables. Si el mime type especificado no está en la lista
+          (ó enviado en el array de parámetro mimeType), el archivo no será
+          descargado
+                    
+path El nombre de carpeta, incluyendo el separador de directorio final. La ruta
+     debería ser absoluta pero puede ser relativa a la carpeta app/webroot
+      
+
+mimeType Un array con mime types adicionales a ser mergeados con la lista interna
+         MediaView de mime types aceptables
+
+cache Un valor boolean ó Integer - si se fija a true le permitirá a los navegadores
+      cachear el archivo (por defecto en false si no está seteado); de otro modo
+      fijar este al número de segundos en el futuro para cuando la caché 
+      debería expirar
+
+Vistas JSON y XML
+=================
+Nuevo en CakePHP 2.1 hay 2 nuevas clases de vista. XmlView y JsonView le dejan
+crear respuestas XML y JSON fácilmente, e integrarlas con el RequestHandlerComponent.  
+
+Habilitando RequestHandlerComponent en su aplicación, y habilitando soporte 
+para las extensiones xml y json, puede impulsar las clases de vista nuevas 
+automáticamente. XmlView y JsonView serán referidas como vistas de datos para 
+el resto de esta página.
+
+Hay 2 formas que puede generar vistas de datos. La 1ra es usar la clave _serialize,
+y la 2da es crear archivos de vista normales.
+
+Habilitar vistas de datos en su aplicación
+------------------------------------------
+Antes de que pueda usar las clases vista de datos, necesita cierta configuración:
+
+1. Habilitar las extensiones json y/ó xml con Router::parseExtensions(). Esto
+   habilitará a Router manejar extensiones múltiples
+
+2. Agregar el RequestHandlerComponent a su lista de componentes de su controlador.
+   Esto habilitará conmutación de la clase de vista sobre content types de forma
+   automática. Puede también configurar el componente con la configuración    
+   viewClassMap, para mapear tipos a sus clases personalizadas y/ó mapear otros
+   tipos de datos
+   
+Nuevo en v.2.3: el método RequestHandlerComponent::viewClassMap() ha sido agregado
+a tipos de mapeo para viewClasses. La configuración viewClassMap no funcionará
+en versiones anteriores.
+
+Después de agregar Router::parseExtensions(’json’); a su archivo de rutas, 
+CakePHP conmutará automáticamente clases de vista cuando una petición es hecha 
+con la extensión .json, ó el Accept header es application/json.
+
+Usar vistas de datos con la clave serialize
+-------------------------------------------
+La clave _serialize es una variable de vista especial que indica que otras 
+variable(s) de vista deberían ser serializadas al usar una vista de datos.
+Esto le deja saltar definir archivos de vista para sus acciones controlador si
+no necesita hacer cualquier formateo personalizado antes de que sus datos
+sean convertidos en json/xml.
+
+Si necesita hacer cualquier formateo ó manipulación de sus variables de vista
+antes de generar la respuesta, debería usar archivos de vista. El valor de 
+_serialize puede ser ya sea un string ó un array de variables de vista a 
+serializar:
+ 
+class PostsController extends AppController {
+  public $components = array(’RequestHandler’);
+  public function index() {
+    $this->set(’posts’, $this->paginate());
+    $this->set(’_serialize’, array(’posts’));
+  }
+}
+
+Uno puede también definir _serialize como un array de variables de vista a combinar:
+
+class PostsController extends AppController {
+  public $components = array(’RequestHandler’);
+  public function index() {
+    // some code that created $posts and $comments
+    $this->set(compact(’posts’, ’comments’));
+    $this->set(’_serialize’, array(’posts’, ’comments’));
+  }
+}
+
+Definir _serialize como un array tiene el beneficio agregado de anexar automáticamente
+un elemento de <response> de nivel superior al usar XmlView. Si uno usa un valor
+string para _serialize y XmlView, asegurarse que su variable de vista tiene un
+elemento de nivel superior único. Sin un elemento de nivel superior único el Xml
+fallará en generarse.
+
+Usar una vista de datos con archivos de vista
+---------------------------------------------
+Uno debería usar archivos de vista si necesita hacer alguna manipulación de su 
+contenido de vista antes de crear la salida final. Por ej. si tuvimos posts, 
+que tenía un archivo conteniendo el HTML generado, probablemente querríamos
+
+SEGUIR(102/203)

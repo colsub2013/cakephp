@@ -587,8 +587,216 @@ $user = $this->User->read();
 Atributos de Controlador
 ------------------------
 
+propiedad Controller::$name
+...........................
+El atributo $name debería fijarse a el nombre del controlador. Esta es la forma
+plural del modelo primario que usa el controlador. Esta propiedad puede omitirse,
+pero salvaguarda a CakePHP de declinarla (inflecting):
 
+// $name controller attribute usage example
+class RecipesController extends AppController {
+  public $name = ’Recipes’;
+}
 
+$components, $helpers y $uses
+-----------------------------
+Los próximos atributos controlador usados con más frecuencia le dicen a CakePHP
+que  $helpers, $components, y modelos uno estará usando en conjunción con el
+controlador actual. Usar estos atributos hace a las clases MVC dadas por $components
+y $uses disponibles al controlador como variables de clase ($this->ModelName, 
+por ej.) y aquellos dados por $helpers a la vista como una variable de referencia
+a objeto ($this->{$helpername}).
 
-SEGUIR CAP5 (61)  
+Nota: cada controlador tiene alguna de estas clases disponibles por defecto, 
+así uno puede no necesitar configurar su controlador para nada.
+
+Propiedad Controller::$uses
+...........................
+Los controladores tienen acceso a su modelo primario disponible por defecto. 
+Nuestro RecipesController tendrá la clase modelo Recipe disponible en $this->Recipe, 
+y nuestro ProductsController ofrece también el modelo Product en $this->Product.
+Pero, al permitir a un controlador acceder a modelos adicionales a través de
+la variable $uses, el nombre del modelo controlador actual también debe ser 
+incluído. Esto se ilustra en el ej. de abajo.
+
+Si no desea usar un Model en su controlador, establecer public $uses = array().
+Esto le permitirá usar un controlador sin necesidad de un archivo Model
+correspondiente. Pero, los modelos definidos en el AppController aún serán 
+cargados. Puede también usar false para no cargar ningún modelo. Aún aquellos
+definidos en el AppController.
+
+Cambiado en v.2.1: $uses tiene ahora un nuevo valor por defecto, este también 
+maneja false de forma diferente.
+
+Propiedad Controller::$helpers
+..............................
+El HtmlHelper, FormHelper, y SessionHelper están disponibles por defecto, 
+ya que es el SessionComponent. Pero si uno elige definir su propio array $helpers
+en AppController, asegurarse de incluir HtmlHelper y FormHelper si uno quiere
+que ellos estén aún disponibles por defecto en sus Controllers. 
+
+Se ve como decirle a un Controller CakePHP que uno planea usar clases MVC 
+adicionales:
+
+class RecipesController extends AppController {
+  public $uses = array(’Recipe’, ’User’);
+  public $helpers = array(’Js’);
+  public $components = array(’RequestHandler’);
+}
+
+Cada una de estas variables son mergeadas con sus valores heredados, así no es
+necesario (por ej.) redeclarar el FormHelper, ó cualquier cosa que está declarada
+en su AppController.
+
+Propiedad Controller::$components
+.................................
+El array components le permite fijar que Components usará un controlador. Como
+los componentes $helpers y $uses en sus controladores son mergeados con aquellos
+en AppController. Como con $helpers uno puede pasar ajustes (settings) en
+$components.  
+
+Otros atributos
+---------------
+
+property Controller::$cacheAction
+.................................
+El atributo cacheAction se usa para definir la duración y otra información sobre
+el caching de página completa. 
+
+property Controller::$paginate
+..............................
+El atributo paginate es un propiedad de compatibilidad deprecada. Usar esta 
+carga y configura el PaginatorComponent. Se recomienda que actualice su código
+para usar ajustes de componente normales:
+
+class ArticlesController extends AppController {
+  public $components = array(
+    ’Paginator’ => array(
+      ’Article’ => array(
+        ’conditions’ => array(’published’ => 1)
+      )
+    )
+  );
+}
+
+Mas sobre controladores
+-----------------------
+
+Objetos de petición y respuesta
+...............................
+Es nuevo en CakePHP 2.0. En versiones anteriores, estos objetos fueron representados
+a través de arrays, y los métodos relacionados fueron expandidos a través de 
+RequestHandlerComponent, Router, Dispatcher y Controller. No hubo objeto
+autoritativo sobre que información contuvo la petición. Para 2.0, se usaron para
+esto CakeRequest y CakeResponse.
+
+CakeRequest
+...........
+Es el objeto de petición por defecto usado en CakePHP. Centraliza un número de
+características para interrogar e interactuar con datos de petición. En cada
+petición, es creado un CakeRequest y luego pasado por referencia a las capas 
+varias de una aplicación que usa datos de petición. Por defecto, CakeRequest
+es asignada a $this->request, y está disponible en Controllers, Views y Helpers.
+Puede también acceder a este en Components usando la referencia controlador. 
+Algunos deberes que realiza CakeRequest:
+
+• Procesa arrays GET, POST, y FILES dentro de estructuras de datos con los que
+  es familiar
+
+• Provee introspección de ambiente perteneciente a la petición. Cosas como 
+  los headers enviados, la dirección IP del cliente, y la información de
+  subdominio / dominio sobre la aplicación que el servidor está corriendo
+
+• Provee acceso a parámetros de request ambos como índices de array y propiedades
+  de objeto
+
+Acceder parámetros de request
+.............................
+CakeRequest expone varias interfaces para acceso de parámetros de request. El 
+1ro usa propiedades de objeto, el 2do usa índices de array, y el 3ro usa 
+$this->request->params:
+
+$this->request->controller;
+$this->request[’controller’];
+$this->request->params[’controller’];
+
+Todo lo de arriba accederá al mismo valor. Todos los elementos Route son accedidos
+a través de esta interfaz.
+
+Adicionalmente a los elementos Route, uno con frecuencia necesita acceso a 
+'argumentos pasados' y 'parámetros Nombrados'.
+
+// Passed arguments
+$this->request->pass;
+$this->request[’pass’];
+$this->request->params[’pass’];
+
+// named parameters
+$this->request->named;
+$this->request[’named’];
+$this->request->params[’named’];
+
+Todos estos le proveerán de acceso a los argumentos pasados y parámetros nombrados.
+Hay varios parámetros que CakePHP usa internamente. Todos estos se encuentran
+en los parámetros de request:
+
+• plugin      El plugin que maneja la petición. Será null cuando no hay plugin
+• controller  El controlador que maneja la petición actual
+• action      La acción que maneja la petición actual
+• prefix      El prefijo para la acción actual
+• bare        Presente cuando la petición vino del requestAction() e incluyó la
+              opción bare. Las peticiones bare no tienen layouts renderizados
+• requested   Presente y puesto a true cuando la acción vino de requestAction()               
+
+Acceder a parámetros Querystring
+................................
+
+Querystring parameters can be read using CakeRequest::$query:
+
+// URL is /posts/index?page=1&sort=title
+$this->request->query[’page’];
+// You can also access it via an array
+// Note: BC accessor, will be deprecated in future versions
+$this->request[’url’][’page’];
+
+You can either directly access the $query property, or you can use CakeRequest::query() to read
+the URL query array in an error-free manner. Any keys that do not exist will return null:
+
+$foo = $this->request->query(’value_that_does_not_exist’);
+// $foo === null
+
+Accessing POST data
+
+All POST data can be accessed using CakeRequest::$data. Any form data that contains a data prefix
+will have that data prefix removed. For example:
+
+// An input with a name attribute equal to ’data[MyModel][title]’
+// is accessible at
+$this->request->data[’MyModel’][’title’];
+
+You can either directly access the $data property, or you can use CakeRequest::data() to read the
+data array in an error-free manner. Any keys that do not exist will return null:
+
+$foo = $this->request->data(’Value.that.does.not.exist’);
+// $foo == null
+
+Accessing PUT or POST data
+
+New in version 2.2.
+
+When building REST services, you often accept request data on PUT and DELETE requests. As of 2.2, any
+application/x-www-form-urlencoded request body data will automatically be parsed and set to
+$this->data for PUT and DELETE requests. If you are accepting JSON or XML data, see below for
+how you can access those request bodies.
+
+Accessing XML or JSON data
+
+Applications employing REST often exchange data in non-URL-encoded post bodies. You can read input
+data in any format using CakeRequest::input(). By providing a decoding function, you can receive
+the content in a deserialized format:
+
+// Get JSON encoded data submitted to a PUT/POST action
+$data = $this->request->input(’json_decode’);
+
+SEGUIR CAP5 (66/84)  
     
