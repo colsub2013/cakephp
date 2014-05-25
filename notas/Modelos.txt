@@ -529,4 +529,237 @@ agregar un campo INT nuevo a la tabla 'images' y nombrarla 'image_comment_count'
 
 Más ejemplos:
 
-(215)
+---------------------------------------------------------------------------
+| Modelo    | Modelo Asociado     | Ejemplo                               |
+---------------------------------------------------------------------------
+| User      | Image               | users.image_count                     |
+| Image     | ImageComment        | images.image_comment_count            |
+| BlogEntry | BlogEntryComment    | blog_entries.blog_entry_comment_count |
+---------------------------------------------------------------------------
+
+Una vez que uno ha agregado el campo counter, activar counter-cache en su asociación
+agregando una clave counterCache y fijar el valor a true:
+
+class ImageComment extends AppModel {
+  public $belongsTo = array(
+    ’Image’ => array(
+      ’counterCache’ => true,
+    )
+  );
+}
+
+Desde ahora, cada vez que uno agrega ó quita un ImageComment asociado a Image,
+el número dentro de image_comment_count es ajustado automáticamente.
+
+counterScope
+............
+Puede también especificar counterScope. Esto le permite especificar una 
+condición simple que le dice al modelo cuando actualizar (ó cuando no, dependiendo
+de como uno lo mire) el valor counter.
+
+Usando nuestro ej. modelo Image, podemos especificarlo como:
+
+class ImageComment extends AppModel {
+  public $belongsTo = array(
+    ’Image’ => array(
+      ’counterCache’ => true,
+      // only count if "ImageComment" is active = 1
+      ’counterScope’ => array(
+        ’ImageComment.active’ => 1
+      )
+    )
+  );
+}
+
+counterCache múltiple
+.....................
+Desde 2.0, CakePHP ha soportado tener counterCache múltiple en una relación de
+modelo única. Es también posible definir un counterScope para cada counterCache.
+Asumiendo que uno tiene un modelo User y un modelo Message, y quiere ser capaz
+de contar la cantidad de mensajes leídos y no leídos para cada usuario. 
+ 
+---------------------------------------------------------------------------
+| Modelo   | Campo                 | Descripción          |               |
+---------------------------------------------------------------------------
+| User    | users.messages_read   | Conteo de lectura de Message          |  
+| User    | users.messages_unread | Conteo de no lectura de Message       |
+| Message | messages.is_read      | Determina si un Message es leído ó no |
+---------------------------------------------------------------------------
+
+Con esta configuración, su belongsTo lucirá como:
+
+class Message extends AppModel {
+  public $belongsTo = array(
+    ’User’ => array(
+      ’counterCache’ => array(
+        ’messages_read’ => array(’Message.is_read’ => 1),
+        ’messages_unread’ => array(’Message.is_read’ => 0)
+      )
+    )
+  );
+}
+
+hasAndBelongsToMany (HABTM)
+...........................
+Esta asociación se usa cuando tiene 2 modelos que necesitan unirse, repetidamente,
+varias veces, de maneras diferentes. La principal diferencia entre hasMany y HABTM
+es que un enlace entre modelos en HABTM no es exclusivo.
+
+Ej., vamos a unir (join up) nuestro modelo Recipe con un modelo Ingredient usando
+HABTM. Usar tomates como un Ingredient para la receta 'spaghettis de mamá'
+no agota (use up) el ingrediente. Puede también usarse para un Recipe de ensalada.
+
+Los enlaces entre objetos hasMany asociados son exclusivos. Si User hasMany Comments,
+un comentario es sólo enlazado a un usuario específico.
+
+Necesitaremos configurar una tabla extra en la DB para manejar asociaciones
+HABTM. Este nuevo nombre de tabla a unir necesita incluir los nombres de ambos
+modelos involucrados, en orden alfabético, y separados con un '_'. Los contenidos
+de la tabla deberían ser 2 campos que son claves foráneas (que deberían ser
+enteros) apuntando a las claves primarias de los modelos involucrados. Para evitar
+problemas, no definir una clave primaria combinada para estos 2 campos. Si su
+aplicación requiere un índice único, puede definir uno. Si planea agregar 
+cualquier información extra a esta tabla, ó usar un modelo 'with', debería 
+agregar un campo clave primaria adicional (por convención 'id').
+
+HABTM requiere una tabla de join que incluye ambos nombres de modelo.
+
+-------------------------------------------------------------------------------
+| Relación        | Campos de Tabla HABTM                                     |
+-------------------------------------------------------------------------------
+| Recipe HABTM    | ingredients_recipes.id, ingredients_recipes.ingredient_id,|
+| Ingredient      | ingredients_recipes.recipe_id                             |
+| Cake HABTM Fan  | cakes_fans.id, cakes_fans.cake_id, cakes_fans.fan_id      |
+| Foo HABTM Bar   | bars_foos.id, bars_foos.foo_id, bars_foos.bar_id          |
+-------------------------------------------------------------------------------
+
+Nota: Los nombres de tabla están en orden alfabético por convención. Es posible
+definir un nombre de tabla personalizado en la definición de asociación.
+
+Asegurarse que las claves primarias en tablas cakes y recipes tengan campos 'id'
+como se asumieron por convención. Si estos son diferentes que los asumidos, 
+deben ser cambiados en la primaryKey del modelo.
+
+Una vez que se ha creado esta tabla nueva, podemos definir la asociación HABTM
+en los archivos modelo. En la sintaxis de array:
+
+class Recipe extends AppModel {
+  public $hasAndBelongsToMany = array(
+    ’Ingredient’ =>
+    array(
+      ’className’ => ’Ingredient’,
+      ’joinTable’ => ’ingredients_recipes’,
+      ’foreignKey’ => ’recipe_id’,
+      ’associationForeignKey’ => ’ingredient_id’,
+      ’unique’ => true,
+      ’conditions’ => ’’,
+      ’fields’ => ’’,
+      ’order’ => ’’,
+      ’limit’ => ’’,
+      ’offset’ => ’’,
+      ’finderQuery’ => ’’,
+      ’with’ => ’’
+    )
+  );
+}
+
+Posibles claves para los arrays de asociación HABTM incluyen:
+
+• className: el nombre de clase del modelo siendo asociado al modelo actual. 
+  Si está definiendo una relación 'Recipe HABTM Ingredient', la clave className
+  debería ser igual a 'Ingredient'
+   
+• joinTable: el nombre de la tabla join usada en esta asociación (si la tabla
+  actual no se adhiere a la convención de nombramiento para tablas join HABTM)
+
+• with: define el nombre del modelo para la tabla join. Por defecto CakePHP 
+  auto creará un modelo por uno. Usar el ej. sobre esto se llamaría IngredientsRecipe.
+  Usando esta clave puede redefinir este nombre por defecto. El modelo de join
+  de tabla puede usarse como cualquier modelo 'regular' para acceder a la tabla
+  de join directamente. Creando una clase modelo con tal nombre y nombre de archivo,
+  puede agregar cualquier comportamiento personalizado a las búsquedas de join 
+  de tabla, tal como agregar mas información / columnas a esta
+
+• foreignKey: el nombre de la clave foranea hallada en el modelo actual. Esto es 
+  útil si necesita definir múltiples relaciones HABTM. El valor por defecto para
+  esta clave es '_', nombre único del modelo actual, con el sufijo '_id'
+
+• associationForeignKey: el nombre de la clave foránea hallada en el otro modelo.
+  Útil si necesita definir múltiples relaciones HABTM. El valor por defecto para
+  esta clave es '_', nombre único del otro modelo, con el sufijo '_id'       
+
+• unique: boolean ó string keepExisting.
+
+  – Si es true (valor por defecto) cake primero borrará los registros de relación
+    existentes en la tabla de claves foráneas antes de insertar nuevas. Las
+    asociaciones existentes necesitan pasarse de nuevo cuando se actualizan
+
+  - Si es false, cake insertará el registro de relación, y así no se borran 
+    registros de join durante una operación de guardado
+  
+  - Cuando se fija a keepExisting, este comportamiento es similar a true, pero
+    las asociaciones existentes no son borradas
+
+• conditions: un array de condiciones compatibles con find() ó string SQL. Si uno
+  tiene condiciones sobre una tabla asociada, debería usar un modelo 'with', y
+  definir las asociaciones belongsTo necesarias sobre esta
+
+• fields: una lista de campos a ser recobrados cuando son extraidos los datos del
+  modelo asociado. Retorna todos los campos por defecto
+
+• order: un array de cláusulas de orden compatibles con find() ó strings SQL
+
+• limit: el número máximo de filas asociadas que quiere retornar
+
+• offset: el número de filas asociadas a saltarse (skip over) (dadas condiciones
+  actuales y orden) antes de extraer y asociar
+
+• finderQuery: una consulta SQL completa que CakePHP puede usar para extraer
+  registros de modelo. Debería usarse en situaciones que requieren resultados
+  altamente personalizados
+
+Una vez que esta asociación ha sido definida, las operaciones de find en el 
+modelo Recipe también extraerán registros relacionados a Tag si estos existen:
+
+// Sample results from a $this->Recipe->find() call.
+Array
+(
+  [Recipe] => Array
+    (
+      [id] => 2745
+      [name] => Chocolate Frosted Sugar Bombs
+      [created] => 2007-05-01 10:31:01
+      [user_id] => 2346
+    )
+  [Ingredient] => Array
+    (
+      [0] => Array
+        (
+          [id] => 123
+          [name] => Chocolate
+        )
+      [1] => Array
+        (
+          [id] => 124
+          [name] => Sugar
+        )
+      [2] => Array
+        (
+          [id] => 125
+          [name] => Bombs
+        )
+    )
+)
+
+Recordar definir una asociación HABTM en el modelo Ingredient si uno quiere
+recobrar datos Recipe al usar el modelo Ingredient.
+
+Nota: los datos HABTM son tratados como un set completo. Cada vez que es agregada
+una nueva asociación de datos, el set de filas asociadas completa en la DB
+es borrada (dropped) y recreada así uno siempre necesitará pasar el set de 
+datos completo para almacenamiento. 
+
+hasMany through (Modelo Join)
+.............................
+
+(219)

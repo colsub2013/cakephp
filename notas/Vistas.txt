@@ -658,4 +658,4 @@ su página rápido y fácil.
 
 Para usar temas, especificar el nombre de tema en su controlador:
 
-SEGUIR(97)
+SEGUIR(98)
