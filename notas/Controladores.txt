@@ -750,53 +750,217 @@ en los parámetros de request:
 
 Acceder a parámetros Querystring
 ................................
-
-Querystring parameters can be read using CakeRequest::$query:
+Los parámetros de Querystring pueden leerse usando CakeRequest::$query:
 
 // URL is /posts/index?page=1&sort=title
 $this->request->query[’page’];
+
 // You can also access it via an array
 // Note: BC accessor, will be deprecated in future versions
 $this->request[’url’][’page’];
 
-You can either directly access the $query property, or you can use CakeRequest::query() to read
-the URL query array in an error-free manner. Any keys that do not exist will return null:
+Uno puede ya sea acceder directamente a la propiedad $query, ó puede usar
+CakeRequest::query() para leer el array de consulta URL en una manera libre de
+errores. Cuaquiera de las claves que no existen retornarán null:
 
 $foo = $this->request->query(’value_that_does_not_exist’);
 // $foo === null
 
-Accessing POST data
-
-All POST data can be accessed using CakeRequest::$data. Any form data that contains a data prefix
-will have that data prefix removed. For example:
+Acceder a datos POST
+....................
+Todos los datos POST pueden ser accedidos usando CakeRequest::$data. Cualquier
+dato de formulario que contiene un prefijo de datos tendrá ese prefijo de datos
+removido. Ej.:
 
 // An input with a name attribute equal to ’data[MyModel][title]’
 // is accessible at
 $this->request->data[’MyModel’][’title’];
 
-You can either directly access the $data property, or you can use CakeRequest::data() to read the
-data array in an error-free manner. Any keys that do not exist will return null:
+Uno puede ya sea acceder directamente a la propiedad $data, ó puede usar
+CakeRequest::data() para leer el array de datos de una manera libre de errores.
+Cualquiera de las claves que no existan retornarán null:
 
 $foo = $this->request->data(’Value.that.does.not.exist’);
 // $foo == null
 
-Accessing PUT or POST data
+Acceder a datos PUT ó POST
+..........................
+Nuevo en v.2.2.
 
-New in version 2.2.
+Al construir servicios REST, con frecuencia acepta datos de petición sobre peticiones
+PUT y DELETE. En v.2.2, cualquier dato de cuerpo de la petición application/x-www-form-urlencoded 
+será parseado automáticamente y fijado a $this->data para peticiones PUT y DELETE.
 
-When building REST services, you often accept request data on PUT and DELETE requests. As of 2.2, any
-application/x-www-form-urlencoded request body data will automatically be parsed and set to
-$this->data for PUT and DELETE requests. If you are accepting JSON or XML data, see below for
-how you can access those request bodies.
-
-Accessing XML or JSON data
-
-Applications employing REST often exchange data in non-URL-encoded post bodies. You can read input
-data in any format using CakeRequest::input(). By providing a decoding function, you can receive
-the content in a deserialized format:
+Acceder datos XML ó JSON
+........................
+Las aplicaciones que emplean REST con frecuencia intercambian datos en cuerpos
+post no codificados por URL. Puede leer datos de entrada en cualquier formato
+usando CakeRequest::input(). Proveyendo una función de decodificación, 
+puede recibir el contenido en un formato deserializado:
 
 // Get JSON encoded data submitted to a PUT/POST action
 $data = $this->request->input(’json_decode’);
 
-SEGUIR CAP5 (66/84)  
+Algunos métodos de deserialización requieren parámetros adicionales cuando son
+llamados, tales como el parámetro 'as array' en json_decode. Si uno quiere XML
+convertido en un objeto DOMDocument, CakeRequest::input() soporta pasar también
+parámetros adicionales:
+
+// Get Xml encoded data submitted to a PUT/POST action
+$data = $this->request->input(’Xml::build’, array(’return’ => ’domdocument’));
+
+Acceder a información de ruta
+.............................
+CakeRequest también provee información sobre las rutas en su aplicación.
+CakeRequest::$base y CakeRequest::$webroot son útiles para generar URL's, y
+determinar si su aplicación está ó no en un subdirectorio.
+
+Inspeccionar la petición
+........................
+Detectar varias condiciones de request solían requerir usar RequestHandlerComponent.
+Estos métodos han sido movidos a CakeRequest, y ofrecen una interfaz nueva junto
+a un uso más compatible hacia atrás:
+
+$this->request->is(’post’);
+$this->request->isPost(); // deprecated
+
+Ambas llamadas a método retornarán el mismo valor. Actualmente, los métodos 
+están deprecados. Puede extender los detectores de request que están disponibles
+usando CakeRequest::addDetector() para crear clases de detectores nuevas. Hay 4 
+tipos diferentes de detectores que uno puede crear:
+
+• Comparación de valor de ambiente - Compara un valor extraído desde env() para
+  equivalencia con el valor provisto
+
+• Comparación de valor de patrón - Le permite comparar un valor extraído desde 
+  env() para una expresión regular
+    
+• Comparación basada en opción - Usan una lista de opciones para crear una 
+  expresión regular. Las llamadas posteriores a agregar un detector de opciones
+  ya definido mergeará las opciones
+    
+• Detectores de callback - Le permiten proveer un tipo de 'callback' para manejar
+  el chequeo. El callback recibirá el objeto request como su único parámetro
+  
+Algunos ej.'s serían:
+
+// Add an environment detector.
+$this->request->addDetector(
+  ’post’,
+  array(’env’ => ’REQUEST_METHOD’, ’value’ => ’POST’)
+);
+
+// Add a pattern value detector.
+$this->request->addDetector(
+  ’iphone’,
+  array(’env’ => ’HTTP_USER_AGENT’, ’pattern’ => ’/iPhone/i’)
+);
+
+// Add an option detector.
+$this->request->addDetector(’internalIp’, array(
+  ’env’ => ’CLIENT_IP’,
+  ’options’ => array(’192.168.0.101’, ’192.168.0.100’)
+));
+
+// Add a callback detector. Can either be an anonymous function
+// or a regular callable.
+$this->request->addDetector(
+  ’awesome’,
+  array(’callback’ => function ($request) {
+    return isset($request->awesome);
+  })
+);
+
+CakeRequest también incluye métodos como CakeRequest::domain(),
+CakeRequest::subdomains() y CakeRequest::host() para ayudar en aplicaciones
+con subdominios.
+
+Hay varios detectores incorporados que puede usar:
+
+• is(’get’) Chequea para ver si la petición actual es un GET.
+• is(’put’) Chequea para ver si la petición actual es un PUT.
+• is(’post’) Chequea para ver si la petición actual es un  POST.
+• is(’delete’) Chequea para ver si la petición actual es un  DELETE.
+• is(’head’) Chequea para ver si la petición actual es un  HEAD.
+• is(’options’) Chequea para ver si la petición actual es un  OPTIONS.
+• is(’ajax’) Chequea para ver si la petición actual vino con X-Requested-with = XmlHttpRequest.
+• is(’ssl’) Chequea para ver si la petición es via SSL
+• is(’flash’) Chequea para ver si la petición tiene un User-Agent de Flash
+• is(’mobile’) Chequea para ver si la petición vino desde una lista común de agentes móviles
+
+CakeRequest y RequestHandlerComponent
+.....................................
+Ya que varias de las características ofrecidos de CakeRequest solían ser del
+reinado de RequestHandlerComponent. Para 2.0, RequestHandlerComponent proveen
+una capa de azucar, tal como conmutar layouts y vistas basadas en contenido, 
+en la parte superior de la utilidad que CakeRequest afronta.
+
+Interactuar con otros aspectos del request
+..........................................
+Puede usar CakeRequest para instropección de una variedad de cosas sobre el
+request. Mas allá de los detectores, puede también hallar otra información 
+desde varias propiedades y métodos.
+
+• $this->request->webroot contains the webroot directory.
+• $this->request->base contains the base path.
+• $this->request->here contains the full address to the current request.
+• $this->request->query contains the query string parameters.
+
+API CakeRequest 
+---------------
+
+clase CakeRequest
+.................
+CakeRequest encapsula instrospección y manejo de parámetro del request
+
+CakeRequest::domain($tldLength = 1)
+...................................
+Retorna el nombre de dominio que está corriendo su aplicación
+
+CakeRequest::subdomains($tldLength = 1)
+.......................................
+Retorna los subdominios que su aplicación está corriendo como un array
+
+CakeRequest::host()
+...................
+Retorna el host de la aplicación que corre
+
+CakeRequest::method()
+.....................
+Retorna el método HTTP con que fue hecho el request
+
+CakeRequest::onlyAllow($methods)
+................................
+Fija métodos HTTP permitidos. Si no coincidió, arrojará MethodNotAllowedException. 
+La respuesta 405 incluirá el header requerido Allow con los métodos pasados.
+
+Nuevo en v.2.3
+
+Deprecado en v.2.5: usar en vez de eso CakeRequest::allowMethod().
+
+CakeRequest::allowMethod($methods)
+..................................
+Fija los métodos HTTP permitidos. Si no coincidió arrojará MethodNotAllowedException.
+La respuesta 405 incluirá el header Allow requerido con los métodos pasados.
+
+Nuevo en v.2.5.
+
+CakeRequest::referer($local = false)
+....................................
+Retorna la dirección referida para la petición.
+
+CakeRequest::clientIp($safe = true)
+...................................
+Retorna la dirección IP del visitante actual.
+
+CakeRequest::header($name)
+..........................
+Le permite acceder a cualquiera de los headers HTTP_* que fueron usados para el
+request. Ej.:
+ 
+$this->request->header(’User-Agent’);
+
+retornaría el user agent usado para el request.
+
+SEGUIR CAP5 (69/84)  
     
