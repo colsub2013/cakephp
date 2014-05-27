@@ -962,5 +962,71 @@ $this->request->header(’User-Agent’);
 
 retornaría el user agent usado para el request.
 
-SEGUIR CAP5 (69/84)  
+CakeRequest::input($callback[, $options ])
+..........................................
+Recobra los datos de entrada para un request, y lo pasa opcionalmente a través 
+de una función de decodificación. Útil al interactuar con el contenido del body
+de la petición XML ó JSON. Los parámetros adicionales para la función de 
+decodificación pueden pasarse como argumentos a input():
+
+$this->request->input(’json_decode’);
+
+CakeRequest::data($name)
+........................
+Provee acceso con notación de '.' a los datos de request. Permite a los datos
+de request ser leídos y modificados. Las llamadas pueden ser encadenadas también 
+en forma conjunta:
+ 
+// Modify some request data, so you can prepopulate some form fields.
+$this->request->data(’Post.title’, ’New post’)
+  ->data(’Comment.1.author’, ’Mark’);
+
+// You can also read out data.
+$value = $this->request->data(’Post.title’);
+
+CakeRequest::query($name)
+.........................
+Provee acceso de notación de '.' a los datos query de URL:
+
+// URL is /posts/index?page=1&sort=title
+$value = $this->request->query(’page’);
+
+Nuevo en v.2.3.
+
+CakeRequest::is($type)
+......................
+Chequear si un Request coincide ó no con cierto criterio. Usa reglas de detección
+incorporadas así como cualquiera de las reglas adicionales definidas con 
+CakeRequest::addDetector().
+  
+CakeRequest::addDetector($name, $options)
+.........................................
+Agrega un detector a ser usado con CakeRequest::is().
+
+CakeRequest::accepts($type = null)
+..................................
+Halla que content types acepta el cliente, ó chequea si este acepta un tipo de
+contenido particular.
+
+Obtiene todos los tipos:
+
+$this->request->accepts();
+
+Chequea por un tipo único:
+
+$this->request->accepts(’application/json’);
+
+static CakeRequest::acceptLanguage($language = null)
+....................................................
+Obtiene todos los lenguajes aceptados por el cliente, ó chequea si es aceptado 
+un lenguaje específico.
+
+Obtiene la lista de lenguajes aceptados:
+
+CakeRequest::acceptLanguage();
+
+Chequea si es aceptado un lenguaje específico:
+
+
+SEGUIR CAP5 (70/84)  
     
