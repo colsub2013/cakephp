@@ -1027,6 +1027,225 @@ CakeRequest::acceptLanguage();
 
 Chequea si es aceptado un lenguaje específico:
 
+CakeRequest::acceptLanguage(’es-es’);
 
-SEGUIR CAP5 (70/84)  
+CakeRequest::param($name)
+.........................
+Lee valores de forma segura en $request->params. Esto quita la necesidad de
+llamar a isset() ó empty() antes de usar los valores param.
+
+Nuevo en v.2.4.
+
+Propiedad CakeRequest::$data
+............................
+Un array de datos POST. Puede usar CakeRequest::data() para leer esta propiedad
+en un modo que suprime los errores de notificación.
+
+Propiedad CakeRequest::$query
+.............................
+Un array de parámetros de query string.
+
+Propiedad CakeRequest::$params
+..............................
+Un array de elementos de ruta y parámetros de request.
+
+Propiedad CakeRequest::$here
+............................
+Retorna la uri de request actual.
+
+Propiedad CakeRequest::$base
+............................
+La ruta base a la aplicación, usualmente / a menos que su aplicación esté en un
+subdirectorio.
+
+property CakeRequest::$webroot
+..............................
+El webroot actual.
+
+CakeResponse
+------------
+CakeResponse es la clase response por defecto en CakePHP. Este encapsula un número
+de características y funcionalidad para generar respuestas HTTP en su aplicación.
+Este encapsula un número de características y funcionalidad para generar 
+respuestas HTTP en su aplicación. Este también ayuda en testeo, ya que puede 
+ser mocked/stubbed permitiendo a uno inspeccionar los headers que serán 
+enviados. Como CakeRequest, CakeResponse consolida un número de métodos 
+anteriormente hallados en Controller, RequestHandlerComponent y Dispatcher.
+
+CakeResponse provee una interfaz para envolver las tareas comunes relacionadas
+a la respuesta como:
+
+• Enviar headers para redireccionamiento.
+• Enviar headers de content type.
+• Enviar cualquier header.
+• Enviar el body de respuesta.
+
+Cambiar la clase response
+-------------------------
+CakePHP usa CakeResponse por defecto. CakeResponse es una clase transparente y
+flexible. Si necesita redefinirla con su propia clase específica de la aplicación,
+puede reemplazar CakeResponse en app/webroot/index.php. Esto hará que todos los
+controladores en su aplicación usen CustomResponse en vez de CakeResponse. Puede
+también reemplazar la instancia de respuesta ajustando $this->response en sus
+controladores. Redefinir el objeto response es útil en testing, ya que le 
+permite un stub out de métodos que interactúan con header().
+
+Tratar con content types
+------------------------
+Puede controlar el Content-Type de sus respuestas de aplicación con CakeResponse::type().
+Si su aplicación necesita tratar con content types que no están construidos dentro
+de CakeResponse, puede mapearlos también con CakeResponse::type():
+
+// Add a vCard type
+$this->response->type(array(’vcf’ => ’text/v-card’));
+
+// Set the response Content-Type to vcard.
+$this->response->type(’vcf’);
+
+Usualmente, uno querrá mapear content types adicionales en su callback de controlador 
+beforeFilter(), así uno puede impulsar las características de conmutación de 
+vista automáticas de RequestHandlerComponent si uno lo está usando.
+
+Enviar archivos
+---------------
+Hay veces que uno quiere enviar archivos como respuestas para sus requests. 
+Anterior a v.2.3, puede usar MediaView. Desde v.2.3, use CakeResponse::file() en
+su lugar para enviar un archivo como respuesta:
+
+public function sendFile($id) {
+  $file = $this->Attachment->getFile($id);
+  $this->response->file($file[’path’]);
+  // Return response object to prevent controller from trying to render
+  // a view
+  return $this->response;
+}
+
+Del ej. de arriba, debe pasar la ruta de archivo al método. CakePHP enviará
+un header de content type apropiado si este es un tipo de archivo conocido 
+listado en CakeResponse::$_mimeTypes. Puede agregar tipos nuevos antes de llamar
+a CakeResponse::file() usando el método CakeResponse::type().
+
+Si quiere, puede también forzar un archivo para ser descargado en vez de 
+ser exhibido en el navegador especificando las opciones: 
+
+$this->response->file(
+  $file[’path’],
+  array(’download’ => true, ’name’ => ’foo’)
+);
+
+Enviar un string como archivo
+-----------------------------
+Puede responder con un archivo que no existe en el disco, tal como un pdf ó un
+ics generado al vuelo desde un string:
+
+public function sendIcs() {
+  $icsString = $this->Calendar->generateIcs();
+  $this->response->body($icsString);
+  $this->response->type(’ics’);
+  //Optionally force file download
+  $this->response->download(’filename_for_download.ics’);
+  // Return response object to prevent controller from trying to render a view
+  return $this->response;
+}
+
+Ajustar headers
+---------------
+El ajuste de parámetro es hecho con el método CakeResponse::header(). Este puede
+ser llamado con algunas configuraciones de parámetros:
+
+// Set a single header
+$this->response->header(’Location’, ’http://example.com’);
+
+// Set multiple headers
+$this->response->header(array(
+  ’Location’ => ’http://example.com’,
+  ’X-Extra’ => ’My header’
+));
+
+$this->response->header(array(
+  ’WWW-Authenticate: Negotiate’,
+  ’Content-type: application/pdf’
+));
+
+Ajustar el mismo header() en múltiples ocasiones resultará en sobreescribir 
+los valores anteriores, así como lo hacen las llamadas a header regulares. Los
+headers no son enviados cuando es llamado CakeResponse::header(); en vez de eso
+estos son buffered hasta que la respuesta es verdaderamente enviada.
+
+Nuevo en v.2.4.
+
+Puede ahora usar el método de conveniencia CakeResponse::location() para fijar
+ú obtener el header de localización de redirección.
+
+Interactuar con cacheo de navegador
+-----------------------------------
+Puede a veces necesitar forzar a los navegadores a no cachear los resultados de
+una acción controlador. Para esto se usa CakeResponse::disableCache():
+
+public function index() {
+  // do something.
+  $this->response->disableCache();
+}
+
+Advertencia: Usar disableCache() con descargas desde dominios SSL mientras intenta
+enviar archivos a IE puede resultar en errores.
+
+Puede también decirle a los clientes que quiere que ellos cacheen las respuestas.
+Usando CakeResponse::cache():
+
+public function index() {
+  //do something
+  $this->response->cache(’-1 minute’, ’+5 days’);
+}
+
+Lo de arriba le diría a los clientes a cachear la respuesta resultante por 5 días,
+acelerando la experiencia de velocidad de su visitante. CakeResponse::cache()
+fija al valor Last-Modified al 1er argumento. El header Expires y la directiva 
+max-age son fijadas basadas en el 2do parámetro. También es seteada la directiva
+public de Cache-Control.
+
+Sintonía fina de cache HTTP
+---------------------------
+Esto ayuda a acelerar su aplicación. Bajo este modelo de cacheo, solo se requiere
+que ayude a los clientes a decidir si ellos deberían usar una copia cacheada de
+la respuesta ajustando algunos headers tales como tiempo modificado y etiqueta
+entidad de respuesta.
+
+En vez de forzar a uno a codificar la lógica para cacheo y para invalidarlo 
+(refrescar) una vez que los datos han cambiado, HTTP usa 2 modelos, expiración y
+validación.
+
+Aparte de usar CakeResponse::cache(), puede también usar algunos otros métodos
+para headers de caché HTTP de sintonía fina para tomar ventaja del navegador ó 
+cacheo de proxy inverso.
+
+El header Cache Control 
+.......................
+
+Nuevo en v.2.1.
+
+Usado bajo el modelo de expiración, este header contiene indicadores múltiples
+que pueden cambiar el modo en que los navegadores ó proxies usan el contenido
+cacheado. Un header Cache-Control puede lucir como:
+
+Cache-Control: private, max-age=3600, must-revalidate
+
+La clase CakeResponse le ayuda a fijar este header con algunos métodos que 
+producirán un header Cache-Control válido. El 1ro es CakeResponse::sharable(). que
+indica si una respuesta es considerada compartible a través de usuarios ó clientes
+diferentes. Este método verdaderamente controla la parte private ó public de 
+este header. Fijar una respuesta como private indica que todas las partes de 
+esta es pretendida para un único usuario. Para tomar ventaja de caches compartidos,
+la directiva control debe fijarse como public.
+
+El 2do parámetro de este método se usa para especificar un max-age para la caché,
+que es el número de segundos después del cual la respuesta ya no es considerada
+fresca:
+
+public function view() {
+  ...
+  // set the Cache-Control as public for 3600 seconds
+  $this->response->sharable(true, 3600);
+
+SEGUIR CAP5 (74/84)  
     
