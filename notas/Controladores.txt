@@ -1246,6 +1246,187 @@ public function view() {
   ...
   // set the Cache-Control as public for 3600 seconds
   $this->response->sharable(true, 3600);
+}
 
-SEGUIR CAP5 (74/84)  
+public function my_data() {
+  ...
+  // set the Cache-Control as private for 3600 seconds
+  $this->response->sharable(false, 3600);
+}
+
+CakeResponse expone métodos separados para ajustar cada una de las directivas
+en el header Cache-Control.
+
+Header de expiración
+--------------------
+Nuevo en v.2.1.
+
+Puede fijar el header Expires a un tiempo y hora después del cual la respuesta
+ya no es considerada fresca. Este header puede fijarse usando el método
+CakeResponse::expires():
+
+public function view() {
+  $this->response->expires(’+5 days’);
+}
+
+Este método también acepta una instancia DateTime ó cualquier string que puede
+ser parseado por la clase DateTime.
+
+El header Etag
+--------------
+Nuevo en v.2.1.
+
+La validación de caché en HTTP se usa con frecuencia cuando el contenido está
+cambiando constantemente, y le pide a la aplicación sólo generar los contenidos
+de respuesta si la cache no está más fresca. Bajo este modelo, el cliente 
+continúa almacenando páginas en la caché, pero esta le pregunta a la aplicación
+cada vez si el recurso ha cambiado, en vez de usarlo directamente. Esto se usa
+comunmente con recursos estáticos tales como imágenes y otros haberes.
+
+El método etag() (llamado entity tag) es un string que identifica únicamente 
+el recurso peticionado, como un checksum lo hace para un archivo, para determinar
+si este coincide con un recurso cacheado. 
+
+Para tomar ventaja de este header, debe ya sea llamar al método
+CakeResponse::checkNotModified() manualmente ó incluir el RequestHandlerComponent 
+en su controlador:
+
+public function index() {
+  $articles = $this->Article->find(’all’);
+  $this->response->etag($this->Article->generateHash($articles));
+  if ($this->response->checkNotModified($this->request)) {
+    return $this->response;
+  }
+  ...
+}
+
+El header Last Modified
+-----------------------
+
+Nuevo en v.2.1.
+
+Bajo el modelo de validación de cache HTTP, puede también fijar el header
+Last-Modified para indicar la hora y tiempo en que el recurso fue modificado
+por última vez. Enviar este header le ayuda a CakePHP a decir a los clientes
+de cacheo si la respuesta fue modificada ó no basada en sus caches.
+
+Para tomar ventaja de este header, debe ya sea llamar manualmente al método
+CakeResponse::checkNotModified() ó incluir el RequestHandlerComponent en su
+controlador:
+
+public function view() {
+  $article = $this->Article->find(’first’);
+  $this->response->modified($article[’Article’][’modified’]);
+  if ($this->response->checkNotModified($this->request)) {
+    return $this->response;
+  }
+  ...
+}
+
+El header Vary 
+--------------
+En algunos casos, puede querer servir un contenido diferente usando la misma URL.
+Este es con frecuencia el caso de que uno tiene una página multilingue ó responde
+con un HTML diferente dependiendo del navegador. Bajo algunas circunstancias
+puede usar el header Vary: 
+
+$this->response->vary(’User-Agent’);
+$this->response->vary(’Accept-Encoding’, ’User-Agent’);
+$this->response->vary(’Accept-Language’);
+
+CakeResponse y testeo
+---------------------
+Uno sólo tiene que hacer un mock de un único objeto, ya que los controladores y
+componentes delegan a CakeResponse. Esto le ayuda a acercarse a un unit test y
+facilita el testeo de controladores:
+
+public function testSomething() {
+  $this->controller->response = $this->getMock(’CakeResponse’);
+  $this->controller->response->expects($this->once())->method(’header’);
+  // ...
+}
+
+Adicionalmente, puede correr testeos desde la línea de comandos fácilmente, ya
+que puede usar mocks para evitar errores de 'headers enviados' que pueden 
+ocurrir cuando intenta fijar headers en CLI.
+
+API CakeResponse 
+----------------
+
+clase CakeResponse
+------------------
+
+CakeResponse::header($header = null, $value = null)
+...................................................
+Le permite a uno fijar directamente uno ó más headers a ser enviados con el 
+response.
+
+CakeResponse::location($url = null)
+...................................
+Le permite fijar directamente el header de ubicación de redirección a ser enviado
+con la respuesta:
+
+// Set the redirect location
+$this->response->location(’http://example.com’);
+
+// Get the current redirect location header
+$location = $this->response->location();
+
+Nuevo en v.2.4.
+
+CakeResponse::charset($charset = null)
+......................................
+Fija el charset que será usado en la respuesta.
+
+CakeResponse::type($contentType = null)
+.......................................
+Fija el content type de la respuesta. Puede usar ya sea un alias de content type
+conocido ó el nombre de content type completo.
+
+CakeResponse::cache($since, $time = ‘+1 day’)
+.............................................
+Le permite fijar los headers de cacheo en la respuesta.
+
+CakeResponse::disableCache()
+............................
+Permite a los headers inhabilitar el cacheo de cliente para la respuesta.
+
+CakeResponse::sharable($public = null, $time = null)
+....................................................
+Fija el header Cache-Control para ser ya sea público ó privado y opcionalmente
+fija una directiva max-age del recurso.
+
+Nuevo en v.2.1.
+
+CakeResponse::expires($time = null)
+...................................
+Permite al header Expires ser fijado a una fecha específica.
+
+Nuevo en v.2.1.
+
+CakeResponse::etag($tag = null, $weak = false)
+..............................................
+Fija el header Etag para identificar únicamente un recurso de respuesta.
+
+Nuevo en v.2.1.
+
+CakeResponse::modified($time = null)
+....................................
+Fija el header Last-Modified a una fecha y hora específica en el formato 
+correcto.
+
+Nuevo en v.2.1.
+
+CakeResponse::checkNotModified(CakeRequest $request)
+....................................................
+Compara los headers de cache para el objeto request con el header de cache desde
+la respuesta y determina si este puede aún ser considerado fresco. Si es así,
+borra el contenido del response, y envía el 304 'header no modificado'.
+
+Nuevo en v.2.1.
+
+CakeResponse::compress()
+........................
+
+SEGUIR CAP5 (77/84)  
     
