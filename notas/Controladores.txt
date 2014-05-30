@@ -1427,6 +1427,114 @@ Nuevo en v.2.1.
 
 CakeResponse::compress()
 ........................
+Enciende compresión GZIP para el request.
 
-SEGUIR CAP5 (77/84)  
+CakeResponse::download($filename)
+.................................
+Le permite enviar una respuesta como un adjunto, y establece su nombre de archivo.
+
+CakeResponse::statusCode($code = null)
+......................................
+Le permite fijar el código de estado de la respuesta.
+
+CakeResponse::body($content = null)
+...................................
+Fija el cuerpo de contenido de la respuesta.
+
+CakeResponse::send()
+....................
+Una vez que ha terminado de crear una respuesta, llamar a send() enviará todo el
+set de headers así como el cuerpo. Este es hecho automáticamente al final de 
+cada request por Dispatcher.
+
+CakeResponse::file($path, $options = array())
+.............................................
+Le permite fijar el header Content-Disposition de un archivo ya sea para exhibir
+ó para descargar.
+
+Nuevo en v.2.3.
+
+Scaffolding
+-----------
+Deprecado desde v.2.5: el scaffolding dinámico será quitado y reemplazado en 3.0.
+
+Un scaffolding de aplicación es una técnica que le permite a un desarrollador
+definir y crear una aplicación básica que puede crear, recobrar, actualizar y 
+borrar objetos. Scaffolding en CakePHP también permite a los desarrolladores
+definir como los objetos son relacionados el uno al otro, y para crear y 
+romper aquellos enlaces.
+
+Todo lo que se necesita para crear un scaffold es un modelo y su controlador. 
+Una vez que uno ha fijado la variable $scaffold en el controlador, está listo.
+
+El scaffolding de CakePHP le permite obtener una aplicación CRUD básica andando
+en minutos.
+
+Scaffolding permite obtener la primeras partes de desarrollo al arrancar una
+aplicación web. Los 1ros schemas de DB están sujetos a cambios, que es normal 
+en la 1ra parte del proceso de diseño. Scaffolding analiza sus tablas de DB
+y crea listas estándar con botones 'agregar', 'editar' y 'borrar', formularios
+estandar para editar y vistas estandar para inspeccionar un único item en la DB.
+
+Para agregar scaffolding a su aplicación, en el controlador, agregar la variable
+$scaffold:
+
+class CategoriesController extends AppController {
+  public $scaffold;
+}
+
+Asumiendo que uno ha creado aún el archivo de clase modelo básico Category 
+(en app/Model/Category.php) ya está lista para arrancar. Visite 
+http://example.com/categories para ver su nuevo scaffolding.
+
+Nota: Crear métodos en controladores pueden causar resultados no buscados. Ej.:
+si uno crea un método index() en un controlador scaffolded, su método index será
+renderizado en vez de la funcionalidad de scaffolding.
+
+Scaffolding es consciente de asociaciones del modelo; así, si su modelo Category 
+belongsTo User, uno verá User IDs en los listados Category. Mientras que 
+scaffolding sabe sobre asociaciones del modelo, no verá ninguno de los registros
+relacionados en las vistas scaffold hasta que uno agregue manualmente el código
+de asociación al modelo. Ej.: si Group hasMany User y User belongsTo Group, uno
+tiene que agregar manualmente el siguiente código a sus modelos User y Group.
+
+Antes de hacerlo, la vista exhibe un input de selección vacío para Group en
+el formulario de Nuevo Usuario; después - populado con ID's ó nombres desde la
+tabla Group en el formulario Nuevo Usuario:
+
+// In Group.php
+public $hasMany = ’User’;
+
+// In User.php
+public $belongsTo = ’Group’;
+
+Si uno prefiere ver algo además de una ID (como el 1er nombre del usuario), puede
+fijar la variable $displayField en el modelo. Vamos a fijar la variable $displayField
+en nuestra clase User tal que los usuarios relacionados a categorías serán 
+mostrados por el 1er nombre en vez de sólo por el ID en scaffolding. Esta 
+característica hace al scaffolding más legible:
+
+class User extends AppModel {
+  public $displayField = ’first_name’;
+}
+
+Crear una interfaz admin única con scaffolding
+----------------------------------------------
+Si ha habilitado enrutamiento admin en su app/Config/core.php con 
+Configure::write(’Routing.prefixes’, array(’admin’));, puede usar scaffolding
+para generar una interfaz admin.
+
+Una vez que ha habilitado enrutamiento admin, asignar su prefijo admin a la
+variable scaffolding:
+
+public $scaffold = ’admin’;
+
+Ahora será capaz de acceder a las acciones scaffolded admin:
+
+http://example.com/admin/controller/index
+http://example.com/admin/controller/view
+http://example.com/admin/controller/edit
+
+
+SEGUIR CAP5 (79/84)  
     
