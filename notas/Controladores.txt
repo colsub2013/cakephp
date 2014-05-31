@@ -1534,7 +1534,202 @@ Ahora será capaz de acceder a las acciones scaffolded admin:
 http://example.com/admin/controller/index
 http://example.com/admin/controller/view
 http://example.com/admin/controller/edit
+http://example.com/admin/controller/add
+http://example.com/admin/controller/delete
+
+Este es un modo de crear una interfaz simple de backend de forma rápida. Uno
+no puede tener ambos métodos admin y non-admin scaffolded al mismo tiempo. 
+Puede redefinir métodos individuales y reemplazarlos con los propios:
+
+public function admin_view($id = null) {
+  // custom code here
+}
+
+Una vez que ha reemplazado una acción scaffolded, necesitará crear también un
+archivo de vista para la acción.
+
+Personalizar Vistas Scaffold
+----------------------------
+
+If you’re looking for something a little different in your scaffolded views, you can create templates.
+
+Custom scaffolding views for a specific controller (PostsController in this example) should be placed like
+so:
+
+app/View/Posts/scaffold.index.ctp
+app/View/Posts/scaffold.form.ctp
+app/View/Posts/scaffold.view.ctp
+
+Custom scaffolding views for all controllers should be placed like so:
+
+app/View/Scaffolds/index.ctp
+app/View/Scaffolds/form.ctp
+app/View/Scaffolds/view.ctp
+
+El Controller Pages
+-------------------
+CakePHP se embarca con un controlador por defecto PagesController.php. Este es un
+controlador opcional para servir contenido estático. La página de inicio que 
+uno ve después de la instalación es generada usando este controlador.  
+
+Si hace el archivo de vista app/View/Pages/about_us.ctp puede accederlo usando la
+url http://example.com/pages/about_us. Uno es libre de modificar el Controller
+Pages para cumplir con sus necesidades.
+
+Al hornear ('bake') una aplicación usando la utilidad consola de CakePHP el 
+Controller Pages es creado en su carpeta app/Controller/. Puede también copiar
+el archivo desde lib/Cake/Console/Templates/skel/Controller/PagesController.php.
+
+Con CakePHP 2.0 el Controller Pages fue parte de lib/Cake. Desde 2.1 el Controller
+Pages ya no es parte del núcleo pero se envía en la carpeta app.
+
+Components
+----------
+Los Components son paquetes de lógica que son compartidos entre controladores.
+Puede también crear sus propios componentes. Si se halla a uno mismo buscando
+copiar y pegar cosas entre controladores, debería considerar crear su propio
+componente para contener la funcionalidad.
+
+Configurar Components
+---------------------
+Algunos de los componentes núcleo requieren configuración. Algunos ejemplos de
+componentes que requieren configuración son Authentication y Cookie. La
+configuración para estos componentes, y para componentes en general, es hecho en
+el array $components de su método de controlador beforeFilter():
+
+class PostsController extends AppController {
+  public $components = array(
+    ’Auth’ => array(
+      ’authorize’ => array(’controller’),
+      ’loginAction’ => array(
+        ’controller’ => ’users’,
+        ’action’ => ’login’
+      )
+    ),
+    ’Cookie’ => array(’name’ => ’CookieMonster’)
+  );
+
+El fragmento previo de código sería un ejemplo de configurar un componente con
+el array $components. Todos los componentes núcleo permiten que sus ajustes de
+configuración se fijen de este modo. También puede configurar componentes en
+su método beforeFilter() del controlador. Esto es útil cuando necesita asignar
+los resultados de una función a una propiedad component. Lo de arriba podría
+ser expresado como:  
+
+public function beforeFilter() {
+  $this->Auth->authorize = array(’controller’);
+  $this->Auth->loginAction = array(
+    ’controller’ => ’users’,
+    ’action’ => ’login’
+  );
+  $this->Cookie->name = ’CookieMonster’;
+}
+
+Es posible que un componente requiera ciertas opciones de configuración para ser
+fijadas antes que corra beforeFilter() del controlador. Para este fin, algunos
+componentes permiten que se fijen opciones de configuración en el array 
+$components:
+
+public $components = array(
+  ’DebugKit.Toolbar’ => array(’panels’ => array(’history’, ’session’))
+);
+
+Una configuración común a usar es la opción className, que le permite a uno
+alias de componentes. Esta característica es útil cuando quiere reemplazar 
+$this->Auth ú otra referencia Component común con una implementación personalizada:
+
+// app/Controller/PostsController.php
+class PostsController extends AppController {
+  public $components = array(
+    ’Auth’ => array(
+      ’className’ => ’MyAuth’
+    )
+  );
+}
+
+// app/Controller/Component/MyAuthComponent.php
+App::uses(’AuthComponent’, ’Controller/Component’);
+class MyAuthComponent extends AuthComponent {
+  // Add your code to override the core AuthComponent
+}
+
+Lo de arriba haría un alias MyAuthComponent a $this->Auth en sus controladores.
+
+Note: Aliasing a component replaces that instance anywhere that component is used, including inside other
+Components.
+
+Usar Components
+---------------
+Una vez que ha incluido algunos componentes en su controlador, cada componente que
+uno usa es expuesto como una propiedad en su controlador. Si uno ha grabado el
+SessionComponent y el CookieComponent en su controlador, los podría acceder como:
+
+class PostsController extends AppController {
+  public $components = array(’Session’, ’Cookie’);
+  public function delete() {
+    if ($this->Post->delete($this->request->data(’Post.id’)) {
+      $this->Session->setFlash(’Post deleted.’);
+      return $this->redirect(array(’action’ => ’index’));
+    }
+  }
+
+Nota: Ya que ambos Models y Components son agregados a Controllers como propiedades
+ellos comparten el mismo ‘namespace’. Asegúrese de no dar a un componente y a un
+modelo el mismo nombre.
+
+Cargar componentes al vuelo
+---------------------------
+Puede no necesitar todos sus componentes disponibles en cada acción controlador.
+En situaciones como esta uno puede cargar un componente en tiempo de ejecución
+usando Component Collection. Desde dentro de un método de controlador uno 
+puede hacer lo siguiente:
+
+$this->OneTimer = $this->Components->load(’OneTimer’);
+$this->OneTimer->getTime();
+
+Nota: Cargar un componente al vuelo no llamará a su método initialize. Si el 
+componente que uno está llamando tiene este método necesitará llamarlo 
+manualmente después de cargarlo.
+
+Callbacks Component 
+-------------------
+Los Components también ofrecen algunos callbacks de request de ciclo de vida que
+les permiten aumentar el ciclo de request. 
+
+Crear un Component
+------------------
+Suponer que nuestra aplicación online necesita realizar una operación matemática
+compleja en varias partes de la aplicación. Podríamos crear un componente para
+hospedar esta lógica compartida para usarse en varios controladores diferentes.
+
+Lo 1ro es crear un archivo y clase componente nuevo. Crear el archivo en 
+app/Controller/Component/MathComponent.php. Estructura básica para el componente:
+
+App::uses(’Component’, ’Controller’);
+class MathComponent extends Component {
+  public function doComplexOperation($amount1, $amount2) {
+    return $amount1 + $amount2;
+  }
+}
+
+Nota: Todos los componentes deben extender Component. Fallar en hacer esto
+gatillará una excepción.
+
+Incluir su componente en sus controladores
+------------------------------------------
 
 
-SEGUIR CAP5 (79/84)  
+Once our component is finished, we can use it in the application’s controllers by placing the component’s
+name (without the “Component” part) in the controller’s $components array. The controller will automatically
+be given a new attribute named after the component, through which we can access an instance of
+it:
+
+/* Make the new component available at $this->Math,
+as well as the standard $this->Session */
+public $components = array(’Math’, ’Session’);
+
+Components declared in AppController will be merged with those in your other controllers. So there is
+no need to re-declare the same component twice.
+
+SEGUIR CAP5 (83/84)  
     
