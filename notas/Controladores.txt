@@ -1717,19 +1717,106 @@ gatillará una excepción.
 
 Incluir su componente en sus controladores
 ------------------------------------------
+Finalizado nuestro componente, podemos usarlo en controladores de la aplicación
+poniendo el nombre del componente (sin la parte 'Component') en el array de 
+controlador $components. El controlador se le dará automáticamente un atributo
+nombrado después el componente, a través del cual podemos acceder a una instancia
+de éste:
 
-
-Once our component is finished, we can use it in the application’s controllers by placing the component’s
-name (without the “Component” part) in the controller’s $components array. The controller will automatically
-be given a new attribute named after the component, through which we can access an instance of
-it:
-
-/* Make the new component available at $this->Math,
-as well as the standard $this->Session */
+/* Make the new component available at $this->Math, as well as the standard $this->Session */
 public $components = array(’Math’, ’Session’);
 
-Components declared in AppController will be merged with those in your other controllers. So there is
-no need to re-declare the same component twice.
+Los componentes declarados en AppController serán mergeados con aquellos en sus
+otros controladores. Así no hay necesidad de redeclarar el mismo componente 2 veces.
 
-SEGUIR CAP5 (83/84)  
-    
+Al incluir Components en un Controller puede también declarar un set de parámetros
+que serán pasados al constructor de Component. Estos parámetros pueden luego ser
+manejados por Component:
+
+public $components = array(
+  ’Math’ => array(
+    ’precision’ => 2,
+    ’randomGenerator’ => ’srand’
+  ),
+  ’Session’, ’Auth’
+);
+
+Lo de arriba pasaría el array que contiene precision y randomGenerator a 
+MathComponent::__construct() como el 2do parámetro. Por convención, si las claves
+de array coinciden con las propiedades public del componente, las propiedades
+se fijarán a los valores de estas claves.
+
+Usar otros Components en su Component
+-------------------------------------
+A veces uno de sus componentes puede necesitar usar otro componente. En este caso
+puede incluir otros componentes en su componente del mismo modo que puede incluirlos
+en controladores - usando la variable $components:
+
+// app/Controller/Component/CustomComponent.php
+App::uses(’Component’, ’Controller’);
+class CustomComponent extends Component {
+  // the other component your component uses
+  public $components = array(’Existing’);
+  public function initialize(Controller $controller) {
+    $this->Existing->foo();
+  }
+  public function bar() {
+    // ...
+  }
+}
+
+// app/Controller/Component/ExistingComponent.php
+App::uses(’Component’, ’Controller’);
+class ExistingComponent extends Component {
+  public function foo() {
+    // ...
+  }
+}
+
+Nota: En contraste a un componente incluido en un controlador no serán disparados
+callbacks sobre un componente del componente.
+
+API de Component
+----------------
+
+clase Component
+...............
+La clase base Component ofrece algunos métodos para cargar de forma 'perezosa'
+otros Components a través de ComponentCollection así como tratar con manejo 
+común de ajustes. Esto también provee prototipos para todos los callbacks de 
+componente.
+
+Component::__construct(ComponentCollection $collection, $settings = array())
+............................................................................
+Constructor para la clase base componente. Todos los $settings que son también
+propiedades public tendrán sus valores cambiados al valor coincidente en 
+$settings.
+
+Callbacks
+---------
+Component::initialize(Controller $controller)
+.............................................
+Es llamado antes del método beforeFilter del controlador.
+
+Component::startup(Controller $controller)
+..........................................
+Es llamado después del método beforeFilter del controlador pero antes que el 
+controlador ejecute el manejo de la acción actual.
+
+Component::beforeRender(Controller $controller)
+...............................................
+Es llamado después que el controlador ejecute la lógica de acción peticionada,
+pero antes que las renderizaciones de vistas y layout del controlador.
+
+Component::shutdown(Controller $controller)
+...........................................
+Es llamado antes que la salida sea enviada al navegador.
+
+Component::beforeRedirect(Controller $controller, $url, $status=null, $exit=true)
+.................................................................................
+Es invocado cuando el método redirect del controlador es llamado pero antes que
+cualquier acción adicional. Si este método retorna false el controlador no 
+continuará la redirección de la petición. Las variables $url, $status y $exit
+tienen el mismo significado que para el método del controlador. Uno puede también
+retornar un string el cual será interpretado como la URL a redireccionar ó 
+retorna un array asociativo con la clave 'url' y opcionalmente 'status' y 'exit'.
