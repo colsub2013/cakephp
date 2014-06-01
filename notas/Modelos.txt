@@ -911,9 +911,9 @@ public function another_action() {
   $this->Leader->find(’all’);
 }
 
-El uso básico 
-The basic usage for bindModel() is the encapsulation of a normal association array inside
-an array whose key is named after the type of association you are trying to create:
+El uso básico para bindModel() es la encapsulación de un array de asociación 
+normal dentro de un array cuya clave es nombrada después del tipo de asociación
+que uno está tratando de crear:
 
 $this->Model->bindModel(
   array(’associationName’ => array(
@@ -924,11 +924,12 @@ $this->Model->bindModel(
   )
 );
 
-Even though the newly bound model doesn’t need any sort of association definition in its model file, it will
-still need to be correctly keyed in order for the new association to work properly.
+Aunque el modelo recientemente ligado (bound) no necesita ningún orden de 
+definición de asociación en su archivo modelo, este aún necesitará la clave 
+correcta para que la nueva asociación funcione de forma apropiada.
 
-Multiple relations to the same model
-------------------------------------
+Múltiples relaciones para el mismo modelo
+-----------------------------------------
 
 There are cases where a Model has more than one relation to another Model. For example, you might have
 a Message model that has two relations to the User model: one relation to the user who sends a message,
