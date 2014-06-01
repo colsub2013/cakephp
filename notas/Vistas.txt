@@ -1579,4 +1579,477 @@ echo $this->Form->input(’User.name’, array(
 
 Salida:
 
-SEGUIR(114/203)
+<div class="input">
+  <label for="UserName">The User Alias</label>
+  <input name="data[User][name]" type="text" value="" id="UserName" />
+</div>
+
+Alternativamente, fijar esta clave a false para inhabilitar la salida de la 
+etiqueta:
+
+echo $this->Form->input(’User.name’, array(’label’ => false));
+
+Salida:
+
+<div class="input">
+  <input name="data[User][name]" type="text" value="" id="UserName" />
+</div>
+
+Fijar esto a un array para proveer opciones adicionales para el elemento label.
+Si lo hace, puede usar una clave texto en el array para personalizar el texto del
+label:
+
+echo $this->Form->input(’User.name’, 
+  array(
+    ’label’ => array(
+      ’class’ => ’thingy’,
+      ’text’ => ’The User Alias’
+    )
+  )
+);
+
+Salida:
+
+<div class="input">
+  <label for="UserName" class="thingy">The User Alias</label>
+  <input name="data[User][name]" type="text" value="" id="UserName" />
+</div>
+
+• $options[’error’]: Usar esta clave le permite redefinir los mensajes de error 
+del modelo por defecto y pueden ser usados, por ej., para fijar mensajes i18n.
+Este tiene un número de subopciones las cuales controlan el elemento envolvente,
+envuelven el nombre de clase del elemento, y si el HTML en el mensaje de error
+será escapado.
+
+Para inhabilitar la salida de mensaje de error y clases de campo fijar la clave
+error a false:
+
+$this->Form->input(’Model.field’, array(’error’ => false));
+
+Para inhabilitar sólo el mensaje de error, pero retener las clases de campo, 
+fijar la clave errorMessage a false:
+
+$this->Form->input(’Model.field’, array(’errorMessage’ => false));
+
+Para modificar el tipo de elemento envolvente y su clase, usar el formato:
+
+$this->Form->input(’Model.field’, 
+  array(
+    ’error’ => array(
+      ’attributes’ => array(’wrap’ => ’span’, ’class’ => ’bzzz’)
+    )
+  )
+);
+
+Para evitar que HTML sea escapado automáticamente en la salida del mensaje de 
+error, fijar la subopción escape a false:
+
+$this->Form->input(’Model.field’, 
+  array(
+    ’error’ => array(
+      ’attributes’ => array(’escape’ => false)
+    )
+  )
+);
+
+Para redefinir los mensajes de error del modelo usar un array con las claves que
+coinciden con los nombres de regla de validación:
+
+$this->Form->input(’Model.field’, 
+  array(
+    ’error’ => array(’tooShort’ => __(’This is not long enough’))
+  )
+);
+
+Como arriba uno puede fijar el mensaje de error para cada regla de validación
+que uno tiene en sus modelos. Adicionalmente puede proveer mensajes i18n para 
+sus formularios.
+
+Nuevo en v.2.3: Soporte para la opción errorMessage.
+
+• $options[’before’], $options[’between’], $options[’separator’], y $options[’after’]
+
+Usar estas claves si necesita inyectar algún marcado dentro de la salida del
+método input():
+
+echo $this->Form->input(’field’, 
+  array(
+    ’before’ => ’--before--’,
+    ’after’ => ’--after--’,
+    ’between’ => ’--between---’
+  )
+);
+
+Salida:
+
+<div class="input">
+  --before--
+  <label for="UserField">Field</label>
+  --between---
+  <input name="data[User][field]" type="text" value="" id="UserField" />
+  --after--
+</div>
+
+Para radio inputs el atributo 'separator' puede usarse para inyectar marcado para
+separar cada par input / label:
+
+echo $this->Form->input(’field’, 
+  array(
+    ’before’ => ’--before--’,
+    ’after’ => ’--after--’,
+    ’between’ => ’--between---’,
+    ’separator’ => ’--separator--’,
+    ’options’ => array(’1’, ’2’)
+  )
+);
+
+Salida:
+
+<div class="input">
+  --before--
+  <input name="data[User][field]" type="radio" value="1" id="UserField1" />
+  <label for="UserField1">1</label>
+  --separator--
+  <input name="data[User][field]" type="radio" value="2" id="UserField2" />
+  <label for="UserField2">2</label>
+  --between---
+  --after--
+</div>
+
+Para elementos tipo date y datetime puede usarse el atributo 'separator' para 
+cambiar el string entre elementos select. El valor por defecto es '-'.
+
+• $options[’format’]: El ordenamiento del HTML generado por FormHelper es también
+controlable. Las opciones 'format' soportan un array de strings los cuales describen
+la plantilla a la que uno querría decir elemento a seguir. Las claves de array 
+soportadas son: array(’before’, ’input’, ’between’, ’label’, ’after’,’error’).    
+
+• $options[’inputDefaults’]: Si se haya a uno mismo repitiendo las mismas opciones
+en múltiples llamadas input(), puede usar inputDefaults para mantener su código
+seco:
+
+echo $this->Form->create(’User’, 
+  array(
+    ’inputDefaults’ => array(
+      ’label’ => false,
+      ’div’ => false
+    )   
+  )
+);
+
+Todos los input creados desde ese punto heredarían las opciones declaradas en
+inputDefaults. Puede redefinir el defaultOptions declarando la opción en la 
+llamada input():
+
+// No div, no label
+echo $this->Form->input(’password’);
+
+// has a label element
+echo $this->Form->input(’username’, array(’label’ => ’Username’));
+
+Para cambiar posteriormente los valores por defecto usar FormHelper::inputDefaults().
+
+Generar tipos de inputs específicos
+-----------------------------------
+Adicionalmente al método input() genérico, FormHelper tiene métodos específicos
+para generar un número de tipos diferentes de inputs. Estos pueden ser usados
+para generar sólo el widget input mismo, y combinado con otros métodos como  
+label() y error() para generar layouts de formulario completamente personalizados.
+
+Opciones comunes 
+................
+Muchos de los métodos de elemento input soportan un set común de opciones. Todas
+estas opciones son también soportadas por input(). Para reducir la repetición 
+las opciones comunes compartidas por todos los métodos input son como siguen:
+
+• $options[’class’]: Puede fijar el nombre de clase para un input:
+ 
+echo $this->Form->input(’title’, array(’class’ => ’custom-class’));
+
+• $options[’id’]: Fijar esta clave para forzar el valor de id del DOM para el 
+input.
+
+• $options[’default’]: Usado para fijar un valor por defecto para el campo input.
+El valor es usado si los datos pasados al formulario no contienen un valor para
+el campo (ó si no se pasó ningún dato).
+
+Ejemplo de uso:
+
+echo $this->Form->input(’ingredient’, array(’default’ => ’Sugar’));
+
+Ejemplo con el campo select (se seleccionará el tamaño 'Medium' por defecto):
+
+$sizes = array(’s’ => ’Small’, ’m’ => ’Medium’, ’l’ => ’Large’);
+echo $this->Form->input(
+  ’size’,
+  array(’options’ => $sizes, ’default’ => ’m’)
+);
+
+Nota: No puede usar 'default' para chequear un checkbox - en vez de eso uno 
+puede fijar el valor en $this->request->data en su controlador, ó fijar la
+opción input checked a true.
+
+Los campos por defecto date y datetime pueden ser fijados usando la clave 'selected'.
+
+Cuidado al usar false para asignar un valor por defecto. Se usa un valor false
+para inhabilitar/excluir opciones de un campo input, así 'default' => false no
+fijará ningún valor. En vez de eso usar ’default’ => 0. 
+
+Adicionalmente a las opciones de arriba, puede mezclar (mixin) cualquier atributo
+HTML que desea usar. Cualquier nombre de opción no especial será tratado como un 
+atributo HTML, y aplicado al elemento input HTML generado.
+
+Opciones para inputs select, chechbox y radio 
+.............................................
+• $options[’selected’]: Usado en combinación con un input de tipo select 
+(ej.: para tipos select, date, time, datetime). Fijar 'selected' al valor del
+item que uno quiere seleccionar por defecto cuando el input es renderizado:
+
+echo $this->Form->input(’close_time’, 
+  array(
+    ’type’ => ’time’,
+    ’selected’ => ’13:30:00’
+  )
+);
+
+Nota: La clave selected para inputs date y datetime pueden también ser un 
+timestamp UNIX
+
+• $options[’empty’]: Si se fija a true, fuerza al input a permanecer vacío. 
+
+Cuando es pasado a una lista select, este crea una opción 'en blanco' (blank) 
+con un valor vacío en su lista de drop down. Si quiere tener un valor vacío con
+exhibido en vez de solo una opción en blanco, pasar un string a vacío:
+
+echo $this->Form->input(’field’, 
+  array(
+    ’options’ => array(1, 2, 3, 4, 5),
+    ’empty’ => ’(choose one)’
+  )
+);
+
+Salida:
+
+<div class="input">
+  <label for="UserField">Field</label>
+  <select name="data[User][field]" id="UserField">
+    <option value="">(choose one)</option>
+    <option value="0">1</option>
+    <option value="1">2</option>
+    <option value="2">3</option>
+    <option value="3">4</option>
+    <option value="4">5</option>
+  </select>
+</div>
+
+Nota: Si uno necesita fijar el valor por defecto en un campo password a valor en
+blanco (blank), usar en su lugar 'value' => ''.
+
+Las Options pueden también ser suministradas como pares key-value.
+
+• $options[’hiddenField’]: Para ciertos tipos input (checkboxes, radios) es creado
+un input hidden tal que la clave en $this->request->data existirá aún sin un 
+valor especificado:
+
+<input type="hidden" name="data[Post][Published]" id="PostPublished_" value="0" />
+<input type="checkbox" name="data[Post][Published]" value="1" id="PostPublished" />
+
+Esto puede ser deshabilitado fijando $options[’hiddenField’] = false:
+
+echo $this->Form->checkbox(’published’, array(’hiddenField’ => false));
+
+Que produce:
+
+<input type="checkbox" name="data[Post][Published]" value="1" id="PostPublished" />
+
+Si quiere crear múltiples bloques de inputs en un formulario que están agrupados
+todos juntos, debería usar este parámetro en todos los inputs excepto el primero.
+Si el input hidden está en la página en múltiples lugares, solo el último grupo
+de valores input será almacenado.
+
+En este ej., serían pasados sólo los colores terciarios, y los colores primarios
+serían redefinidos:
+
+<h2>Primary Colors</h2>
+<input type="hidden" name="data[Color][Color]" id="Colors_" value="0" />
+<input type="checkbox" name="data[Color][Color][]" value="5" id="ColorsRed" />
+<label for="ColorsRed">Red</label>
+<input type="checkbox" name="data[Color][Color][]" value="5" id="ColorsBlue" />
+<label for="ColorsBlue">Blue</label>
+<input type="checkbox" name="data[Color][Color][]" value="5" id="ColorsYellow" />
+<label for="ColorsYellow">Yellow</label>
+
+<h2>Tertiary Colors</h2>
+<input type="hidden" name="data[Color][Color]" id="Colors_" value="0" />
+<input type="checkbox" name="data[Color][Color][]" value="5" id="ColorsGreen" />
+<label for="ColorsGreen">Green</label>
+<input type="checkbox" name="data[Color][Color][]" value="5" id="ColorsPurple" />
+<label for="ColorsPurple">Purple</label>
+<input type="checkbox" name="data[Addon][Addon][]" value="5" id="ColorsOrange" />
+<label for="ColorsOrange">Orange</label>
+
+Inhabilitar ’hiddenField’ en el grupo del 2do input evitaría este comportamiento.
+Puede fijar un valor de campo hidden diferente en vez de 0 tal como 'N':
+
+echo $this->Form->checkbox(’published’, 
+  array(
+    ’value’ => ’Y’,
+    ’hiddenField’ => ’N’,
+  )
+);
+
+Opciones datetime
+.................
+• $options[’timeFormat’]: Usado para especificar el formato de los inputs select
+para un set de inputs relacionados al tiempo. Valores válidos incluyen 12, 24, 
+y null.  
+
+• $options[’dateFormat’]: Usado para especificar el formato de los inputs select
+para un set de inputs relacionados a date. Valores válidos incluyen cualquier
+combinación de ‘D’, ‘M’ y ‘Y’ ó null. Los input serán puestos en el orden definido
+por la opción dateFormat.
+   
+• $options[’minYear’], $options[’maxYear’]: Usado en combinación con un input
+date / datetime. Define el final más bajo y/ó más alto de valores mostrados en 
+el campo select de años.
+
+• $options[’orderYear’]: Usado en combinación con un input date / datetime. Define
+el orden en cual serán fijados los valores de año. Valores válidos incluyen
+‘asc’, ‘desc’. El valor por defecto es ‘desc’.     
+
+• $options[’interval’]: Esta opción especifica el número de minutos entre cada
+opción en la caja 'select':
+
+echo $this->Form->input(’Model.time’, 
+  array(
+    ’type’ => ’time’,
+    ’interval’ => 15
+  )
+);
+
+Crearía 4 opciones en el select de minuto. Uno por cada 15 minutos.
+
+• $options[’round’]: Puede establecerse para arriba ó abajo para forzar el 
+redondeo en una ú otra dirección. Está por defecto a null el cual redondea de
+la mitad para arriba de acuerdo al intervalo.
+
+Nuevo en v.2.4.
+
+Métodos de Formulario específicos del elemento
+----------------------------------------------
+Todos los elementos son creados bajo un formulario para el modelo User como en
+los ej.'s de arriba. Por esta razón, el código HTML generado contendrá atributos
+que referencian al modelo User. Ej.: name=data[User][username], id=UserUsername.
+
+FormHelper::label(string $fieldName, string $text, array $options)
+..................................................................
+Crea un elemento label. $fieldName es usado para generar el id del DOM. Si $text
+es indefinido, $fieldName será usado para inclinar (inflect) el texto del label:
+
+echo $this->Form->label(’User.name’);
+echo $this->Form->label(’User.name’, ’Your username’);
+
+Salida:
+
+<label for="UserName">Name</label>
+<label for="UserName">Your username</label>
+
+$options puede ser ya sea un array de atributos HTML, ó un string que será usado
+como un nombre de clase:
+
+echo $this->Form->label(’User.name’, null, array(’id’ => ’user-label’));
+echo $this->Form->label(’User.name’, ’Your username’, ’highlight’);
+
+Salida:
+
+<label for="UserName" id="user-label">Name</label>
+<label for="UserName" class="highlight">Your username</label>
+
+FormHelper::text(string $name, array $options)
+..............................................
+El resto de los métodos disponibles en el FormHelper son para crear elementos 
+de formulario específicos. Algunos desde estos métodos también hacen uso de un
+parámetro $options especial. En este caso, sin embargo, se usa primariamente 
+$options para especificar atributos de etiqueta HTML (tal como el valor ó id del
+DOM de un elemento en el formulario):
+
+echo $this->Form->text(’username’, array(’class’ => ’users’));
+
+Producirá:
+
+<input name="data[User][username]" type="text" class="users" id="UserUsername" />
+
+FormHelper::password(string $fieldName, array $options)
+.......................................................
+Crea un campo password:
+
+echo $this->Form->password(’password’);
+
+Producirá:
+
+<input name="data[User][password]" value="" id="UserPassword" type="password" />
+
+FormHelper::hidden(string $fieldName, array $options)
+.....................................................
+Crea un input de formulario hidden. Ej.:
+
+echo $this->Form->hidden(’id’);
+
+Producirá:
+
+<input name="data[User][id]" id="UserId" type="hidden" />
+
+Si el formulario es editado (el array $this->request->data contendrá info 
+almacenada para el modelo User), el valor correspondiente al campo id será 
+agregado automáticamente al HTML generado. Ej. para data[User][id] = 10:
+
+<input name="data[User][id]" id="UserId" type="hidden" />
+
+Cambiado en v.2.0: Los campos hidden ya no quitan más el atributo de clase. Esto
+significa que si hay errores de validación en campos hidden, el nombre de clase
+error-field será aplicado.
+
+FormHelper::textarea(string $fieldName, array $options)
+.......................................................
+Crea un campo input textarea:
+
+echo $this->Form->textarea(’notes’);
+
+Producirá:
+
+<textarea name="data[User][notes]" id="UserNotes"></textarea>
+
+Si el formulario es editado (esto es, el array $this->request->data contendrá la 
+información almacenada para el modelo User), el valor correspondiente al campo
+'notes' será agregado automáticamente al HTML generado. Ej.:
+
+<textarea name="data[User][notes]" id="UserNotes">
+  This text is to be edited.
+</textarea>
+
+Nota: El tipo input textarea permite al atributo $options de 'escape' que determina
+si ó no los contenidos del textarea deberían ser escapados. Por defecto a true.
+
+echo $this->Form->textarea(’notes’, array(’escape’ => false);
+// OR....
+echo $this->Form->input(
+  ’notes’,
+  array(’type’ => ’textarea’, ’escape’ => false)
+);
+
+Opciones
+........
+Adicionalmente a las opciones comunes, textarea() soporta algunas opciones
+específicas:
+
+•$options[’rows’], $options[’cols’]: Estas 2 claves especifican el número de filas
+y columnas:
+
+echo $this->Form->textarea(
+  ’textarea’,
+  array(’rows’ => ’5’, ’cols’ => ’5’)
+);
+
+
+
+SEGUIR(122/203)
