@@ -884,5 +884,520 @@ Usar una vista de datos con archivos de vista
 Uno debería usar archivos de vista si necesita hacer alguna manipulación de su 
 contenido de vista antes de crear la salida final. Por ej. si tuvimos posts, 
 que tenía un archivo conteniendo el HTML generado, probablemente querríamos
+omitir eso desde una respuesta JSON. Esta es una situación donde un archivo de
+vista sería útil:
 
-SEGUIR(102/203)
+// Controller code
+class PostsController extends AppController {
+  public function index() {
+    $this->set(compact(’posts’, ’comments’));
+  } 
+}
+
+// View code - app/View/Posts/json/index.ctp
+foreach ($posts as &$post) {
+  unset($post[’Post’][’generated_html’]);
+}
+echo json_encode(compact(’posts’, ’comments’));
+
+Nota: Las clases de vista de datos no soportan layouts. Ellas asumen que el archivo
+de vista producirá (output) el contenido serializado.
+
+Clase XmlView
+.............
+Una clase de vista para generar datos de vista Xml. Por defecto al usar _serialize 
+el XmlView envolverá sus variables de vista serializadas con un nodo <response>.
+Puede fijar un nombre personalizado para este nodo usando la variable de vista
+_rootNode. Nuevo en v.2.3: se agregó la característica _rootNode.
+
+Clase JsonView
+..............
+Una clase de vista para generar datos de vista JSON. 
+
+Response JSONP 
+--------------
+Nuevo en v.2.4.
+
+Al usar JsonView puede usar la variable de vista especial _jsonp para habilitar
+retornar una respuesta JSONP. Fijarla a true hace a la clase de vista chequear si
+el parámetro query string nombrado 'callback' está fijado y si lo está envolver
+la respuesta json en el nombre de función provisto. Si uno quiere usar un 
+nombre de parámetro query string personalizado en vez de 'callback' fijar _jsonp
+al nombre requerido en vez de true.
+
+Helpers
+-------
+Los Helpers son clases como-componente para la capa de presentación de su 
+aplicación.
+
+CakePHP emite un número de helpers para ayudan en la creación de la vista. Ayudan
+en crear marcado bien formado (incluyendo formularios), auxilio en texto 
+de formato, tiempos y números, y pueden aún acelerar la funcionalidad AJAX.
+
+CacheHelper
+-----------
+class CacheHelper(View $view, array $settings = array())
+........................................................
+El Cache helper ayuda en cachear layouts y vistas enteros, ahorrando tiempo
+en recobrar datos repetitivos. El caching de View en CakePHP almacena layouts y
+vistas parseados temporalmente como archivos PHP + HTML simples. Cache Helper
+funciona bastante diferente que otros helpers. Este no tiene métodos que son
+llamados directamente. En vez de eso, una vista es marcada con etiquetas de 
+cache que indican que bloques de contenido no deberían ser cacheados. El 
+CacheHelper usa luego callbacks helper para procesar el archivo y salida para
+generar el archivo de cache.
+
+Peticionada una URL, CakePHP chequea para ver si el string de petición ya ha
+sido cacheado. Si lo tiene, el resto del proceso de dispatching de URL es 
+salteado. Cualquiera de los bloque nocache son procesados normalmente y la vista
+es servida. Esto crea grandes ahorros en tiempo de procesamiento para cada 
+petición a una URL cacheada a medida que es ejecutado el código mínimo. Si 
+CakePHP no halla una vista cached, ó la caché ha expirado para la URL peticinada
+esta continúa para procesar la petición normalmente.
+
+Usar el Helper
+--------------
+Pasos a tomar antes de usar CacheHelper: en su APP/Config/core.php descomentar 
+la llamada a escritura Configure para Cache.check. Esto le dirá a CakePHP que
+chequee, y genere archivos de cache de vista al manejar peticiones.
+
+Una vez que ha descomentado la línea Cache.check necesitará agregar el helper a 
+su array $helpers del controlador:
+
+class PostsController extends AppController {
+  public $helpers = array(’Cache’);
+}
+
+Uno también necesitará agregar el CacheDispatcher a sus filtros de dispatcher en
+su boostrap:
+
+Configure::write(’Dispatcher.filters’, array(
+  ’CacheDispatcher’
+));
+
+Nuevo en v.2.3: Si tiene una configuración con múltiples dominios ó lenguajes uno
+puede usar Configure::write(‘Cache.viewPrefix’, ‘YOURPREFIX’); para almacenar
+los archivos cache de vista prefijados.
+
+Las opciones de configuración adicionales de CacheHelper tienen algunas opciones
+de configuración adicionales que puede usar para sintonizar y ajustar su 
+comportamiento. Esto es hecho a través de la variable $cacheAction en sus 
+controladores. $cacheAction debería ser fijado a un array que contiene las 
+acciones que quiere cacheadas, y la duración en segundos en que quiere esas 
+vistas cacheadas. El valor de tiempo puede ser expresado en un formato strtotime()
+('1 hour' ó '3 minutes').
+  
+Usando el ej. de un ArticlesController, que recibe un montón de tráfico que 
+necesita ser cacheado:
+
+public $cacheAction = array(
+  ’view’ => 36000,
+  ’index’ => 48000
+);
+
+Esto cacheará la acción de vista 10 horas, y la acción de index 13 horas. Haciendo
+a $cacheAction un valor amigable con strtotime() puede cachear cada acción en el
+controlador:
+
+public $cacheAction = "1 hour";
+
+Puede también habilitar callbacks controlador/componente para vistas cacheadas
+creadas con CacheHelper. Para hacerlo debe usar el formato array para $cacheAction
+y crear un array como el siguiente:
+
+public $cacheAction = array(
+  ’view’ => array(’callbacks’ => true, ’duration’ => 21600),
+  ’add’ => array(’callbacks’ => true, ’duration’ => 36000),
+  ’index’ => array(’callbacks’ => true, ’duration’ => 48000)
+);
+
+Fijar callbacks => true le dice a CacheHelper que uno busca que los archivos 
+generados creen los componentes y modelos para el controlador. Adicionalmente, 
+disparar el componente initialize, beforeFilter del controlador, y callbacks
+de startup de componente.
+
+Nota: Fijar callbacks => true derrota en parte al propósito de cacheo. Esta es
+también la razón de que está inhabilitado por defecto.
+
+Marcar Non-Cached Content en Views
+----------------------------------
+Hay veces que no no quiere que la vista entera sea cacheada. Ej.: ciertas partes
+de la página pueden lucir diferente si un usuario es actualmente logueado ó 
+navegando su sitio como invitado.
+
+Para indicar los bloques de contenido que no van a cachearse, envolverlos en 
+<!--nocache--> <!--/nocache--> como:
+
+<!--nocache-->
+<?php if ($this->Session->check(’User.name’)): ?>
+  Welcome, <?php echo h($this->Session->read(’User.name’)); ?>.
+<?php else: ?>
+  <?php echo $this->Html->link(’Login’, ’users/login’); ?>
+<?php endif; ?>
+<!--/nocache-->
+
+Nota: no puede usar etiquetas 'nocache' en elementos. Ya que no hay callbacks
+alrededor de elementos, ellos no pueden ser cacheados.
+
+Cacheada una acción, el método controlador para la acción no será llamado. Cuando
+es creado un archivo de cache, el objeto request, y las variables de vista son
+serializadas con serialize() de PHP.
+
+Advertencia: Si tiene variables de vista que contienen contenido no serializable
+como objetos SimpleXML, manejos de recurso, ó cierres (closures) uno puede no ser
+capaz de usar caching de vista.
+
+Limpiar (clearing) la Cache
+---------------------------
+CakePHP limpiará una vista cacheada si un modelo usando en la vista cached es
+modificado. Ej.: si una vista cacheada usa datos desde el modelo Post, y ha 
+habido una consulta INSERT, UPDATE ó DELETE hecha a un Post, la cache para esa
+vista es limpiado, y es generado contenido nuevo en la siguiente petición.
+
+Nota: Esta limpieza de cache automática requiere que el nombre de controlador /
+modelo sea parte de la URL. Si ha usado enrutamiento para cambiar sus URL's esta
+característica no funcionará.
+
+Si necesita limpiar la cache manualmente, puede hacerlo llamando a Cache::clear().
+Esto limpiará todos los datos cacheados, excluyendo archivos de vista cacheados.
+Si necesita borrar los archivos de vista cacheados, usar clearCache().
+
+FormHelper
+----------
+clase FormHelper(View $view, array $settings = array())
+.......................................................
+FormHelper hace la mayoría del levantamiento pesado en la creación del formulario.
+FormHelper se enfoca en crear formularios rápidamente, en un modo que tendrá
+validación streamline, re-populación y layout. FormHelper hará casi todo lo 
+usando convenciones, ó puede especificar métodos para obtener sólo lo que necesita.
+
+Crear Formularios
+-----------------
+El 1er método que usar para tomar ventaja del FormHelper es create(). Este método
+produce la apertura de una etiqueta 'form'.
+
+FormHelper::create(string $model = null, array $options = array())
+..................................................................
+Todos los parámetros son opcionales. Si create() es llamado sin parámetros 
+suministrados, este asume que uno está construyendo un formulario que se envía
+al controlador actual, vía la URL actual. El método por defecto para envío de
+formulario es POST. El elemento 'form' es también retornado con un ID de DOM.
+El ID es generado usando el nombre del modelo, y el nombre de la acción controlador,
+en camel case. Si fuese a llamar a create() dentro de una vista UsersController,
+se vería algo como la siguiente salida en la vista renderizada:
+
+<form id="UserAddForm" method="post" action="/users/add">
+
+Nota: Puede también pasar false para $model. Esto ubicará sus datos de formulario
+en el array: $this->request->data (en vez de en el sub-array: 
+$this->request->data[’Model’]). Esto es útil para formularios cortos que pueden
+no representar nada en su DB.
+
+El método create() no permite personalizar mucho más usando los parámetros,
+sin embargo. Primero, puede especificar un nombre de modelo. Especificando un 
+modelo para un formulario, uno está creando aquel contexto del formulario. Todos
+los campos se asumen a pertenecer a este modelo (a menos que se especifique otro),
+y todos los modelos referenciados son asumidos a ser asociados con este. Si no
+especifica un modelo, este asume que uno está usando el modelo por defecto para el
+controlador actual:
+
+// If you are on /recipes/add
+echo $this->Form->create(’Recipe’);
+
+Produce:
+
+<form id="RecipeAddForm" method="post" action="/recipes/add">
+
+Esto hará un POST de los datos de formulario para la acción add() de RecipesController.
+Pero, puede también usar la misma lógica para crear la edición de un formulario.
+FormHelper usa la propiedad $this->request->data para detectar automáticamente
+si crear un formulario de 'Agregar' ó 'Editar'. Si $this->request->data contiene
+un elemento array nombrado después del modelo de formulario, y ese array contiene
+un valor no vacío de la clave primaria del modelo, FormHelper creará un formulario
+de 'Editar' para ese registro. Ej.: si navegamos a http://site.com/recipes/edit/5,
+obtendríamos lo siguiente:
+
+// Controller/RecipesController.php:
+public function edit($id = null) {
+  if (empty($this->request->data)) {
+    $this->request->data = $this->Recipe->findById($id);
+  } else {
+    // Save logic goes here
+  }
+}
+
+// View/Recipes/edit.ctp:
+// Since $this->request->data[’Recipe’][’id’] = 5,
+// we will get an edit form
+<?php echo $this->Form->create(’Recipe’); ?>
+
+Salida:
+
+<form id="RecipeEditForm" method="post" action="/recipes/edit/5">
+<input type="hidden" name="_method" value="PUT" />
+
+Nota: Dado que este es un formulario de edición, es generado un campo input hidden
+para redefinir el método HTTP por defecto.
+
+Al crear formularios para modelos en plugins, siempre debería usar sintaxis de 
+plugin al crear un formulario. Esto asegurará que el formulario es generado
+correctamente:
+
+echo $this->Form->create(’ContactManager.Contact’);
+
+El array $options es donde ocurre la mayoría de la configuración del formulario.
+Este array especial puede contener un número de pares clave-valor diferentes
+que afectan el modo que la etiqueta 'form' es generada.
+
+Cambiado en v.2.0: La URL por defecto para todos los formularios, es ahora la 
+URL actual incluyendo los parámetros query string, nombrado y pasado. Puede 
+redefinir este valor por defecto suministrando $options[’url’] en el 2do 
+parámetro de $this->Form->create().
+
+Opciones para create(): Hay un número de opciones para create(): 
+......................
+
+• $options[’type’] 
+  ////////////////
+Clave que se usa para especificar el tipo de formulario a ser creado. 
+Valores válidos incluyen ‘post’, ‘get’, ‘file’, ‘put’ y ‘delete’. 
+
+Suministrar ya sea 'post' ó 'get' cambia el método de envío del fomulario de 
+forma acorde:
+
+echo $this->Form->create(’User’, array(’type’ => ’get’));
+
+Produce:
+
+<form id="UserAddForm" method="get" action="/users/add">
+
+Especificar 'file' cambia el método de envío del formulario a 'post', e incluye
+un tipo de encriptación de 'multipart/form-data' en la etiqueta 'form'. Esto está
+para ser usado si hay cualquiera de los elementos file dentro del formulario. La
+ausencia del atributo enctype apropiado originará que la subida de archivos no
+funcione:
+
+echo $this->Form->create(’User’, array(’type’ => ’file’));
+
+Salida:
+
+<form id="UserAddForm" enctype="multipart/form-data" method="post" action="/users/add">
+
+Al usar 'put' ó 'delete', su formulario será funcionalmente equivalente a un 
+formulario 'post', pero cuando es enviado, el método de petición HTTP será 
+redefinido con 'PUT' or 'DELETE', respectivamente. Esto le permite a CakePHP 
+emular el soporte REST apropiado en navegadores web.
+
+• $options[’action’] 
+  //////////////////
+La clave 'action' le permite apuntar el formulario a una acción específica en su
+controlador actual. Ej.: si uno querría apuntar el formulario a la acción login()
+del controlador actual, uno debería suministrar un arrray $options como el que
+sigue:
+
+echo $this->Form->create(’User’, array(’action’ => ’login’));
+
+Salida:
+
+<form id="UserLoginForm" method="post" action="/users/login">
+
+• $options[’url’] 
+  ///////////////
+Si la acción de formulario deseada no está en el controlador actual, puede 
+especificar una URL para la acción de formulario usando la clave 'url' del array
+$options. La URL suministrada puede ser relativa a su aplicación CakePHP:
+
+echo $this->Form->create(null, array(
+  ’url’ => array(’controller’ => ’recipes’, ’action’ => ’add’)
+));
+
+Produce:
+
+<form method="post" action="/recipes/add">
+
+ó puede apuntar a un dominio externo:
+
+echo $this->Form->create(null, array(
+  ’url’ => ’http://www.google.com/search’,
+  ’type’ => ’get’
+));
+
+Produce:
+
+<form method="get" action="http://www.google.com/search">
+
+También chequear el método HtmlHelper::url() para más ejemplos de diferentes
+tipos de URL's.
+
+• $options[’default’]
+  ///////////////////
+Si 'default' ha sido fijado a boolean false, la acción de submit del formulario
+es cambiada tal que presionar el botón 'Submit' no envía el formulario. Si el 
+formulario se presume enviar vía AJAX, fijar 'default' a false suprime el 
+comportamiento por defecto del formulario así uno puede agarrar los datos y 
+enviarlos vía AJAX en su lugar.
+
+• $options[’inputDefaults’] 
+  /////////////////////////
+Puede declarar un set de opciones por defecto para input() con la clave
+inputDefaults para personalizar su creación de input por defecto:
+
+echo $this->Form->create(’User’, 
+  array(
+    ’inputDefaults’ => array(
+      ’label’ => false,
+      ’div’ => false
+    )
+  )
+);
+
+Todas las entradas creadas desde ese punto hacia adelante heredan las opciones
+declaradas en inputDefaults. Puede redefinir defaultOptions declarando la opción
+en la llamada a input():
+
+echo $this->Form->input(’password’); // No div, no label
+// has a label element
+echo $this->Form->input(
+  ’username’,
+  array(’label’ => ’Username’)
+);
+
+Cerrar el Formulario
+--------------------
+FormHelper::end($options = null, $secureAttributes = array())
+.............................................................
+FormHelper incluye un método end() que completa el formulario. Con frecuencia, 
+end() sólo produce una etiqueta 'form' de cierre, pero usar end() también 
+permite a FormHelper insertar elementos form hidden necesarios que requiere 
+SecurityComponent:
+
+<?php echo $this->Form->create(); ?>
+<!-- Form elements go here -->
+<?php echo $this->Form->end(); ?>
+
+Si un string es suministrado como el 1er parámetro para end(), FormHelper produce
+un botón de submit nombrado de acuerdo con la etiqueta de cierre del formulario:
+
+<?php echo $this->Form->end(’Finish’); ?>
+
+Producirá:
+
+<div class="submit">
+  <input type="submit" value="Finish" />
+</div>
+</form>
+
+Puede especificar ajustes de detalle pasando un array a end():
+
+$options = array(
+  ’label’ => ’Update’,
+  ’div’ => array(
+    ’class’ => ’glass-pill’,
+  )
+);
+echo $this->Form->end($options);
+
+Producirá:
+
+<div class="glass-pill"><input type="submit" value="Update" name="Update">
+</div>
+
+Nota: Si está usando SecurityComponent en su aplicación debería siempre finalizar
+sus formularios con end().
+
+El parámetro $secureAttributes fue agregado en v.2.5.
+
+Crear elementos de formulario
+-----------------------------
+Hay varios modos de crear inputs de formulario con el FormHelper. Se arrancará
+mirando a input(). Este método inspeccionará automáticamente el campo modelo que
+ha sido suministrado para crear un input apropiado para ese campo. Internamente
+input() se delega a otros métodos en FormHelper.
+
+FormHelper::input(string $fieldName, array $options = array())
+..............................................................
+Crea los siguientes elementos dado un Model.field particular:
+
+• Envolver div
+• Elemento label
+• Elemento(s) input
+• Elemento error con mensaje si es aplicable
+
+El tipo de input creado depende del tipo de dato de la columna:
+
+Tipo de Columna: Campo de formulario resultante
+:::::::::::::::
+
+String (char, varchar, etc.): Texto
+:::::::::::::::::::::::::::
+
+Boolean, tinyint(1): Checkbox
+:::::::::::::::::::
+
+text: textarea
+::::
+
+text, with name of password, passwd, or psword: password
+::::::::::::::::::::::::::::::::::::::::::::::
+
+text, with name of email: email
+::::::::::::::::::::::::
+
+text, with name of tel, telephone, or phone: teléfono
+:::::::::::::::::::::::::::::::::::::::::::
+
+date: selecciones de día, mes y año
+::::
+
+datetime, timestamp: día, mes, año, hora, minuto, y selección de meridiano tiempo, hora, minuto y selección de meridiano 
+:::::::::::::::::::
+
+binary: archivo
+::::::
+
+La opción $options le permite personalizar como trabaja input(), y controlar
+finamente que es generado. El div envolvente tendrá un nombre de clase requerido
+anexado si las reglas de validación para el campo del Model no especifica
+allowEmpty => true. Una limitación de este comportamiento es que el modelo del
+campo debe haber sido cargado durante su petición. O ser directamente asociado
+al modelo suministrado a create().
+
+Nuevo en v.2.5: El tipo binario ahora mapea a un input file.
+
+Desde v.2.3 el atributo 'required' de HTML5 también será añadido al input basado
+en reglas de validación. Puede fijar explícitamente la clave requerida en el array
+options para redefinirlo para un campo. Para saltear validación de navegador 
+disparando el formulario entero  
+ 
+
+
+skip browser validation triggering for the whole form you can set option ’formnovalidate’ =>
+true for the input button you generate using FormHelper::submit() or set ’novalidate’
+=> true in options for FormHelper::create().
+
+For example, let’s assume that your User model includes fields for a username (varchar), password
+(varchar), approved (datetime) and quote (text). You can use the input() method of the FormHelper to
+create appropriate inputs for all of these form fields:
+
+echo $this->Form->create();
+echo $this->Form->input(’username’); //text
+echo $this->Form->input(’password’); //password
+echo $this->Form->input(’approved’); //day, month, year, hour, minute,
+//meridian
+echo $this->Form->input(’quote’); //textarea
+echo $this->Form->end(’Add’);
+
+A more extensive example showing some options for a date field:
+
+echo $this->Form->input(’birth_dt’, array(
+’label’ => ’Date of birth’,
+’dateFormat’ => ’DMY’,
+’minYear’ => date(’Y’) - 70,
+’maxYear’ => date(’Y’) - 18,
+));
+
+Besides the specific options for input() found below, you can specify any option for the input
+type & any HTML attribute (for instance onfocus). For more information on $options and
+$htmlAttributes see HtmlHelper.
+
+SEGUIR(111/203)

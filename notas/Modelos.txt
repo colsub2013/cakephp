@@ -761,5 +761,205 @@ datos completo para almacenamiento.
 
 hasMany through (Modelo Join)
 .............................
+A veces es deseable almacenar datos adicionales con asociación many-to-many. 
+Considerar lo siguiente:
 
-(219/336)
+Student hasAndBelongsToMany Course
+Course hasAndBelongsToMany Student
+
+Un Student puede tomar varios Courses y un Course puede ser tomado por varios 
+Students. Esta es una asociación many-to-many simple que demanda una tabla como
+
+id | student_id | course_id
+
+Que tal si queremos almacenar el número de días que fueron atendidos por el 
+estudiante en el curso y su calificación final? La tabla que querríamos:
+
+id | student_id | course_id | days_attended | grade
+
+El problema es, hasAndBelongsToMany no soportará este tipo de escenario ya que
+cuando las asociaciones hasAndBelongsToMany son almacenadas, la asociación es
+borrada primero. Uno perdería datos extra en las columnas ya que este no es 
+reemplazado en el nuevo insert.
+
+Cambiado en v.2.1.
+
+Puede fijar el único ajusta para keepExisting para burlar la pérdida de datos
+extra durante la operación de guardado. 
+
+La manera de implementar nuestro requerimiento es usar un modelo join, de otro
+modo conocido como un hasMany a través de la asociación. La asociación es un 
+modelo en sí mismo. Así, podemos crear un modelo nuevo CourseMembership. Mirar
+el siguiente modelo:
+
+// Student.php
+class Student extends AppModel {
+  public $hasMany = array(
+    ’CourseMembership’
+  );
+}
+
+// Course.php
+class Course extends AppModel {
+  public $hasMany = array(
+    ’CourseMembership’
+  );
+}
+
+// CourseMembership.php
+class CourseMembership extends AppModel {
+  public $belongsTo = array(
+    ’Student’, ’Course’
+  );
+}
+
+El modelo join de CourseMembership identifica de forma única una participación de
+Student dado en un Course en adición a meta-información extra.
+
+Los modelos join contienen asociaciones hasMany y belongsTo y la característica
+saveAll.
+
+Crear y Destruir Asociaciones al vuelo
+--------------------------------------
+A veces es necesario crear y destruir asociaciones de modelo al vuelo. Esto puede
+ser por:
+
+• Quiere reducir la cantidad de datos asociados extraídos, pero todas sus asociaciones
+están en el 1er nivel de recursión
+
+• Quiere cambiar el modo que una asociación está definida tal manera de ordenar
+(sort) ó filtrar datos asociados
+
+Esta creación y destrucción de asociación es hecha usando el modelo de CakePHP
+métodos bindModel() y unbindModel(). Se van a configurar algunos modelos tal que
+podamos ver como funcionan bindModel() y unbindModel(). Arrancaremos con 2 
+modelos:
+
+class Leader extends AppModel {
+  public $hasMany = array(
+    ’Follower’ => array(
+      ’className’ => ’Follower’,
+      ’order’ => ’Follower.rank’
+    )
+  );
+}
+
+class Follower extends AppModel {
+  public $name = ’Follower’;
+}
+
+Ahora, en el LeadersController, podemos usar el método find() en el modelo 
+Leader para extraer un Leader y sus seguidores asociados. El array de asociación
+en el modelo Leader define una relación 'Leader hasMany Followers'. Para 
+propósitos de demostración, usar unbindModel() para quitar esa asociación en una
+acción controlador:
+  
+public function some_action() {
+  // This fetches Leaders, and their associated Followers
+  $this->Leader->find(’all’);
+  // Let’s remove the hasMany...
+  $this->Leader->unbindModel(
+    array(’hasMany’ => array(’Follower’))
+  );
+
+  // Now using a find function will return
+  // Leaders, with no Followers
+  $this->Leader->find(’all’);
+  // NOTE: unbindModel only affects the very next
+  // find function. An additional find call will use
+  // the configured association information.
+  // We’ve already used find(’all’) after unbindModel(),
+  // so this will fetch Leaders with associated
+  // Followers once again...
+  $this->Leader->find(’all’);
+}
+
+Nota: quitar ó agregar asociaciones usando bind- y unbindModel() sólo funciona
+para la siguiente operación find a menos que el 2do parámetro haya sido fijado
+a false, en cuyo caso el bind permanece en su lugar para el resto del request.
+
+Patrón de uso básico para unbindModel():
+
+$this->Model->unbindModel(
+  array(’associationType’ => array(’associatedModelClassName’))
+);
+
+Removida exitosamente una asociación al vuelo, se va agregar una. Nuestro Leader
+necesita algunos Principles (principios) asociados. El archivo modelo para
+nuestro modelo Principle es simple, excepto por la sentencia public $name. Vamos
+a asociar algunos Principles a nuestro Leader al vuelo (sólo para la siguiente
+operación de find). Esta función aparece en el LeadersController:
+ 
+public function another_action() {
+  // There is no Leader hasMany Principles in
+  // the leader.php model file, so a find here
+  // only fetches Leaders.
+  $this->Leader->find(’all’);
+  // Let’s use bindModel() to add a new association
+  // to the Leader model:
+  $this->Leader->bindModel(
+    array(’hasMany’ => array(
+        ’Principle’ => array(
+          ’className’ => ’Principle’
+        )
+      )
+    )
+  );
+  // Now that we’re associated correctly,
+  // we can use a single find function to fetch
+  // Leaders with their associated principles:
+  $this->Leader->find(’all’);
+}
+
+El uso básico 
+The basic usage for bindModel() is the encapsulation of a normal association array inside
+an array whose key is named after the type of association you are trying to create:
+
+$this->Model->bindModel(
+  array(’associationName’ => array(
+      ’associatedModelClassName’ => array(
+        // normal association keys go here...
+      )
+    )
+  )
+);
+
+Even though the newly bound model doesn’t need any sort of association definition in its model file, it will
+still need to be correctly keyed in order for the new association to work properly.
+
+Multiple relations to the same model
+------------------------------------
+
+There are cases where a Model has more than one relation to another Model. For example, you might have
+a Message model that has two relations to the User model: one relation to the user who sends a message,
+and a second to the user who receives the message. The messages table will have a field user_id, but also a
+field recipient_id. Now your Message model can look something like:
+
+class Message extends AppModel {
+  public $belongsTo = array(
+    ’Sender’ => array(
+      ’className’ => ’User’,
+      ’foreignKey’ => ’user_id’
+    ),
+    ’Recipient’ => array(
+      ’className’ => ’User’,
+      ’foreignKey’ => ’recipient_id’
+    )
+  );
+}
+
+Recipient is an alias for the User model. Now let’s see what the User model would look like:
+
+class User extends AppModel {
+  public $hasMany = array(
+    ’MessageSent’ => array(
+      ’className’ => ’Message’,
+      ’foreignKey’ => ’user_id’
+    ),
+    ’MessageReceived’ => array(
+      ’className’ => ’Message’,
+      ’foreignKey’ => ’recipient_id’
+    )
+  );
+}
+(223/336)
