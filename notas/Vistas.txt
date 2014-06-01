@@ -1367,17 +1367,13 @@ Nuevo en v.2.5: El tipo binario ahora mapea a un input file.
 Desde v.2.3 el atributo 'required' de HTML5 también será añadido al input basado
 en reglas de validación. Puede fijar explícitamente la clave requerida en el array
 options para redefinirlo para un campo. Para saltear validación de navegador 
-disparando el formulario entero  
+disparando el formulario entero uno puede fijar la opción ’formnovalidate’ => true
+para el botón input que uno genera usando FormHelper::submit() ó fijar ’novalidate’ => true 
+en opciones para FormHelper::create().    
  
-
-
-skip browser validation triggering for the whole form you can set option ’formnovalidate’ =>
-true for the input button you generate using FormHelper::submit() or set ’novalidate’
-=> true in options for FormHelper::create().
-
-For example, let’s assume that your User model includes fields for a username (varchar), password
-(varchar), approved (datetime) and quote (text). You can use the input() method of the FormHelper to
-create appropriate inputs for all of these form fields:
+Ej.: se asume que su modelo User incluye campos para un nombre de usuario (varchar),
+password (varchar), aprobado (datetime) y cita (text). Puede usar el método input()
+del FormHelper para crear inputs apropiados para estos campos de formulario:
 
 echo $this->Form->create();
 echo $this->Form->input(’username’); //text
@@ -1387,17 +1383,200 @@ echo $this->Form->input(’approved’); //day, month, year, hour, minute,
 echo $this->Form->input(’quote’); //textarea
 echo $this->Form->end(’Add’);
 
-A more extensive example showing some options for a date field:
+Ej. mas extensivo mostrando algunas opciones para un campo date:
 
-echo $this->Form->input(’birth_dt’, array(
-’label’ => ’Date of birth’,
-’dateFormat’ => ’DMY’,
-’minYear’ => date(’Y’) - 70,
-’maxYear’ => date(’Y’) - 18,
+echo $this->Form->input(’birth_dt’, 
+  array(
+    ’label’ => ’Date of birth’,
+    ’dateFormat’ => ’DMY’,
+    ’minYear’ => date(’Y’) - 70,
+    ’maxYear’ => date(’Y’) - 18,
+  )
+);
+
+Junto a las opciones específicas para input() hallado abajo, puede especificar
+cualquier opción para el tipo input y cualquier atributo HTML (por ej. onfocus).
+
+Se asume que User hasAndBelongsToMany Group. En su controlador, fijar una 
+variable plural en camelCase (group -> groups en este caso, ó 
+ExtraFunkyModel -> extraFunkyModels) con las opciones de selección. En la acción
+controlador uno pondría lo siguiente:
+
+$this->set(’groups’, $this->User->Group->find(’list’));
+
+Y en la vista puede ser creada una selección múltiple con este código:
+
+echo $this->Form->input(’Group’);
+
+Si quiere crear un campo de selección mientras usa una Relación belongsTo - ó
+hasOne, puede agregar lo siguiente a su controlador Users (asumiendo que 
+User belongsTo Group):
+
+$this->set(’groups’, $this->User->Group->find(’list’));
+
+Más tarde, agregar los siguiente a su vista de formulario:
+
+echo $this->Form->input(’group_id’);
+
+Si su nombre de modelo consiste de 2 ó más palabras, ej., “UserGroup”, al pasar
+los datos usando set() uno debería nombrar sus datos en formato pluralizado y 
+camelCase como sigue:
+
+$this->set(’userGroups’, $this->UserGroup->find(’list’));
+// or
+$this->set(
+  ’reallyInappropriateModelNames’,
+  $this->ReallyInappropriateModelName->find(’list’)
+);
+
+Nota: Evitar usar FormHelper::input() para generar botones de submit. Usar en
+vez de eso FormHelper::submit().
+
+FormHelper::inputs(mixed $fields = null, array $blacklist = null, $options = array())
+.....................................................................................
+Genera un set de inputs para $fields. Si $fields es null todos los campos del 
+modelo actual, excepto para aquellos definidos en $blacklist, serán usados.
+
+Adicionalmente a la salida de campos controlador, $fields puede ser usado para 
+controlar renderización de legend y fieldset con las claves fieldset y legend.
+$this->Form->inputs(array(’legend’ => ’My legend’)); generaría un set input con 
+un legend personalizado. Puede personalizar inputs individuales también a través
+de $fields:
+ 
+echo $this->Form->inputs(
+  array(
+    ’name’ => array(’label’ => ’custom label’)
+  )
+);
+
+Adicionalmente al control fields, inputs() le permite usar algunas opciones 
+adicionales:
+
+•fieldset: Se fija a false para inhabilitar el fieldset. Suministrado un string
+ este será usado como el nombre de clase para el elemento fieldset
+  
+•legend: Se fija a false para inhabilitar el legend para el set input generado.
+O suministrar un string para personalizar el texto del legend
+
+Convenciones de nombramiento del campo 
+......................................
+Siempre que uno especifique un nombre de campo con los métodos form helper, este
+usará automáticamente el nombre de modelo actual para construir un input con un 
+formato como el que sigue:
+
+<input type="text" id="ModelnameFieldname" name="data[Modelname][fieldname]">
+
+Esto le permite omitir el nombre de modelo al generar inputs para el modelo para
+el que fue creado el formulario. Puede crear inputs para modelos asociados, 
+ó modelos arbitrarios pasando Modelname.fieldname como el 1er parámetro:
+
+echo $this->Form->input(’Modelname.fieldname’);
+
+Si necesita especificar múltiples campos usando el mismo nombre de campo, así 
+crear un array que puede ser almacenado en un tiro con saveAll(), usar la 
+siguiente convención:
+
+echo $this->Form->input(’Modelname.0.fieldname’);
+echo $this->Form->input(’Modelname.1.fieldname’);
+
+Salida:
+
+<input type="text" id="Modelname0Fieldname" name="data[Modelname][0][fieldname]">
+<input type="text" id="Modelname1Fieldname" name="data[Modelname][1][fieldname]">
+
+FormHelper usa internamente varios sufijos de campo para creación de input
+datetime. Si está usando campos nombrados year, month, day, hour, minute, ó meridian
+y teniendo problemas (issues) al obtener el input correcto, puede fijar el atributo
+name para redefinir el comportamiento por defecto:
+
+echo $this->Form->input(’Model.year’, 
+  array(
+    ’type’ => ’text’,
+    ’name’ => ’data[Model][year]’
+  )
+);
+
+Opciones 
+........
+FormHelper::input() soporta varias opciones. Adicionalmente a sus propias opciones
+input() acepta opciones para los tipos input generados, así como atributos HTML.
+Lo siguiente cubrirá lo específico a opciones para FormHelper::input().
+
+• $options[’type’]: Puede forzar el tipo de un input, redefinir introspección del
+modelo, especificando un tipo. Adicionalmente a los tipos de campo hallados al 
+Crear elementos de formulario, puede también crear ‘file’, ‘password’, y cualquier
+tipo soportado por HTML5:
+
+echo $this->Form->input(’field’, array(’type’ => ’file’));
+echo $this->Form->input(’email’, array(’type’ => ’email’));
+
+Salida:
+
+<div class="input file">
+  <label for="UserField">Field</label>
+  <input type="file" name="data[User][field]" value="" id="UserField" />
+</div>
+<div class="input email">
+  <label for="UserEmail">Email</label>
+  <input type="email" name="data[User][email]" value="" id="UserEmail" />
+</div>
+
+• $options[’div’]: Usar esta opción para fijar atributos del div que contiene al
+input. Usar un valor string fijará el nombre de clase del div. Un array fijará
+los atributos del div a aquellos especificados por las claves/valores del array.
+Alternativamente, puede fijar esta clave a false para inhabilitar las salida
+del div.
+
+Fijar el nombre de clase:
+
+echo $this->Form->input(’User.name’, 
+  array(
+    ’div’ => ’class_name’
+  )
+);
+
+Salida:
+
+<div class="class_name">
+  <label for="UserName">Name</label>
+  <input name="data[User][name]" type="text" value="" id="UserName" />
+</div>
+
+Fijar atributos múltiples:
+
+echo $this->Form->input(’User.name’, 
+  array(
+    ’div’ => array(
+      ’id’ => ’mainDiv’,
+      ’title’ => ’Div Title’,
+      ’style’ => ’display:block’
+    )
+  )
+);
+
+Salida:
+
+<div class="input text" id="mainDiv" title="Div Title" style="display:block">
+  <label for="UserName">Name</label>
+  <input name="data[User][name]" type="text" value="" id="UserName" />
+</div>
+
+Inhabilitar la salida del div:
+
+echo $this->Form->input(’User.name’, array(’div’ => false)); ?>
+
+Salida:
+
+<label for="UserName">Name</label>
+<input name="data[User][name]" type="text" value="" id="UserName" />
+
+• $options[’label’]: Fijar esta clave al string que uno querría que se muestre
+dentro de la etiqueta que usualmente acompaña el input:
+
+echo $this->Form->input(’User.name’, array(
+  ’label’ => ’The User Alias’
 ));
 
-Besides the specific options for input() found below, you can specify any option for the input
-type & any HTML attribute (for instance onfocus). For more information on $options and
-$htmlAttributes see HtmlHelper.
+Salida:
 
-SEGUIR(111/203)
+SEGUIR(114/203)
