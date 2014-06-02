@@ -2050,6 +2050,173 @@ echo $this->Form->textarea(
   array(’rows’ => ’5’, ’cols’ => ’5’)
 );
 
+Produce:
+
+<textarea name="data[Form][textarea]" cols="5" rows="5" id="FormTextarea"></textarea>
+
+FormHelper::checkbox(string $fieldName, array $options)
+.......................................................
+Crea un elemento checkbox de formulario. Este método también genera un input form
+hidden asociado para forzar el envío de datos para el campo especificado:
+
+echo $this->Form->checkbox(’done’);
+
+Producirá:
+
+<input type="hidden" name="data[User][done]" value="0" id="UserDone_" />
+<input type="checkbox" name="data[User][done]" value="1" id="UserDone" />
+
+Es posible especificar el valor del checkbox usando el array $options:
+
+echo $this->Form->checkbox(’done’, array(’value’ => 555));
+
+Producirá:
+
+<input type="hidden" name="data[User][done]" value="0" id="UserDone_" />
+<input type="checkbox" name="data[User][done]" value="555" id="UserDone" />
+
+Si uno no busca que el Form helper cree un input hidden:
+
+echo $this->Form->checkbox(’done’, array(’hiddenField’ => false));
+
+Producirá:
+
+<input type="checkbox" name="data[User][done]" value="1" id="UserDone" />
+
+FormHelper::radio(string $fieldName, array $options, array $attributes)
+.......................................................................
+Crea un set de inputs radio button.
+
+Opciones
+........
+•$attributes[’value’]: Para fijar que valor debería ser seleccionado por defecto.
+
+•$attributes[’separator’]: Para especificar HTML entre radio buttons (ej.: <br />).
+
+•$attributes[’between’]: Especifica algún contenido a ser insertado entre la leyenda y el 1er elemento.
+
+•$attributes[’disabled’]: Especifica esto a 'true' ó 'disabled' inhabilitará todos los radio buttons generados.
+
+•$attributes[’legend’]: Los elementos Radio son envueltos con un label y fieldset por defecto.
+ Fija $attributes[’legend’] a false para quitarlos:
+  
+ $options = array(’M’ => ’Male’, ’F’ => ’Female’);
+ $attributes = array(’legend’ => false);
+ echo $this->Form->radio(’gender’, $options, $attributes);
+
+Producirá:
+
+<input name="data[User][gender]" id="UserGender_" value="" type="hidden" />
+<input name="data[User][gender]" id="UserGenderM" value="M" type="radio" />
+<label for="UserGenderM">Male</label>
+<input name="data[User][gender]" id="UserGenderF" value="F" type="radio" />
+<label for="UserGenderF">Female</label>
+
+Si por alguna razón uno no busca el input hidden, fijar $attributes[’value’] a un
+valor selected ó boolean false hará solo eso.
+
+En v.2.1: Fue agregada la opción $attributes[’disabled’].
+
+FormHelper::select(string $fieldName, array $options, array $attributes)
+........................................................................
+Crea un elemento select, populado con los items en $options, con la opción 
+especificada por $attributes[’value’] mostrada como seleccionada por defecto. 
+Fijar la clave ‘empty’ en la variable $attributes a false apaga la opción vacío 
+por defecto:
+
+$options = array(’M’ => ’Male’, ’F’ => ’Female’);
+echo $this->Form->select(’gender’, $options);
+
+Producirá:
+
+<select name="data[User][gender]" id="UserGender">
+  <option value=""></option>
+  <option value="M">Male</option>
+  <option value="F">Female</option>
+</select>
+
+El tipo input select permite un atributo $option especial llamado ’escape’ que 
+acepta un booleano y determina si la entidad HTML codifica los contenidos de las
+opciones select. Por defecto en true:
+
+$options = array(’M’ => ’Male’, ’F’ => ’Female’);
+echo $this->Form->select(’gender’, $options, array(’escape’ => false));
+
+•$attributes[’options’]: Esta clave le permite especificar opciones manualmente
+para un input select, ó para un grupo radio. A menos que el 'type' se especifique
+como 'radio', FormHelper asumirá que la salida objetivo es un input select:
+
+echo $this->Form->select(’field’, array(1,2,3,4,5));
+
+Produce:
+
+<select name="data[User][field]" id="UserField">
+  <option value="0">1</option>
+  <option value="1">2</option>
+  <option value="2">3</option>
+  <option value="3">4</option>
+  <option value="4">5</option>
+</select>
+
+Las opciones pueden también ser suministradas como pares clave-valor:
+
+echo $this->Form->select(’field’, 
+  array(
+    ’Value 1’ => ’Label 1’,
+    ’Value 2’ => ’Label 2’,
+    ’Value 3’ => ’Label 3’
+  )
+);
+
+Produce:
+
+<select name="data[User][field]" id="UserField">
+  <option value="Value 1">Label 1</option>
+  <option value="Value 2">Label 2</option>
+  <option value="Value 3">Label 3</option>
+</select>
+
+Si uno quisiese generar un select con optgroups, sólo pasar datos en formato
+jerárquico. Esto funciona en checkboxes y radioboxes múltiples también, pero en
+vez de optgroups envuelve elementos en fieldsets:
+
+$options = array(
+  ’Group 1’ => array(
+    ’Value 1’ => ’Label 1’,
+    ’Value 2’ => ’Label 2’
+  ),
+  ’Group 2’ => array(
+    ’Value 3’ => ’Label 3’
+  )
+);
+echo $this->Form->select(’field’, $options);
+
+Produce:
+
+<select name="data[User][field]" id="UserField">
+  <optgroup label="Group 1">
+    <option value="Value 1">Label 1</option>
+    <option value="Value 2">Label 2</option>
+  </optgroup>
+  <optgroup label="Group 2">
+    <option value="Value 3">Label 3</option>
+  </optgroup>
+</select>
+
+•$attributes[’multiple’]: Si ‘multiple’ ha sido fijado a true para un input que
+produce un select, el select permitirá selecciones múltiples:
+
+echo $this->Form->select(
+  ’Model.field’,
+  $options,
+  array(’multiple’ => true)
+);
+
+Alternativamente fijar 'multiple' a 'checkbox' para producir una lista de
+checkboxes relacionados:
+
+$options = array(
+  ’Value 1’ => ’Label 1’,
 
 
-SEGUIR(122/203)
+SEGUIR(125/203)
