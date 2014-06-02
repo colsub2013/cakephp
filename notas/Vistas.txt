@@ -2217,6 +2217,272 @@ checkboxes relacionados:
 
 $options = array(
   ’Value 1’ => ’Label 1’,
+  ’Value 2’ => ’Label 2’
+);
+echo $this->Form->select(’Model.field’, $options, 
+  array(
+    ’multiple’ => ’checkbox’
+  )
+);
+
+Produce:
+
+<div class="input select">
+  <label for="ModelField">Field</label>
+  <input name="data[Model][field]" value="" id="ModelField" type="hidden">
+  <div class="checkbox">
+    <input name="data[Model][field][]" value="Value 1" id="ModelField1" type="checkbox">
+    <label for="ModelField1">Label 1</label>
+  </div>
+  <div class="checkbox">
+    <input name="data[Model][field][]" value="Value 2" id="ModelField2" type="checkbox">
+    <label for="ModelField2">Label 2</label>
+  </div>
+</div>
+
+• $attributes[’disabled’]: Al crear checkboxes, esta opción puede fijarse a todo
+  inhabilitado ó sólo a algunos checkboxes. Para fijar todos los checkboxes fijar
+  disabled a true:
+
+$options = array(
+  ’Value 1’ => ’Label 1’,
+  ’Value 2’ => ’Label 2’
+);
+echo $this->Form->select(’Model.field’, $options, 
+  array(
+    ’multiple’ => ’checkbox’,
+    ’disabled’ => array(’Value 1’)
+  )
+);
+
+Produce:
+
+<div class="input select">
+  <label for="ModelField">Field</label>
+  <input name="data[Model][field]" value="" id="ModelField" type="hidden">
+  <div class="checkbox">
+    <input name="data[Model][field][]" disabled="disabled" value="Value 1" id="ModelField1" type="checkbox">
+    <label for="ModelField1">Label 1</label>
+  </div>
+  <div class="checkbox">
+    <input name="data[Model][field][]" value="Value 2" id="ModelField2" type="checkbox">
+    <label for="ModelField2">Label 2</label>
+  </div>
+</div>
+
+El soporte para arrays en $attributes[’disabled’] fue agregado en v.2.3.
+
+FormHelper::file(string $fieldName, array $options)
+...................................................
+Para agregar el campo de subida de archivos a un formulario, primero debe asegurarse
+que el enctype del formulario está fijo a "multipart/form-data", así arrancar 
+con una función create como:
+
+echo $this->Form->create(’Document’, array(
+  ’enctype’ => ’multipart/form-data’
+  )
+);
+// OR
+echo $this->Form->create(’Document’, array(’type’ => ’file’));
+
+Luego agregar una ú otra de las 2 líneas a su archivo de vista de formulario:
+
+echo $this->Form->input(’Document.submittedfile’, 
+  array(
+    ’between’ => ’<br />’,
+    ’type’ => ’file’
+  )
+);
+// OR
+echo $this->Form->file(’Document.submittedfile’);
+
+Debido a las limitaciones del HTML mismo, no es posible poner valores por defecto
+en campos input de tipo 'file'. Cada vez que el formulario es exhibido, el valor
+dentro estará vacío.
+
+Sobre envío, los archivos file proveen un array de datos expandido al script que
+recibe los datos de formulario.
+
+Para el ej. de arriba, los valores en el array de datos enviados sería organizado
+como sigue, si CakePHP fue instalado en un Windows Server. ‘tmp_name’ tendrá 
+una ruta diferente en un ambiente Unix:
+
+$this->request->data[’Document’][’submittedfile’] = array(
+  ’name’ => ’conference_schedule.pdf’,
+  ’type’ => ’application/pdf’,
+  ’tmp_name’ => ’C:/WINDOWS/TEMP/php1EE.tmp’,
+  ’error’ => 0,
+  ’size’ => 41737,
+);
+
+Este array es generado por PHP mismo. Validar los Uploads de abajo es un método
+de validación ejemplo que uno podría definir en su modelo para validar si un
+archivo ha sido subido exitosamente:
+
+public function isUploadedFile($params) {
+  $val = array_shift($params);
+  if ((isset($val[’error’]) && $val[’error’] == 0) || (!empty( $val[’tmp_name’]) && $val[’tmp_name’] != ’none’)) {
+    return is_uploaded_file($val[’tmp_name’]);
+  }
+  return false;
+}
+
+Crea un input file:
+
+echo $this->Form->create(’User’, array(’type’ => ’file’));
+echo $this->Form->file(’avatar’);
+
+Producirá:
+
+<form enctype="multipart/form-data" method="post" action="/users/add">
+<input name="data[User][avatar]" value="" id="UserAvatar" type="file">
+
+Nota: Usando $this->Form->file(), acordarse de fijar el encoding-type del 
+formulario, fijando la opción de tipo a 'file' en $this->Form->create(). 
+
+Crear buttons y elementos submit
+--------------------------------
+FormHelper::submit(string $caption, array $options)
+...................................................
 
 
-SEGUIR(125/203)
+
+Creates a submit button with caption $caption. If the supplied $caption is a URL to an image
+(it contains a ‘.’ character), the submit button will be rendered as an image.
+It is enclosed between div tags by default; you can avoid this by declaring $options[’div’] = false:
+
+echo $this->Form->submit();
+
+Will output:
+
+<div class="submit"><input value="Submit" type="submit"></div>
+
+You can also pass a relative or absolute URL to an image for the caption parameter instead of caption text.:
+
+echo $this->Form->submit(’ok.png’);
+
+Will output:
+
+<div class="submit"><input type="image" src="/img/ok.png"></div>
+
+FormHelper::button(string $title, array $options = array())
+...........................................................
+Creates an HTML button with the specified title and a default type of “button”. Setting
+$options[’type’] will output one of the three possible button types:
+
+1.submit: Same as the $this->Form->submit method - (the default).
+2.reset: Creates a form reset button.
+3.button: Creates a standard push button.
+
+echo $this->Form->button(’A Button’);
+echo $this->Form->button(’Another Button’, array(’type’ => ’button’));
+echo $this->Form->button(’Reset the Form’, array(’type’ => ’reset’));
+echo $this->Form->button(’Submit Form’, array(’type’ => ’submit’));
+
+Will output:
+
+<button type="submit">A Button</button>
+<button type="button">Another Button</button>
+<button type="reset">Reset the Form</button>
+<button type="submit">Submit Form</button>
+
+The button input type supports the escape option, which accepts a bool and determines whether
+to HTML entity encode the $title of the button. Defaults to false:
+
+echo $this->Form->button(’Submit Form’, 
+  array(
+    ’type’ => ’submit’,
+    ’escape’ => true
+  )
+);
+
+FormHelper::postButton(string $title, mixed $url, array $options = array ())
+............................................................................
+Create a <button> tag with a surrounding <form> that submits via POST.
+
+This method creates a <form> element. So do not use this method in some opened form. Instead
+use FormHelper::submit() or FormHelper::button() to create buttons inside opened
+forms.
+
+FormHelper::postLink(string $title, mixed $url = null, array $options = array (), string $confirmMessage = false)
+.................................................................................................................
+Creates an HTML link, but access the URL using method POST. Requires JavaScript to be enabled in
+browser.
+
+This method creates a <form> element. So do not use this method inside an existing form. Instead
+you should add a submit button using FormHelper::submit()
+
+Changed in version 2.3: The method option was added.
+
+Creating date and time inputs
+-----------------------------
+FormHelper::dateTime($fieldName, $dateFormat = ‘DMY’, $timeFormat = ‘12’, $attributes = array())
+................................................................................................
+Creates a set of select inputs for date and time. Valid values for $dateformat are ‘DMY’, ‘MDY’,
+‘YMD’ or ‘NONE’. Valid values for $timeFormat are ‘12’, ‘24’, and null.
+
+You can specify not to display empty values by setting “array(‘empty’ => false)” in the attributes
+parameter. It will also pre-select the fields with the current datetime.
+
+FormHelper::year(string $fieldName, int $minYear, int $maxYear, array $attributes)
+..................................................................................
+Creates a select element populated with the years from $minYear to $maxYear. HTML attributes
+may be supplied in $attributes. If $attributes[’empty’] is false, the select will not include an
+empty option:
+
+echo $this->Form->year(’purchased’, 2000, date(’Y’));
+
+Will output:
+
+<select name="data[User][purchased][year]" id="UserPurchasedYear">
+  <option value=""></option>
+  <option value="2009">2009</option>
+  <option value="2008">2008</option>
+  <option value="2007">2007</option>
+  <option value="2006">2006</option>
+  <option value="2005">2005</option>
+  <option value="2004">2004</option>
+  <option value="2003">2003</option>
+  <option value="2002">2002</option>
+  <option value="2001">2001</option>
+  <option value="2000">2000</option>
+</select>
+
+FormHelper::month(string $fieldName, array $attributes)
+.......................................................
+Creates a select element populated with month names:
+
+echo $this->Form->month(’mob’);
+
+Will output:
+
+<select name="data[User][mob][month]" id="UserMobMonth">
+  <option value=""></option>
+  <option value="01">January</option>
+  <option value="02">February</option>
+  <option value="03">March</option>
+  <option value="04">April</option>
+  <option value="05">May</option>
+  <option value="06">June</option>
+  <option value="07">July</option>
+  <option value="08">August</option>
+  <option value="09">September</option>
+  <option value="10">October</option>
+  <option value="11">November</option>
+  <option value="12">December</option>
+</select>
+
+You can pass in your own array of months to be used by setting the ‘monthNames’ attribute, or have
+months displayed as numbers by passing false. (Note: the default months are internationalized and
+can be translated using localization.):
+
+echo $this->Form->month(’mob’, array(’monthNames’ => false));
+
+FormHelper::day(string $fieldName, array $attributes)
+.....................................................
+Creates a select element populated with the (numerical) days of the month.
+
+To create an empty option with prompt text of your choosing (e.g. the first option is ‘Day’), you can
+supply the text as the final parameter as follows:
+
+SEGUIR(130/203)
