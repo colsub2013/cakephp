@@ -2344,50 +2344,51 @@ Crear buttons y elementos submit
 --------------------------------
 FormHelper::submit(string $caption, array $options)
 ...................................................
+Crea un botón de submit con leyenda (caption) $caption. Si el $caption suministrado
+es una URL para una imagen (esta contiene un caracter '.'), el botón de submit
+será renderizado como una imagen.   
 
-
-
-Creates a submit button with caption $caption. If the supplied $caption is a URL to an image
-(it contains a ‘.’ character), the submit button will be rendered as an image.
-It is enclosed between div tags by default; you can avoid this by declaring $options[’div’] = false:
+Este está encerrado entre etiquetas div por defecto; puede evitar esto declarando
+$options[’div’] = false:
 
 echo $this->Form->submit();
 
-Will output:
+Producirá:
 
 <div class="submit"><input value="Submit" type="submit"></div>
 
-You can also pass a relative or absolute URL to an image for the caption parameter instead of caption text.:
+Puede también pasar una URL absoluta ó relativo a una imagen para el parámetro
+caption en vez del texto caption:
 
 echo $this->Form->submit(’ok.png’);
 
-Will output:
+Producirá:
 
 <div class="submit"><input type="image" src="/img/ok.png"></div>
 
 FormHelper::button(string $title, array $options = array())
 ...........................................................
-Creates an HTML button with the specified title and a default type of “button”. Setting
-$options[’type’] will output one of the three possible button types:
+Crea un botón HTML con el título especificado y un tipo por defecto de 'button'.
+Fijar $options[’type’] producirá 1 de los 3 tipos posibles de botones:
 
-1.submit: Same as the $this->Form->submit method - (the default).
-2.reset: Creates a form reset button.
-3.button: Creates a standard push button.
+1.submit: El mismo que el método $this->Form->submit - (por defecto).
+2.reset: Crea un botón de reset.
+3.button: Crea un botón de pulsación (push) estándar.
 
 echo $this->Form->button(’A Button’);
 echo $this->Form->button(’Another Button’, array(’type’ => ’button’));
 echo $this->Form->button(’Reset the Form’, array(’type’ => ’reset’));
 echo $this->Form->button(’Submit Form’, array(’type’ => ’submit’));
 
-Will output:
+Producirá:
 
 <button type="submit">A Button</button>
 <button type="button">Another Button</button>
 <button type="reset">Reset the Form</button>
 <button type="submit">Submit Form</button>
 
-The button input type supports the escape option, which accepts a bool and determines whether
-to HTML entity encode the $title of the button. Defaults to false:
+El tipo input button soporta la opción escape, que acepta un booleano y determina
+si la entidad HTML codifica el $title del button. Por defecto en false:
 
 echo $this->Form->button(’Submit Form’, 
   array(
@@ -2398,26 +2399,27 @@ echo $this->Form->button(’Submit Form’,
 
 FormHelper::postButton(string $title, mixed $url, array $options = array ())
 ............................................................................
-Create a <button> tag with a surrounding <form> that submits via POST.
+Crea una etiqueta <button> con un con un <form> circundante que envía via POST.
 
-This method creates a <form> element. So do not use this method in some opened form. Instead
-use FormHelper::submit() or FormHelper::button() to create buttons inside opened
-forms.
+Este método crea un elemento <form>. Para formularios abiertos usar FormHelper::submit() ó 
+FormHelper::button() para crear botones dentro de formularios abiertos.
 
 FormHelper::postLink(string $title, mixed $url = null, array $options = array (), string $confirmMessage = false)
 .................................................................................................................
-Creates an HTML link, but access the URL using method POST. Requires JavaScript to be enabled in
-browser.
+Crea un enlace HTML, pero accede a la URL usando el método POST. Requiere que 
+JavaScript esté habilitado en el navegador.
 
-This method creates a <form> element. So do not use this method inside an existing form. Instead
-you should add a submit button using FormHelper::submit()
+Este método crea un elemento <form>. Así no usar este método dentro del formulario
+existente. En vez de eso debería agregar un botón de envío usando FormHelper::submit().
 
-Changed in version 2.3: The method option was added.
+El método option fue agregado en v.2.3.
 
-Creating date and time inputs
------------------------------
+Crear inputs de date y time
+---------------------------
 FormHelper::dateTime($fieldName, $dateFormat = ‘DMY’, $timeFormat = ‘12’, $attributes = array())
 ................................................................................................
+Crea un set de inputs select para date y time. Valores válidos para 
+
 Creates a set of select inputs for date and time. Valid values for $dateformat are ‘DMY’, ‘MDY’,
 ‘YMD’ or ‘NONE’. Valid values for $timeFormat are ‘12’, ‘24’, and null.
 
