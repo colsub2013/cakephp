@@ -2418,23 +2418,22 @@ Crear inputs de date y time
 ---------------------------
 FormHelper::dateTime($fieldName, $dateFormat = ‘DMY’, $timeFormat = ‘12’, $attributes = array())
 ................................................................................................
-Crea un set de inputs select para date y time. Valores válidos para 
+Crea un set de inputs select para date y time. Valores válidos para $dateformat
+son 'DMY', 'MDY', 'YMD' ó 'NONE'. Valores válidos para $timeFormat son '12', '24', y null. 
 
-Creates a set of select inputs for date and time. Valid values for $dateformat are ‘DMY’, ‘MDY’,
-‘YMD’ or ‘NONE’. Valid values for $timeFormat are ‘12’, ‘24’, and null.
-
-You can specify not to display empty values by setting “array(‘empty’ => false)” in the attributes
-parameter. It will also pre-select the fields with the current datetime.
+Puede especificar no exhibir valores vacíos fijando "array('empty' => false)" en
+el parámetro attributes. Este también pre-selecciona los campos con el datetime
+actual.
 
 FormHelper::year(string $fieldName, int $minYear, int $maxYear, array $attributes)
 ..................................................................................
-Creates a select element populated with the years from $minYear to $maxYear. HTML attributes
-may be supplied in $attributes. If $attributes[’empty’] is false, the select will not include an
-empty option:
+Crea un elemento select populado con los años desde $minYear a $maxYear. Los 
+atributos HTML pueden ser suministrados en $attributes. Si $attributes[’empty’]
+es false, el select no incluirá la opción empty:
 
 echo $this->Form->year(’purchased’, 2000, date(’Y’));
 
-Will output:
+Producirá:
 
 <select name="data[User][purchased][year]" id="UserPurchasedYear">
   <option value=""></option>
@@ -2452,11 +2451,11 @@ Will output:
 
 FormHelper::month(string $fieldName, array $attributes)
 .......................................................
-Creates a select element populated with month names:
+Crea un elemento select populado con los nombres de mes:
 
 echo $this->Form->month(’mob’);
 
-Will output:
+Producirá:
 
 <select name="data[User][mob][month]" id="UserMobMonth">
   <option value=""></option>
@@ -2474,17 +2473,132 @@ Will output:
   <option value="12">December</option>
 </select>
 
-You can pass in your own array of months to be used by setting the ‘monthNames’ attribute, or have
-months displayed as numbers by passing false. (Note: the default months are internationalized and
-can be translated using localization.):
+Uno puede pasar su propio array de meses a ser usado fijando el atributo ‘monthNames’,
+ó teniendo los meses exhibidos como números pasando false (Nota: los meses por defecto
+son internacionalizados y pueden ser traducidos usando localización):
 
 echo $this->Form->month(’mob’, array(’monthNames’ => false));
 
 FormHelper::day(string $fieldName, array $attributes)
 .....................................................
-Creates a select element populated with the (numerical) days of the month.
+Crea un elemento select populado con los días (numéricos) del mes.
 
-To create an empty option with prompt text of your choosing (e.g. the first option is ‘Day’), you can
-supply the text as the final parameter as follows:
+Para crear un option vacío con el texto solicitado de su elección (ej.: la 1ra
+opción es 'Day'), puede suministrar el texto como el parámetro final como sigue:
 
-SEGUIR(130/203)
+echo $this->Form->day(’created’);
+
+Producirá:
+
+<select name="data[User][created][day]" id="UserCreatedDay">
+  <option value=""></option>
+  <option value="01">1</option>
+  <option value="02">2</option>
+  <option value="03">3</option>
+  ...
+  <option value="31">31</option>
+</select>
+
+FormHelper::hour(string $fieldName, boolean $format24Hours, array $attributes)
+..............................................................................
+Crea un elemento select populado con las horas del día.
+
+FormHelper::minute(string $fieldName, array $attributes)
+........................................................
+Crea un elemento select populado con los minutos de la hora.
+
+FormHelper::meridian(string $fieldName, array $attributes)
+..........................................................
+Crea un elemento select populado con ‘am’ y ‘pm’.
+
+Exhibir y chequear errores
+--------------------------
+FormHelper::error(string $fieldName, mixed $text, array $options)
+.................................................................
+Muestra un mensaje de error de validación, especificado por $text, para el 
+campo dado, en el evento que ocurra un error de validación.
+
+Opciones:
+
+• 'escape': boolean Sí o no respecto a que el HTML escape los contenidos del error.
+
+• 'wrap' mixed Sí o no respecto a que el mensaje de error debiera ser envuelto en
+  un div. Si es un string, será usado como la etiqueta HTML a usar.
+
+• 'class' string El nombre de clase para el mensaje de error.
+
+FormHelper::isFieldError(string $fieldName)
+...........................................
+Retorna true si el $fieldName suministrado tiene un error de validación activo:
+
+if ($this->Form->isFieldError(’gender’)) {
+  echo $this->Form->error(’gender’);
+}
+
+Nota: Al usar FormHelper::input(), los errores son renderizados por defecto.
+
+FormHelper::tagIsInvalid()
+..........................
+Retorna false si el campo de formulario dado descripto por la entidad actual no
+tiene errores. Sino este retorna el mensaje de validación.
+
+Fijar valores por defecto para todos los campos
+-----------------------------------------------
+
+Nuevo en v.2.2.
+
+Puede declarar un set de optiones por defecto para input() usando FormHelper::inputDefaults().
+Cambiar las opciones por defecto le permite consolidar las opciones repetidas en una única
+llamada a método:
+
+$this->Form->inputDefaults(
+  array(
+    ’label’ => false,
+    ’div’ => false,
+    ’class’ => ’fancy’
+  )
+);
+
+Todos los input creados desde ese punto hacia adelante heredarán las opciones 
+declaradas en inputDefaults. Puede redefinir las opciones por defecto declarando
+la opción en la llamada input():
+
+echo $this->Form->input(’password’); // No div, no label with class ’fancy’
+// has a label element same defaults
+echo $this->Form->input(
+  ’username’,
+  array(’label’ => ’Username’)
+);
+
+Trabajar con SecurityComponent
+------------------------------
+Including the SecurityComponent in your controller, you’ll automatically benefit from CSRF and form
+tampering features.
+
+As mentioned previously when using SecurityComponent, you should always close your forms using
+FormHelper::end(). This will ensure that the special _Token inputs are generated.
+
+FormHelper::unlockField($name)
+..............................
+Unlocks a field making it exempt from the SecurityComponent field hashing. This also allows
+the fields to be manipulated by JavaScript. The $name parameter should be the entity name for the
+input:
+
+$this->Form->unlockField(’User.id’);
+
+FormHelper::secure(array $fields = array())
+...........................................
+Generates a hidden field with a security hash based on the fields used in the form.
+
+2.0 updates
+-----------
+
+$selected parameter removed
+---------------------------
+
+The $selected parameter was removed from several methods in FormHelper. All methods now support
+a $attributes[’value’] key now which should be used in place of $selected. This change
+simplifies the FormHelper methods, reducing the number of arguments, and reduces the duplication that
+$selected created. The effected methods are:
+
+SEGUIR(132/203)
