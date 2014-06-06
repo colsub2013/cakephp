@@ -2572,33 +2572,183 @@ echo $this->Form->input(
 
 Trabajar con SecurityComponent
 ------------------------------
-Including the SecurityComponent in your controller, you’ll automatically benefit from CSRF and form
-tampering features.
+Incluyendo SecurityComponent en su controlador, se beneficiará automáticamente
+de las características de CSRF y tampering de formulario.
 
-As mentioned previously when using SecurityComponent, you should always close your forms using
-FormHelper::end(). This will ensure that the special _Token inputs are generated.
+Al usar SecurityComponent, siempre debería cerrar sus formularios usando  
+FormHelper::end(). Esto asegurará que sean generados los inputs especiales '_Token'.
 
 FormHelper::unlockField($name)
 ..............................
-Unlocks a field making it exempt from the SecurityComponent field hashing. This also allows
-the fields to be manipulated by JavaScript. The $name parameter should be the entity name for the
-input:
+Desbloquea un campo haciéndolo exento del hashing de campo de SecurityComponent.
+Esto también permite que los campos sean manipulados por JavaScript. El parámetro
+$name debería ser el nombre de entidad para el input:
 
 $this->Form->unlockField(’User.id’);
 
 FormHelper::secure(array $fields = array())
 ...........................................
-Generates a hidden field with a security hash based on the fields used in the form.
+Genera un campo hidden con un hash de seguridad basado en los campos usados en el 
+formulario.
 
-2.0 updates
------------
+Actualizaciones 2.0
+-------------------
 
-$selected parameter removed
+Parámetro $selected quitado
 ---------------------------
+El parámetro $selected fue quitado de ambos métodos en FormHelper. Todos los métodos
+soportan ahora un clave $attributes[’value’] la cual debería ser usada en lugar
+de $selected. Este cambio simplifica el método FormHelper, reduciendo el número
+de argumentos, y reduce la duplicación que creó $selected. Los métodos efectivos:
 
-The $selected parameter was removed from several methods in FormHelper. All methods now support
-a $attributes[’value’] key now which should be used in place of $selected. This change
-simplifies the FormHelper methods, reducing the number of arguments, and reduces the duplication that
-$selected created. The effected methods are:
+• FormHelper::select()
+• FormHelper::dateTime()
+• FormHelper::year()
+• FormHelper::month()
+• FormHelper::day()
+• FormHelper::hour()
+• FormHelper::minute()
+• FormHelper::meridian()
 
-SEGUIR(132/203)
+Las URLs por defecto en formularios es la acción actual
+-------------------------------------------------------
+La URL por defecto para todos los formularios, es ahora la URL actual incluyendo
+los parámetros pasados, nombrados y querystring. Puede redefinir este comportamiento
+por defecto suministrando $options[’url’] en el 2do parámetro de $this->Form->create().
+
+FormHelper::hidden()
+....................
+Los campos hidden ya no quitan el atributo de clase. Esto significa que si hay 
+errores de validación en campos hidden, el nombre de la clase error-field será 
+aplicado.
+
+HtmlHelper
+----------
+clase HtmlHelper(View $view, array $settings = array())
+.......................................................
+Algunos métodos HtmlHelper incluyen un parámetro $htmlAttributes, que le permiten
+virar en cualquiera de los atributos extra en sus etiquetas. Algunos ejemplos 
+de como usar el parámetro $htmlAttributes:
+
+Desired attributes: <tag class="someClass" />
+Array parameter: array(’class’ => ’someClass’)
+
+Desired attributes: <tag name="foo" value="bar" />
+Array parameter: array(’name’ => ’foo’, ’value’ => ’bar’)
+
+Nota: El HtmlHelper está disponible por defecto en todas las vistas. Si está
+obteniendo un error informando que no no está allí, este es usualmente debido
+a su nombre perdido desde una variable controlador $helpers configurada 
+manualmente.
+
+Insertar elementos bien formateados
+-----------------------------------
+Con HtmlHelper se puede crear un marcado bien formado. Uno puede cachear vistas
+en CakePHP para salvar algunos ciclos de CPU cuando las vistas están siendo 
+renderizadas y entregadas. 
+
+HtmlHelper::charset($charset=null)
+..................................
+Parámetros
+..........
+• $charset (string) – Set de caracteres deseado. Si es null, se usará el valor
+de App.encoding.
+
+Usado para crear una etiqueta meta especificando el caracter del documento. Por
+defecto en UTF-8.
+
+Ejemplo de uso:
+
+echo $this->Html->charset();
+
+Producirá:
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+Alternativamente,
+
+echo $this->Html->charset(’ISO-8859-1’);
+
+Producirá:
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+
+HtmlHelper::css(mixed $path, array $options = array())
+......................................................
+Cambiado en v.2.4.
+
+Parámetros
+..........
+• $path (mixed) – Ya sea un string del archivo CSS a enlazar, ó un array con
+varios archivos.
+
+• $options (array) – Un array de opciones ú atributos HTML.
+
+Crea un link a una hoja de estilo CSS. Si la clave 'inline' se fija a false en
+el parámetro $options, las etiquetas de enlace son agregadas al bloque CSS el cual
+un puede imprimir dentro de la etiqueta head del documento.
+
+Puede usar la opción block para controlar a que bloque el elemento link será
+anexado. Por defecto será anexado al bloque CSS.
+
+Si la clave 'rel' en $options es fijado a 'import' la hoja de estilos será importada.
+
+Este método de inclusión CSS asume que el archivo CSS especificado reside dentro del 
+directorio /app/webroot/css si la ruta no comienza con un ‘/’:
+
+echo $this->Html->css(’forms’);
+
+
+
+
+
+
+
+Will output:
+
+<link rel="stylesheet" type="text/css" href="/css/forms.css" />
+
+The first parameter can be an array to include multiple files.:
+
+echo $this->Html->css(array(’forms’, ’tables’, ’menu’));
+
+Will output:
+
+<link rel="stylesheet" type="text/css" href="/css/forms.css" />
+<link rel="stylesheet" type="text/css" href="/css/tables.css" />
+<link rel="stylesheet" type="text/css" href="/css/menu.css" />
+
+You can include CSS files from any loaded plugin using plugin syntax. To include
+app/Plugin/DebugKit/webroot/css/toolbar.css You could use the following:
+echo $this->Html->css(’DebugKit.toolbar.css’);
+If you want to include a CSS file which shares a name with a loaded plugin you can
+do the following. For example if you had a Blog plugin, and also wanted to include
+app/webroot/css/Blog.common.css, you would:
+.. versionchanged:: 2.4
+echo $this->Html->css(‘Blog.common.css’, array(‘plugin’ => false));
+Changed in version 2.1: The block option was added. Support for plugin syntax was added.
+HtmlHelper::meta(string $type, string $url = null, array $options = array())
+Parameters
+• $type (string) – The type meta tag you want.
+• $url (mixed) – The URL for the meta tag, either a string or a routing array.
+• $options (array) – An array of html attributes.
+This method is handy for linking to external resources like RSS/Atom feeds and favicons. Like css(),
+you can specify whether or not you’d like this tag to appear inline or appended to the meta block by
+setting the ‘inline’ key in the $attributes parameter to false, ie - array(’inline’ => false).
+If you set the “type” attribute using the $attributes parameter, CakePHP contains a few shortcuts:
+type translated value
+html text/html
+rss application/rss+xml
+atom application/atom+xml
+icon image/x-icon
+<?php
+echo $this->Html->meta(
+’favicon.ico’,
+’/favicon.ico’,
+array(’type’ => ’icon’)
+);
+?>
+// Output (line breaks added)
+<link
+
+SEGUIR(135/203)
