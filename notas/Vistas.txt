@@ -3002,8 +3002,211 @@ Producirá:
 
 Al usar parámetros nombrados, usar la sintaxis array e incluir nombres para TODOS
 los parámetros de la URL. Usar la sintaxis string para parámetros (ej.: 
-“recipes/view/6/comments:false”
-)
+“recipes/view/6/comments:false” resultará en los caracteres ':' siendo escapados
+y el enlace no funcionará como es deseado):                                     
+
+<?php
+  echo $this->Html->link(
+    $this->Html->image("recipes/6.jpg", array("alt" => "Brownies")),
+    array(
+      ’controller’ => ’recipes’,
+      ’action’ => ’view’,
+      ’id’ => 6,
+      ’comments’ => false
+    )
+  );
+
+Producirá:
+
+<a href="/recipes/view/id:6/comments:false">
+  <img src="/img/recipes/6.jpg" alt="Brownies" />
+</a>
+
+Los caracteres especiales en $title serán convertidos a entidades HTML. Para 
+inhabilitar esta conversión, fijar la opción escape a false en el array $options:
+
+<?php
+  echo $this->Html->link(
+    $this->Html->image("recipes/6.jpg", array("alt" => "Brownies")),
+    "recipes/view/6",
+    array(’escape’ => false)
+  );
+
+Producirá:
+
+<a href="/recipes/view/6">
+  <img src="/img/recipes/6.jpg" alt="Brownies" />
+</a>
+
+Poner escape a false también inhabilitará el escape de atributos del enlace.
+Como en v.2.4 puede usar la opción escapeTitle para inhabilitar sólo escapar el
+título y no los atributos:
+
+<?php
+  echo $this->Html->link(
+  $this->Html->image(’recipes/6.jpg’, array(’alt’ => ’Brownies’)),
+  ’recipes/view/6’,
+  array(’escapeTitle’ => false, ’title’ => ’hi "howdy"’)
+);
+
+Producirá:
+
+<a href="/recipes/view/6" title="hi &quot;howdy&quot;">
+  <img src="/img/recipes/6.jpg" alt="Brownies" />
+</a>
+
+Cambiado en v.2.4: Se agregó la opción escapeTitle.
+
+HtmlHelper::media(string|array $path, array $options)
+.....................................................
+Parámetros
+..........
+
+• $path (string|array): Ruta al archivo de video, relativa al directorio  
+   webroot/{$options[’pathPrefix’]}. O un array donde cada item en sí mismo
+   puede ser un string ruta ó un array asociativo que contiene claves src y type.
+
+• $options (array) – Array de atributos HTML, y opciones especiales.
+
+  Opciones:
+
+  - type: Tipo de elemento media a generar, valores válidos son “audio” ó “video”.
+    Si type no es provisto se presume a media type basado en el mime type del 
+    archivo.   
+
+  – text: Texto a incluir dentro de la etiqueta video
+   
+  – pathPrefix: Prefijo de ruta a usar para URL's relativas, por defecto a ‘files/’
+  
+  – fullBase: Si se proveyó el atributo src obtendrá una dirección completa incluyendo
+    nombre de dominio
+
+Nuevo en v.2.1.
+
+Retorna una etiqueta de audio/video formateada:
+
+<?php echo $this->Html->media(’audio.mp3’); ?>
+// Output
+<audio src="/files/audio.mp3"></audio>
+
+<?php echo $this->Html->media(’video.mp4’, 
+  array(
+    ’fullBase’ => true,
+    ’text’ => ’Fallback text’
+  )
+); 
+?>
+// Output
+<video src="http://www.somehost.com/files/video.mp4">Fallback text</video>
+
+<?php echo $this->Html->media(
+  array(
+    ’video.mp4’,
+    array(
+      ’src’ => ’video.ogg’,
+      ’type’ => "video/ogg; codecs=’theora, vorbis’"
+    )
+  ),
+  array(’autoplay’)
+); 
+?>
+// Output
+<video autoplay="autoplay">
+  <source src="/files/video.mp4" type="video/mp4"/>
+  <source src="/files/video.ogg" type="video/ogg; codecs=’theora, vorbis’"/>
+</video>
+
+HtmlHelper::tag(string $tag, string $text, array $htmlAttributes)
+.................................................................
+
+Parámetros
+..........
+
+• $tag (string): El nombre de etiqueta siendo generado.
+• $text (string): Los contenidos para la etiqueta.
+• $options (array): Un array de atributos HTML.
+
+Retorna texto envuelto en una etiqueta especificada. Si no se especifica texto
+sólo se retornará la <tag> de apertura: 
+
+<?php
+  echo $this->Html->tag(’span’, ’Hello World.’, array(’class’ => ’welcome’));
+?>
+// Output
+<span class="welcome">Hello World</span>
+
+// No text specified.
+<?php
+  echo $this->Html->tag(’span’, null, array(’class’ => ’welcome’));
+?>
+// Output
+<span class="welcome">
+
+Nota: El texto no es escapado por defecto pero uno puede usar $htmlOptions[’escape’] = true
+para escapar su texto. Esto reemplaza un cuarto parámetro boolean $escape = false
+que estuvo disponible en versiones anteriores.
+
+HtmlHelper::div(string $class, string $text, array $options)
+............................................................
+Parámetros
+..........
+
+• $class (string): El nombre de clase para el div.
+• $text (string): El contenido dentro del div.
+• $options (array): Un array de atributos HTML.
+
+Usado para crear secciones envueltas por div en marcados. El 1er parámetro especifica
+una clase CSS, y el 2do se usa para suministrar el texto a ser envuelto por 
+etiquetas div. Si el último parámetro ha sido fijado a true, $text será impreso
+con HTML escapado.
 
 
-SEGUIR(139/203)
+
+
+If no text is specified, only an opening div tag is returned.:
+
+<?php
+  echo $this->Html->div(’error’, ’Please enter your credit card number.’);
+?>
+// Output
+<div class="error">Please enter your credit card number.</div>
+
+HtmlHelper::para(string $class, string $text, array $options)
+.............................................................
+Parameters
+..........
+• $class (string) – The class name for the paragraph.
+• $text (string) – The content inside the paragraph.
+• $options (array) – An array of html attributes.
+Returns a text wrapped in a CSS-classed <p> tag. If no text is supplied, only a starting <p> tag is
+returned.:
+<?php
+echo $this->Html->para(null, ’Hello World.’);
+?>
+// Output
+<p>Hello World.</p>
+HtmlHelper::script(mixed $url, mixed $options)
+Parameters
+• $url (mixed) – Either a string to a single JavaScript file, or an array of strings for
+multiple files.
+• $options (array) – An array of html attributes.
+Include a script file(s), contained either locally or as a remote URL.
+By default, script tags are added to the document inline. If you override this by setting
+$options[’inline’] to false, the script tags will instead be added to the script block which
+you can print elsewhere in the document. If you wish to override which block name is used, you can
+do so by setting $options[’block’].
+$options[’once’] controls whether or not you want to include this script once per request or
+more than once. This defaults to true.
+You can use $options to set additional properties to the generated script tag. If an array of script tags
+is used, the attributes will be applied to all of the generated script tags.
+This method of JavaScript file inclusion assumes that the JavaScript file specified resides inside the
+/app/webroot/js directory:
+echo $this->Html->script(’scripts’);
+Will output:
+<script type="text/javascript" href="/js/scripts.js"></script>
+You can link to files with absolute paths as well to link files that are not in app/webroot/js:
+echo $this->Html->script(’/otherdir/script_file’);
+You can also link to a remote URL:
+echo $this->Html->script(’http://code.jquery.com/jquery.min.js’);
+
+SEGUIR(143/203)
