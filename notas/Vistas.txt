@@ -2698,57 +2698,312 @@ directorio /app/webroot/css si la ruta no comienza con un ‘/’:
 
 echo $this->Html->css(’forms’);
 
-
-
-
-
-
-
-Will output:
+Producirá:
 
 <link rel="stylesheet" type="text/css" href="/css/forms.css" />
 
-The first parameter can be an array to include multiple files.:
+El 1er parámetro puede ser un array para incluir archivos múltiples:
 
 echo $this->Html->css(array(’forms’, ’tables’, ’menu’));
 
-Will output:
+Producirá:
 
 <link rel="stylesheet" type="text/css" href="/css/forms.css" />
 <link rel="stylesheet" type="text/css" href="/css/tables.css" />
 <link rel="stylesheet" type="text/css" href="/css/menu.css" />
 
-You can include CSS files from any loaded plugin using plugin syntax. To include
-app/Plugin/DebugKit/webroot/css/toolbar.css You could use the following:
+Puede incluir archivos CSS desde cualquier plugin cargado usando la sintaxis plugin.
+Para incluir app/Plugin/DebugKit/webroot/css/toolbar.css podría usar lo siguiente:
+
 echo $this->Html->css(’DebugKit.toolbar.css’);
-If you want to include a CSS file which shares a name with a loaded plugin you can
-do the following. For example if you had a Blog plugin, and also wanted to include
-app/webroot/css/Blog.common.css, you would:
+
+Si quiere incluir un archivo CSS que comparte un nombre con un plugin cargado 
+puede hacer lo siguiente. Ej.: si uno tuvo un plugin Blog, y también quiso incluir
+app/webroot/css/Blog.common.css, debería:
+
 .. versionchanged:: 2.4
+
 echo $this->Html->css(‘Blog.common.css’, array(‘plugin’ => false));
-Changed in version 2.1: The block option was added. Support for plugin syntax was added.
+
+Para v.2.1: se agregó opción block y soporte para la sintaxis plugin.
+
 HtmlHelper::meta(string $type, string $url = null, array $options = array())
-Parameters
-• $type (string) – The type meta tag you want.
-• $url (mixed) – The URL for the meta tag, either a string or a routing array.
-• $options (array) – An array of html attributes.
-This method is handy for linking to external resources like RSS/Atom feeds and favicons. Like css(),
-you can specify whether or not you’d like this tag to appear inline or appended to the meta block by
-setting the ‘inline’ key in the $attributes parameter to false, ie - array(’inline’ => false).
-If you set the “type” attribute using the $attributes parameter, CakePHP contains a few shortcuts:
-type translated value
-html text/html
-rss application/rss+xml
-atom application/atom+xml
-icon image/x-icon
+............................................................................
+
+Parámetros
+..........
+• $type (string) – La etiqueta meta que quiere.
+• $url (mixed) – La url para la etiqueta meta, ya sea un string ó un array de enrutamiento.
+• $options (array) – Un array de atributos html.
+
+Este método es útil para enlazar a recursos externos como alimentaciones RSS/Atom 
+y favicons. Como css(), puede especificar si a uno le gustaría ó no que esta
+etiqueta aparezca como 'inline' ó 'appended' al bloque 'meta' fijando la clave
+'inline' en el parámetro $attributes a false, por ej. array(’inline’ => false).
+
+Si fija el atributo 'type' usando el parámetro $attributes, CakePHP contiene 
+algunos accesos directos:
+
+-------------------------------
+| Tipo  | Valor traducido     |
+-------------------------------
+| html  | text/html           |
+| rss   | application/rss+xml |
+| atom  | application/atom+xml|
+| icon  | image/x-icon        |
+-------------------------------
+
 <?php
-echo $this->Html->meta(
-’favicon.ico’,
-’/favicon.ico’,
-array(’type’ => ’icon’)
-);
+  echo $this->Html->meta(
+    ’favicon.ico’,
+    ’/favicon.ico’,
+    array(’type’ => ’icon’)
+  );
 ?>
+
 // Output (line breaks added)
 <link
+  href="http://example.com/favicon.ico"
+  title="favicon.ico" type="image/x-icon"
+  rel="alternate"
+/>
 
-SEGUIR(135/203)
+<?php
+  echo $this->Html->meta(
+    ’Comments’,
+    ’/comments/index.rss’,
+    array(’type’ => ’rss’)
+  );
+?>
+
+// Output (line breaks added)
+<link
+  href="http://example.com/comments/index.rss"
+  title="Comments"
+  type="application/rss+xml"
+  rel="alternate"
+/>
+
+Este método también puede usarse para agregar palabras clave y descripciones meta.
+Ej.:
+
+<?php
+  echo $this->Html->meta(
+    ’keywords’,
+    ’enter any meta keyword here’
+  );
+?>
+
+// Output
+<meta name="keywords" content="enter any meta keyword here" />
+<?php
+  echo $this->Html->meta(
+    ’description’,
+    ’enter any meta description here’
+  );
+?>
+
+// Output
+<meta name="description" content="enter any meta description here" />
+
+Si quiere agregar una etiqueta meta personalizada el 1er parámetro debería 
+fijarse a un array. Para producir una etiqueta noindex 'robots' usar el código:
+
+echo $this->Html->meta(array(’name’ => ’robots’, ’content’ => ’noindex’));
+
+Cambiado en v.2.1: Se agregó la opción block.
+
+HtmlHelper::docType(string $type = ‘xhtml-strict’)
+..................................................
+
+Parámetros
+..........
+
+• $type (string) – El tipo de doctype siendo hecho.
+
+Retorna una etiqueta doctype (X)HTML. Suministrar el doctype de acuerdo a la
+siguiente tabla:
+
+-------------------------------------
+| type         | translated value   |
+-------------------------------------
+| html4-strict | HTML4 Strict       |
+| html4-trans  | HTML4 Transitional |
+| html4-frame  | HTML4 Frameset     |
+| html5        | HTML5              |
+| xhtml-strict | XHTML1 Strict      |
+| xhtml-trans  | XHTML1 Transitional|
+| xhtml-frame  | XHTML1 Frameset    |
+| xhtml11      | XHTML1.1           |
+-------------------------------------
+
+echo $this->Html->docType();
+// Outputs:
+// <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+// "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+echo $this->Html->docType(’html5’);
+// Outputs: <!DOCTYPE html>
+
+echo $this->Html->docType(’html4-trans’);
+// Outputs:
+// <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+// "http://www.w3.org/TR/html4/loose.dtd">
+
+Cambiado en v.2.1: El doctype por defecto es HTML5.
+
+HtmlHelper::style(array $data, boolean $oneline = true)
+.......................................................
+
+Parámetros
+..........
+• $data (array) – Un set de claves => valor con propiedades CSS.
+
+• $oneline (boolean) – Los contenidos deberían estar en una sola línea.
+
+Construye definiciones de estilo CSS basados en claves y valores del array pasado
+al método. Especialmente útil si su archivo CSS es dinámico:
+
+echo $this->Html->style(
+  array(
+    ’background’ => ’#633’,
+    ’border-bottom’ => ’1px solid #000’,
+    ’padding’ => ’10px’
+  )
+);
+
+Producirá:
+
+background:#633; border-bottom:1px solid #000; padding:10px;
+
+HtmlHelper::image(string $path, array $options = array())
+.........................................................
+
+Parámetros
+..........
+• $path (string) – Ruta a la imagen.
+• $options (array) – Un array de atributos HTML.
+
+Crea una etiqueta de imagen formateada. La ruta suministrada debería ser relativa a
+/app/webroot/img/:
+
+echo $this->Html->image(’cake_logo.png’, array(’alt’ => ’CakePHP’));
+
+Producirá:
+
+<img src="/img/cake_logo.png" alt="CakePHP" />
+
+Para crear un enlace de imagen especificar el enlace destino usando la opción url
+en $htmlAttributes.:
+
+echo $this->Html->image("recipes/6.jpg", 
+  array(
+    "alt" => "Brownies",
+    ’url’ => array(’controller’ => ’recipes’, ’action’ => ’view’, 6)
+  )
+);
+
+Producirá:
+
+<a href="/recipes/view/6">
+  <img src="/img/recipes/6.jpg" alt="Brownies" />
+</a>
+
+Si está creando imágenes en e-mails, ó busca rutas absolutas a imágenes puede 
+usar la opción fullBase:
+
+echo $this->Html->image("logo.png", array(’fullBase’ => true));
+
+Producirá:
+
+<img src="http://example.com/img/logo.jpg" alt="" />
+
+Puede incluir archivos de imagen desde cualquier plugin cargado usando la 
+sintaxis plugin. Para incluir app/Plugin/DebugKit/webroot/img/icon.png podría usar:
+
+echo $this->Html->image(’DebugKit.icon.png’);
+
+Si quiere incluir un archivo de imagen que comparte un nombre con un plugin cargado
+puede hacer lo siguiente. Ej.: si uno tuvo un plugin Blog, y también buscó incluir
+app/webroot/js/Blog.icon.png, debería:
+
+echo $this->Html->image(’Blog.icon.png’, array(’plugin’ => false));
+
+Cambiado en v.2.1: Se agregaron opción fullBase y soporte para sintaxis plugin.
+
+HtmlHelper::link(string $title, mixed $url = null, array $options = array(), string $confirmMessage = false)
+............................................................................................................
+
+param string $title: El texto a exhibirse como el cuerpo del enlace.
+
+param mixed $url: Ya sea la ubicación del string, ó array de enrutamiento.
+
+param array $options: Un array de atributos HTML.
+
+Método de propósito general para crear enlaces HTML. Usar $options para especificar
+atributos para el 'element' y si ó no $title debería ser escapado:
+
+echo $this->Html->link(
+  ’Enter’,
+  ’/pages/home’,
+  array(’class’ => ’button’, ’target’ => ’_blank’)
+);
+
+Producirá:
+
+<a href="/pages/home" class="button" target="_blank">Enter</a>
+
+Usar la opción  ’full_base’ => true para URL's absolutas:
+
+echo $this->Html->link(
+  ’Dashboard’,
+  array(
+    ’controller’ => ’dashboards’,
+    ’action’ => ’index’,
+    ’full_base’ => true
+  )
+);
+
+Producirá:
+
+<a href="http://www.yourdomain.com/dashboards/index">Dashboard</a>
+
+Especificar $confirmMessage para exhibir un diálogo confirm() de JavaScript:
+
+echo $this->Html->link(
+  ’Delete’,
+  array(’controller’ => ’recipes’, ’action’ => ’delete’, 6),
+  array(),
+  "Are you sure you wish to delete this recipe?"
+);
+
+Producirá:
+
+<a href="/recipes/delete/6"
+  onclick="return confirm(
+    ’Are you sure you wish to delete this recipe?’
+  );"
+>
+  Delete
+</a>
+
+Los query strings pueden también ser creados con link():
+
+echo $this->Html->link(’View image’, array(
+  ’controller’ => ’images’,
+  ’action’ => ’view’,
+  1,
+  ’?’ => array(’height’ => 400, ’width’ => 500))
+);
+
+Producirá:
+
+<a href="/images/view/1?height=400&width=500">View image</a>
+
+Al usar parámetros nombrados, usar la sintaxis array e incluir nombres para TODOS
+los parámetros de la URL. Usar la sintaxis string para parámetros (ej.: 
+“recipes/view/6/comments:false”
+)
+
+
+SEGUIR(139/203)
