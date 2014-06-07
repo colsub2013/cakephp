@@ -3160,10 +3160,7 @@ una clase CSS, y el 2do se usa para suministrar el texto a ser envuelto por
 etiquetas div. Si el último parámetro ha sido fijado a true, $text será impreso
 con HTML escapado.
 
-
-
-
-If no text is specified, only an opening div tag is returned.:
+Si no se especifica texto, sólo se retornará una etiqueta div de apertura:
 
 <?php
   echo $this->Html->div(’error’, ’Please enter your credit card number.’);
@@ -3173,40 +3170,63 @@ If no text is specified, only an opening div tag is returned.:
 
 HtmlHelper::para(string $class, string $text, array $options)
 .............................................................
-Parameters
+Parámetros
 ..........
+
+
+
+
 • $class (string) – The class name for the paragraph.
 • $text (string) – The content inside the paragraph.
 • $options (array) – An array of html attributes.
+
 Returns a text wrapped in a CSS-classed <p> tag. If no text is supplied, only a starting <p> tag is
 returned.:
+
 <?php
 echo $this->Html->para(null, ’Hello World.’);
 ?>
 // Output
 <p>Hello World.</p>
+
 HtmlHelper::script(mixed $url, mixed $options)
+..............................................
+
 Parameters
+..........
+
 • $url (mixed) – Either a string to a single JavaScript file, or an array of strings for
 multiple files.
+
 • $options (array) – An array of html attributes.
+
 Include a script file(s), contained either locally or as a remote URL.
+
 By default, script tags are added to the document inline. If you override this by setting
 $options[’inline’] to false, the script tags will instead be added to the script block which
 you can print elsewhere in the document. If you wish to override which block name is used, you can
 do so by setting $options[’block’].
+
 $options[’once’] controls whether or not you want to include this script once per request or
 more than once. This defaults to true.
+
 You can use $options to set additional properties to the generated script tag. If an array of script tags
 is used, the attributes will be applied to all of the generated script tags.
 This method of JavaScript file inclusion assumes that the JavaScript file specified resides inside the
 /app/webroot/js directory:
+
 echo $this->Html->script(’scripts’);
+
 Will output:
+
 <script type="text/javascript" href="/js/scripts.js"></script>
+
 You can link to files with absolute paths as well to link files that are not in app/webroot/js:
+
 echo $this->Html->script(’/otherdir/script_file’);
+
 You can also link to a remote URL:
+
 echo $this->Html->script(’http://code.jquery.com/jquery.min.js’);
 
 SEGUIR(143/203)
