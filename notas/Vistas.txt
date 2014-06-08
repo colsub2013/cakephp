@@ -3562,4 +3562,505 @@ echo $this->Html->url(
 // Output
 /posts/search?foo=bar#first
 
-SEGUIR(149/203)
+HtmlHelper::useTag(string $tag)
+...............................
+Retorna un bloque formateado existente de $tag:
+
+$this->Html->useTag(
+  ’form’,
+  ’http://example.com’,
+  array(’method’ => ’post’, ’class’ => ’myform’)
+);
+
+Produce:
+
+<form action="http://example.com" method="post" class="myform">
+
+Cambiar la salida de tags por HTMLHelper
+----------------------------------------
+HtmlHelper::loadConfig(mixed $configFile, string $path = null)
+..............................................................
+La etiqueta (tag) incorporada se fija para HtmlHelper son cumplidores de XHTML, sin 
+embargo si uno necesita generar HTML para HTML5 necesitará crear y cargar un 
+archivo de configuración de etiquetas (tags) nuevo que contiene las etiquetas 
+que querría usar. Para cambiar las etiquetas usadas crear app/Config/html5_tags.php
+que contiene:
+
+$config = array(
+  ’tags’ => array(
+    ’css’ => ’<link rel="%s" href="%s" %s>’,
+    ’style’ => ’<style%s>%s</style>’,
+    ’charset’ => ’<meta charset="%s">’,
+    ’javascriptblock’ => ’<script%s>%s</script>’,
+    ’javascriptstart’ => ’<script>’,
+    ’javascriptlink’ => ’<script src="%s"%s></script>’,
+    // ...
+  )
+);
+
+Puede luego cargar este set de etiqueta llamando a $this->Html->loadConfig(’html5_tags’);  
+
+Crear rastros (trails) de breadcrumb con HtmlHelper
+---------------------------------------------------
+HtmlHelper::getCrumbs(string $separator = ‘&raquo;’, string $startText = false)
+...............................................................................
+CakePHP tiene la habilidad incorporada para crear automáticamente un rastro
+breadcrumb en su aplicación. Para configurar esto, agregar algo similar a lo
+siguiente en su plantilla de layout:
+
+echo $this->Html->getCrumbs(’ > ’, ’Home’);
+
+La opción $startText puede también aceptar un array. Este da más control sobre el
+1er enlace generado:
+
+echo $this->Html->getCrumbs(’ > ’, 
+  array(
+    ’text’ => $this->Html->image(’home.png’),
+    ’url’ => array(’controller’ => ’pages’, ’action’ => ’display’, ’home’),
+    ’escape’ => false
+  )
+);
+
+Cualquiera de las claves que no son texto ó url serán pasados a link() como el
+parámetro $options.
+
+Cambiado en v.2.1: El parámetro $startText ahora acepta un array.
+
+HtmlHelper::addCrumb(string $name, string $link = null, mixed $options = null)
+..............................................................................
+En su vista querrá agregar lo siguiente para inicar los rastros de breadcrumb en
+cada una de las páginas:
+
+$this->Html->addCrumb(’Users’, ’/users’);
+$this->Html->addCrumb(’Add User’, array(’controller’ => ’users’, ’action’ => ’add’));
+
+Esto agregará la salida de “Home > Users > Add User” en su layout donde fue 
+agregado getCrumbs.
+
+HtmlHelper::getCrumbList(array $options = array(), mixed $startText)
+....................................................................
+Parámetros
+..........
+• $options (array): Un array de atributos html para el elemento <ul> que contiene.
+  Puede también contener las opciones ‘separator’, ‘firstClass’, ‘lastClass’ y 
+  ‘escape’
+
+• $startText (string|array): El texto ó elemento que precede la ul
+
+Retorna breadcrumbs como una lista (x)html.
+
+Este método usa HtmlHelper::tag() para generar lista y sus elementos. Funciona
+similar a getCrumbs(), ya que este usa opciones con las cuales cada crumb fue
+agregado. Puede usar el parámetro $startText para proveer el 1er enlace/texto
+breadcrumb. Útil cuando uno siempre quiere incluir un enlace raíz. Esta opción
+funciona igual que la opción $startText para getCrumbs().
+
+Cambiado en v.2.1: Se agregó el parámetro $startText.
+
+Cambiado en v.2.3: Se agregaron las opciones ‘separator’, ‘firstClass’ y ‘lastClass’.
+
+Cambiado en v.2.5: Se agregó la opción ‘escape’.
+
+JsHelper
+--------
+class JsHelper(View $view, array $settings = array())
+.....................................................
+Para soporte JavaScript, se creó un helper basado en Adapter, que incluye las
+librerías Prototype/Scriptaculous, Mootools/Mootools-more, y jQuery/jQuery UI.  
+Mientras que la API no es expansiva como el AjaxHelper anterior sentimos que la
+solución basada en adaptador permite una solución más extensible dando a los 
+desarrolladores el poder y flexibilidad que necesitan para afrontar sus necesidades
+específicas de la aplicación.
+
+Los motores de JavaScript forman el backbone del JsHelper nuevo. Un motor de 
+JavaScript traduce un elemento JavaScript abstracto en código JavaScript concreto
+específico para la librería JavaScript siendo usada. Adicionalmente crean un 
+sistema extensible para que otros usen.
+
+Usar un motor específico de JavaScript
+--------------------------------------
+Primero descargar su librería JavaScript preferida y ubicarla en app/webroot/js.
+
+Luego debe incluir la librería en su página. Para incluirla en todas las páginas,
+agregar esta línea a la sección <head> de app/View/Layouts/default.ctp:
+
+echo $this->Html->script(’jquery’); // Include jQuery library
+
+Reemplazar jquery con el nombre de su archivo librería (.js será agregado al nombre).
+
+Por defecto los scripts están cacheados, y uno debe imprimir explícitamente la
+cache. Para hacer esto al final de cada página, incluir esta línea antes de 
+terminar la etiqueta </body>:
+
+echo $this->Js->writeBuffer();  // Write cached scripts
+
+Advertencia: Debe incluir la librería en su página e imprimir la cache para que
+el helper funcione.
+
+La selección de motor JavaScript es declarada cuando uno incluye el helper en su
+controlador:
+
+public $helpers = array(’Js’ => array(’Jquery’));
+
+Lo de arriba usaría el motor de Jquery en las instancias de JsHelper en sus vistas.
+Si uno no declara un motor específico, el motor de jQuery será usado como el 
+valor por defecto.
+
+Usar jQuery con otras librerías La librería jQuery, y virtualmente todos sus plugins
+son ligados dentro del namespace jQuery. Los objetos "global" son almacenados 
+también dentro del namespace de jQuery, así uno no obtendría un choque entre jQuery
+y cualquier otra librería (como Prototype, MooTools, ó YUI). 
+
+Hay una advertencia: Por defecto, jQuery usa "$" como acceso directo para "jQuery".  
+
+Para redefinir el acceso directo "$", usar la variable jQueryObject:
+
+$this->Js->JqueryEngine->jQueryObject = ’$j’;
+echo $this->Html->scriptBlock(
+  ’var $j = jQuery.noConflict();’,
+  array(’inline’ => false)
+);
+// Tell jQuery to go into noconflict mode
+
+Usar JsHelper dentro de customHelpers 
+.....................................
+Declarar JsHelper en el array $helpers en su customHelper:
+
+public $helpers = array(’Js’);
+
+Nota: No es posible declarar un motor JavaScript dentro de un custom helper. 
+Hacer eso no tendrá efecto.
+
+Si uno está dispuesto a usar otro motor JavaScript el que no sea por defecto,
+hacer la configuración de helper en su controlador como sigue:
+
+public $helpers = array(
+  ’Js’ => array(’Prototype’),
+  ’CustomHelper’
+);
+
+Advertencia: Estar seguro de declarar el JsHelper y su motor en la parte superior
+del array $helpers en su controlador.
+
+The selected JavaScript engine may disappear (replaced by the default) from the JsHelper object in your
+helper, if you miss to do so and you will get code that does not fit your JavaScript library.
+
+Crear un motor JavaScript
+-------------------------
+Los helpers del motor JavaScript deben tener el sufijo 'Engine'. DojoHelper no
+está bien, lo correcto es DojoEngineHelper. Además, deben extender JsBaseEngineHelper 
+en orden de impulsar la mayoría de la API nueva.
+
+Uso del motor JavaScript
+------------------------
+JsHelper provee algunos métodos, y actúa como una fachada para el Engine helper.
+Uno no debería acceder directamente al Engine helper excepto en raras ocasiones.
+Usar características de fachada del JsHelper le permite impulsar las características
+de encadenamiento de método y buffering incorporadas (el encadenamiento de método
+sólo funciona en PHP5).
+
+JsHelper por defecto hace un buffer de casi todo código de script generado, 
+permitiendo a uno recolectar scripts a través de la vista, elementos y layout,
+y producir esto es un lugar. Producir scripts buffered es hecho con $this->Js->writeBuffer();
+esto retornará los contenidos de buffer en una etiqueta script. Puede inhabilitar
+todo el buffering con la propiedad $bufferScripts ó fijar buffer => false en 
+métodos tomando $options.
+
+Ya que la mayoría de los métodos en JavaScript comienzan con una selección de 
+elementos en el DOM, $this->Js->get() retorna un $this, permitiéndole a uno 
+encadenar los métodos usando la selección. El encadenamiento de método le permite
+escribir código más corto y expresivo:
+
+$this->Js->get(’#foo’)->event(’click’, $eventCode);
+
+Es un ej. de encadenamiento de método. El encadenamiento de método no es posible
+en PHP4 y la muestra de arriba se escribiría como:
+
+$this->Js->get(’#foo’);
+$this->Js->event(’click’, $eventCode);
+
+Opciones comunes 
+................
+En intentos por simplificar el desarrollo donde pueden cambiar las librerías 
+JavaScript, es soportado por JsHelper un set de opciones comunes, las que serán
+mapeadas a las opciones de librería específica internamente. Si no está planeando
+conmutar librerías JavaScript, cada librería también soporta todas sus opciones
+y callbacks nativos.
+
+Envoltorio (wrapping) del Callback 
+..................................
+Por defecto todas las opciones de callback son envueltas con una función anónima
+con los argumentos correctos. Puede inhabilitar este comportamiento suministrando
+wrapCallbacks = false en su array de options.
+
+Trabajar con scripts buffered
+.............................
+Un impedimento a implementaciones previas características tipo 'Ajax' fue el 
+desparramo (scattering) de etiquetas (tags) script a través de su documento,
+y la inhabilidad de hacer buffer de script agregados por elementos en el layout.
+El nuevo JsHelper usado correctamente evita ambos de estos inconvenientes. Se
+recomienda que uno ubique $this->Js->writeBuffer() en la parte inferior de su
+archivo de layout arriba de la etiqueta </body>. Esto le permitirá a todos los
+scripts generados en elementos layout ser producidos en un lugar. Los scripts
+buffered son manejados de forma separada desde archivos de script incluídos.
+
+JsHelper::writeBuffer($options = array())
+.........................................
+Escribe todo el JavaScript generado hasta ahora a un bloque de código ó los cachea
+a un archivo y retorna un script enlazado.
+
+Opciones
+........
+• inline: Se fija a true para tener salida de scripts como un bloque de script 
+  inline si la cache también es true, una etiqueta link de script será generada
+  (por defecto true).
+  
+• cache: Fijado a true para tener scripts cacheados a un archivo y enlazados
+  (por defecto false).
+  
+• clear: Fijado a false para evitar que sea borrada la cache de script  
+  (por defecto true).
+  
+• onDomReady: Envuelve scripts cacheados en el evento domready (por defecto true).
+
+• safe: Si un bloque inline es generado este debería ser envuelto en <![CDATA[ ... ]]>
+  (por defecto true).
+
+Crear un archivo cache con writeBuffer() requiere que webroot/js sea escribible
+al mundo y le permita a un navegador cachear recursos de script generados para
+cualquier página.
+
+JsHelper::buffer($content)
+..........................
+Agrega $content al buffer de script interno.
+
+JsHelper::getBuffer($clear = true)
+..................................
+Obtiene los contenidos del buffer actual. Pasarlo en false para no borrar el 
+buffer al mismo tiempo.
+
+Métodos de buffering que no son buffered normalmente
+----------------------------------------------------
+Algunos métodos en helpers son por defecto buffered. Los motores hace buffer
+de los siguientes métodos por defecto:
+
+• event
+• sortable
+• drag
+• drop
+• slider
+
+Adicionalmente uno puede forzar cualquier otro método en JsHelper para usar
+buffering. Anexando un boolean al final de los argumentos uno puede forzar a otros
+métodos para ir dentro del buffer. Ej.: el método each() no hace normalmente un
+buffer:
+
+$this->Js->each(’alert("whoa!");’, true);
+
+Lo de arriba forzaría al método each() para usar al buffer. A la inversa si uno
+busca un método que hace buffer a no buffer, puede pasar un false como el último
+argumento:
+ 
+$this->Js->event(’click’, ’alert("whoa!");’, false);
+
+Esto forzaría la función event que normalmente hace buffer a retornar su resultado.
+
+Otros métodos
+.............
+Los motores núcleo de JavaScript proveen la misma característica fija a través 
+de todas las librerías, también hay un subset de opciones comunes que son traducidas
+en opciones específicas de librería. Esto es hecho para proveer a usuarios finales
+con una API lo más unificada posible. La siguiente lista de métodos son soportadas
+por todos los Motores incluidos en el núcleo CakePHP. Siempre que uno ve listas
+separadas para Options y Event Options ambos sets de parámetros son suministrados
+en el array $options para el método.
+
+JsHelper::object($data, $options = array())
+...........................................
+Serializa $data en JSON. Este método es un proxy para json_encode() con algunas
+características extra agregadas vía el parámetro $options.
+
+Opciones:
+
+•prefix: String preanexado a los datos retornados.
+•postfix: String anexado a los datos retornados.
+
+Ejemplo de uso:
+
+$json = $this->Js->object($data);
+
+JsHelper::sortable($options = array())
+......................................
+Sortable genera un fragmento JavaScript para hacer un set de elementos (usualmente
+una lista) ordenable por 'drag and drop' ('arrastrar y soltar'). 
+
+Las opciones normalizadas:
+
+Opciones
+........
+•containment: Contenedor para la opción move.
+•handle: Selector para el elemento handle. Sólo este elemento arrancará la acción de ordenamiento (sorting).
+•revert: Si ó no usar un efecto para mover a sortable en la posición final.
+•opacity: Opacidad del marcador de posición (placeholder)
+•distance: Distancia a que un sortable debe ser arrastrado (dragged) antes de arrancar el ordenamiento.
+
+Opciones Event
+..............
+•start: Evento disparado al arrancar el ordenamiento (sorting).
+•sort: Evento disparado durante el ordenamiento.
+•complete: Evento disparado cuando se completa el ordenamiento.
+
+Ejemplo de uso:
+
+$this->Js->get(’#my-list’);
+$this->Js->sortable(
+  array(
+    ’distance’ => 5,
+    ’containment’ => ’parent’,
+    ’start’ => ’onStart’,
+    ’complete’ => ’onStop’,
+    ’sort’ => ’onSort’,
+    ’wrapCallbacks’ => false
+  )
+);
+
+Asumiendo que uno estuviese usando el motor jQuery, obtendría el siguiente código
+en su bloque JavaScript de código generado:
+
+$("#myList").sortable({
+  containment:"parent",
+  distance:5,
+  sort:onSort,
+  start:onStart,
+  stop:onStop
+});
+
+JsHelper::request($url, $options = array())
+...........................................
+Genera un fragmento JavaScript para crear una petición ‘AJAX’ ó XmlHttpRequest.
+
+Opciones Event
+..............
+• complete: Callback para disparar en complete.
+• success: Callback para disparar en success.
+• before: Callback para disparar en inicialización de la petición.
+• error: Callback para disparar en falla de la petición.
+
+Opciones
+........
+• method: El método para hacer al request con los valores por defecto a GET en más
+  librerías
+• async: Si uno querría ó no una petición asincrónica.
+• data: Datos adicionales a enviar.
+• update: Id del DOM a actualizar con el contenido de la respuesta.
+• type: Tipo de datos para la respuesta. 'json' y 'html' son soportados. El valor
+  por defecto es html para la mayoría de las librerías.
+• evalScripts: Si las etiquetas <script> deberían ser evaluadas ó no.
+• dataExpression: Si debería la clave data ser tratada como un callback. Útil para
+  suministrar $options[’data’] como otra expresión JavaScript.
+  
+Ejemplo de uso:
+
+$this->Js->event(
+  ’click’,
+  $this->Js->request(
+    array(’action’ => ’foo’, ’param1’),
+    array(’async’ => true, ’update’ => ’#element’)
+  )
+);
+
+JsHelper::get($selector)
+........................
+Fija la 'selección' interna a un selector CSS. La selección activa es usada en 
+operaciones subsiguientes hasta que sea hecha una selección nueva:
+
+$this->Js->get(’#element’);
+
+JsHelper ahora referenciará a todos los otros elementos basados en la selección
+de #element. Para cambiar la selección activa, llamar a get() nuevamente con un
+elemento nuevo.
+
+JsHelper::set(mixed $one, mixed $two = null)
+............................................
+Pasa variables en JavaScript. Le permite fijar variables que serán la salida 
+cuando el buffer es extraído con JsHelper::getBuffer() ó JsHelper::writeBuffer().
+La variable JavaScript usada para producir fijación de variables puede controlarse
+con JsHelper::$setVariable.    
+
+JsHelper::drag($options = array())
+..................................
+Hace a un elemento arrastrable.
+
+Opciones
+........
+•handle: Selector para el elemento handle.
+•snapGrid: La grilla de pixel que hace el chasquido (snap) de movimiento, un array(x, y)
+•container: El elemento que actúa como un cuadro delimitador (bounding box) para
+ el elemento arrastrable.
+
+Opciones de Evento
+..................
+•start - Event fired when the drag starts
+•drag - Event fired on every step of the drag
+•stop - Event fired when dragging stops (mouse release)
+
+Example use:
+
+$this->Js->get(’#element’);
+$this->Js->drag(
+  array(
+    ’container’ => ’#content’,
+    ’start’ => ’onStart’,
+    ’drag’ => ’onDrag’,
+    ’stop’ => ’onStop’,
+    ’snapGrid’ => array(10, 10),
+    ’wrapCallbacks’ => false
+  )
+);
+
+If you were using the jQuery engine the following code would be added to the buffer
+
+$("#element").draggable({
+  containment:"#content",
+  drag:onDrag,
+  grid:[10,10],
+  start:onStart,
+  stop:onStop
+});
+
+JsHelper::drop($options = array())
+..................................
+Make an element accept draggable elements and act as a dropzone for dragged elements.
+Options
+•accept - Selector for elements this droppable will accept.
+•hoverclass - Class to add to droppable when a draggable is over.
+Event Options
+•drop - Event fired when an element is dropped into the drop zone.
+•hover - Event fired when a drag enters a drop zone.
+•leave - Event fired when a drag is removed from a drop zone without being dropped.
+Example use:
+$this->Js->get(’#element’);
+$this->Js->drop(array(
+’accept’ => ’.items’,
+’hover’ => ’onHover’,
+’leave’ => ’onExit’,
+’drop’ => ’onDrop’,
+’wrapCallbacks’ => false
+));
+If you were using the jQuery engine the following code would be added to the buffer
+$("#element").droppable({
+accept:".items",
+drop:onDrop,
+out:onExit,
+over:onHover
+});
+Note: Droppables in Mootools function differently from other libraries. Droppables are implemented
+as an extension of Drag. So in addition to making a get() selection for the droppable element. You
+must also provide a selector rule to the draggable element. Furthermore, Mootools droppables inherit
+all options from Drag.
+JsHelper::slider($options = array())
+Create snippet of JavaScript that converts an element into a slider ui widget. See your libraries implementation
+for additional usage and features.
+Options
+
+SEGUIR(158/203)
