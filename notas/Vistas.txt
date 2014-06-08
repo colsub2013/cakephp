@@ -3172,61 +3172,394 @@ HtmlHelper::para(string $class, string $text, array $options)
 .............................................................
 Parámetros
 ..........
+• $class (string): El nombre de clase para el párrafo.
+• $text (string): El contenido dentro del párrafo.
+• $options (array): Un array de atributos HTML.
 
-
-
-
-• $class (string) – The class name for the paragraph.
-• $text (string) – The content inside the paragraph.
-• $options (array) – An array of html attributes.
-
-Returns a text wrapped in a CSS-classed <p> tag. If no text is supplied, only a starting <p> tag is
-returned.:
+Retorna un texto envuelto en una etiqueta <p> con clase CSS. Si no se suministró
+texto, sólo se retorna una etiqueta <p> de arranque:
 
 <?php
-echo $this->Html->para(null, ’Hello World.’);
+  echo $this->Html->para(null, ’Hello World.’);
 ?>
 // Output
 <p>Hello World.</p>
 
 HtmlHelper::script(mixed $url, mixed $options)
 ..............................................
-
-Parameters
+Parámetros
 ..........
+• $url (mixed): Ya sea un string para un archivo único JavaScript, ó un array de
+strings para archivos múltiples.
 
-• $url (mixed) – Either a string to a single JavaScript file, or an array of strings for
-multiple files.
+• $options (array): Array de atributos HTML.
 
-• $options (array) – An array of html attributes.
+Incluye archivo/s de script, contenidos ya sea localmente ó como una URL remota.
 
-Include a script file(s), contained either locally or as a remote URL.
+Por defecto, las etiquetas de script son agregadas al documento 'inline'. Si uno
+redefine esto fijando $options[’inline’] a false, las etiquetas de script serán
+en su lugar agregadas al bloque script el que uno puede imprimir en cualquier
+lado del documento. Si uno desea redefinir que nombre de bloque se usa, puede
+hacerlo fijando $options[’block’].    
 
-By default, script tags are added to the document inline. If you override this by setting
-$options[’inline’] to false, the script tags will instead be added to the script block which
-you can print elsewhere in the document. If you wish to override which block name is used, you can
-do so by setting $options[’block’].
+$options[’once’] controla si uno quiere ó no incluir este script una vez por
+petición ó más que eso. Esto está por defecto en true.
 
-$options[’once’] controls whether or not you want to include this script once per request or
-more than once. This defaults to true.
+Uno puede usar $options para fijar propiedades adicionales a la etiqueta script
+generada. Si se usó un array  de etiquetas script, los atributos serán aplicados
+a todas las etiquetas de script generadas.
 
-You can use $options to set additional properties to the generated script tag. If an array of script tags
-is used, the attributes will be applied to all of the generated script tags.
-This method of JavaScript file inclusion assumes that the JavaScript file specified resides inside the
-/app/webroot/js directory:
+Este método de inclusión de archivo JavaScript asume que el archivo JavaScript 
+especificado reside dentro del directorio /app/webroot/js:
 
 echo $this->Html->script(’scripts’);
 
-Will output:
+Producirá:
 
 <script type="text/javascript" href="/js/scripts.js"></script>
 
-You can link to files with absolute paths as well to link files that are not in app/webroot/js:
+Puede enlazar a archivos con rutas absolutas así como a archivos de enlace que
+no están en app/webroot/js:
 
 echo $this->Html->script(’/otherdir/script_file’);
 
-You can also link to a remote URL:
+Puede también enlazar a una URL remota:
 
 echo $this->Html->script(’http://code.jquery.com/jquery.min.js’);
 
-SEGUIR(143/203)
+Producirá:
+
+<script type="text/javascript" href="http://code.jquery.com/jquery.min.js">
+</script>
+
+El 1er parámetro puede ser un array para incluir archivos múltiples:
+
+echo $this->Html->script(array(’jquery’, ’wysiwyg’, ’scripts’));
+
+Producirá:
+
+<script type="text/javascript" href="/js/jquery.js"></script>
+<script type="text/javascript" href="/js/wysiwyg.js"></script>
+<script type="text/javascript" href="/js/scripts.js"></script>
+
+Puede anexar la etiqueta script para un bloque específico usando la opción block:
+
+echo $this->Html->script(’wysiwyg’, array(’block’ => ’scriptBottom’));
+
+En su layout puede producir todas las etiquetas de script agregadas a ‘scriptBottom’:
+
+echo $this->fetch(’scriptBottom’);
+
+Puede incluir archivos de script desde cualquier plugin cargado usando la sintaxis
+plugin. Para incluir app/Plugin/DebugKit/webroot/js/toolbar.js puede usar:
+
+echo $this->Html->script(’DebugKit.toolbar.js’);
+
+Si quiere incluir un archivo de script que comparte un nombre con un plugin cargado
+puede hacer lo siguiente. Ej.: si uno tuvo un plugin Blog, y también buscó incluir
+app/webroot/js/Blog.plugins.js, debería:
+
+echo $this->Html->script(’Blog.plugins.js’, array(’plugin’ => false));
+
+Cambiado en v.2.1: se agregó la opción block y soporte para la sintaxis plugin.
+
+HtmlHelper::scriptBlock($code, $options = array())
+..................................................
+Parámetros
+..........
+• $code (string): El código para ir en la etiqueta script.
+• $options (array): Un array de atributos HTML.
+
+Genera un bloque de código que contiene a $code fija $options[’inline’] a false 
+para tener al bloque de script que aparezca en el bloque de vista del script. 
+Otras opciones definidas serán agregadas como atributos a etiquetas script. 
+$this->Html->scriptBlock(’stuff’, array(’defer’ => true)); creará una etiqueta
+script con el atributo defer="defer".
+
+HtmlHelper::scriptStart($options = array())
+...........................................
+Parámetros
+..........
+• $options (array): Un array de atributos HTML a ser usados cuando es llamado
+scriptEnd. Comenzar un bloque de código de buffering. Este bloque de código
+capturará todas las salidas entre scriptStart() y scriptEnd() y crea una etiqueta
+script. Las opciones son las mismas que scriptBlock().
+
+HtmlHelper::scriptEnd()
+.......................
+Finaliza un bloque de script de buffering, retorna el elemento script generado
+ó null si el bloque script fue abierto con inline = false.
+
+Un ejemplo de usar scriptStart() y scriptEnd() sería:
+
+$this->Html->scriptStart(array(’inline’ => false));
+echo $this->Js->alert(’I am in the javascript’);
+$this->Html->scriptEnd();
+
+HtmlHelper::nestedList(array $list, array $options = array(), array $itemOptions = array(), string $tag = ‘ul’)
+...............................................................................................................
+Parámetros
+..........
+• $list (array): Set de elementos a listar.
+• $options (array): Atributos HTML adicionales de la etiqueta (ol/ul) lista ó si ol/ul usa eso como etiqueta.
+• $itemOptions (array): Atributos HTML adicionales de la etiqueta item de lista (LI).
+• $tag (string): Tipo de etiqueta lista a usar (ol/ul).
+
+Construye una lista anidada (UL/OL) fuera de un array asociativo:
+
+$list = array(
+  ’Languages’ => array(
+    ’English’ => array(
+      ’American’,
+      ’Canadian’,
+      ’British’,
+    ),
+  ’Spanish’,
+  ’German’,
+  )
+);
+
+echo $this->Html->nestedList($list);
+
+Produce:
+
+// Output (minus the whitespace)
+<ul>
+  <li>Languages
+    <ul>
+      <li>English
+        <ul>
+          <li>American</li>
+          <li>Canadian</li>
+          <li>British</li>
+        </ul>
+      </li>
+      <li>Spanish</li>
+      <li>German</li>
+    </ul>
+  </li>
+</ul>
+
+HtmlHelper::tableHeaders(array $names, array $trOptions = null, array $thOptions = null)
+........................................................................................
+Parámetros
+..........
+• $names (array): Un array de strings para crear encabezados de tabla.
+• $trOptions (array): Un array de atributos HTML para el <tr>.
+• $thOptions (array): Un array de atributos HTML para los elementos <th>.
+
+Crea un fila de celdas header de tabla a ser ubicadas dentro de las etiquetas 
+<table>:
+
+echo $this->Html->tableHeaders(array(’Date’, ’Title’, ’Active’));
+
+Produce:
+
+<tr>
+  <th>Date</th>
+  <th>Title</th>
+  <th>Active</th>
+</tr>
+
+echo $this->Html->tableHeaders(
+  array(’Date’,’Title’,’Active’),
+  array(’class’ => ’status’),
+  array(’class’ => ’product_table’)
+);
+
+Produce:
+
+<tr class="status">
+  <th class="product_table">Date</th>
+  <th class="product_table">Title</th>
+  <th class="product_table">Active</th>
+</tr>
+
+Cambio en v.2.2: tableHeaders() ahora acepta atributos por celda.
+
+Como en v.2.2 puede fijar atributos por columna, estos son usados en vez de los
+valores por defecto provistos en $thOptions:
+
+echo $this->Html->tableHeaders(
+  array(
+    ’id’,
+    array(’Name’ => array(’class’ => ’highlight’)),
+    array(’Date’ => array(’class’ => ’sortable’))
+  )
+);
+
+Produce:
+
+<tr>
+  <th>id</th>
+  <th class="highlight">Name</th>
+  <th class="sortable">Date</th>
+</tr>
+
+HtmlHelper::tableCells(array $data, array $oddTrOptions = null, array $evenTrOptions = null, $useCount = false, $continueOddEven = true)
+........................................................................................................................................
+Parámetros
+..........
+• $data (array): Un array bidimensional con datos para las filas.
+• $oddTrOptions (array): Un array de atributos HTML para los <tr>'s impares (odds).
+• $evenTrOptions (array): Un array de atributos HTML para los <tr>'s pares (even).
+• $useCount (boolean): Agrega la clase “column-$i”.
+• $continueOddEven (boolean): Si es false, usará una variable $count no estática,
+  tal que el conteo impar/par se resetea a 0 sólo para esa llamada.
+
+Crea celdas de tabla, en filas, asignando atributos <tr> de forma diferente para
+filas numeradas de forma par e impar. Envolver una celda de tabla única dentro
+de un array() para atributos <td> específicos.
+
+echo $this->Html->tableCells(
+  array(
+    array(’Jul 7th, 2007’, ’Best Brownies’, ’Yes’),
+    array(’Jun 21st, 2007’, ’Smart Cookies’, ’Yes’),
+    array(’Aug 1st, 2006’, ’Anti-Java Cake’, ’No’),
+  )
+);
+
+Produce:
+
+<tr><td>Jul 7th, 2007</td><td>Best Brownies</td><td>Yes</td></tr>
+<tr><td>Jun 21st, 2007</td><td>Smart Cookies</td><td>Yes</td></tr>
+<tr><td>Aug 1st, 2006</td><td>Anti-Java Cake</td><td>No</td></tr>
+
+echo $this->Html->tableCells(
+  array(
+    array(
+      ’Jul 7th, 2007’,
+      array(
+        ’Best Brownies’,
+        array(’class’ => ’highlight’)
+      ),
+    ’Yes’),
+    array(’Jun 21st, 2007’, ’Smart Cookies’, ’Yes’),
+    array(
+      ’Aug 1st, 2006’,
+      ’Anti-Java Cake’,
+      array(’No’, array(’id’ => ’special’))
+    ),
+  )
+);
+
+Produce:
+
+<tr>
+  <td>
+    Jul 7th, 2007
+  </td>
+  <td class="highlight">
+    Best Brownies
+  </td>
+  <td>
+    Yes
+  </td>
+</tr>
+<tr>
+  <td>
+    Jun 21st, 2007
+  </td>
+  <td>
+    Smart Cookies
+  </td>
+  <td>
+    Yes
+  </td>
+</tr>
+<tr>
+  <td>
+    Aug 1st, 2006
+  </td>
+  <td>
+    Anti-Java Cake
+  </td>
+  <td id="special">
+    No
+  </td>
+</tr>
+
+echo $this->Html->tableCells(
+  array(
+    array(’Red’, ’Apple’),
+    array(’Orange’, ’Orange’),
+    array(’Yellow’, ’Banana’),
+  ),
+  array(’class’ => ’darker’)
+);
+
+Produce:
+
+<tr class="darker"><td>Red</td><td>Apple</td></tr>
+<tr><td>Orange</td><td>Orange</td></tr>
+<tr class="darker"><td>Yellow</td><td>Banana</td></tr>
+
+HtmlHelper::url(mixed $url = NULL, boolean $full = false)
+.........................................................
+Parámetros
+..........
+• $url (mixed): Un array de enrutamiento.
+• $full (mixed): Ya sea un boolean para indicar si ó no la ruta base debería ser
+  incluída ó un array de opciones para Router::url().
+
+Retorna una URL apuntando a una combinación de controlador y acción. Si $url está
+vacío, este retorna el REQUEST_URI, sino este genera la URL para el controlador
+y combo de acción. si 'full' es true, la URL base completa será pre-anexada al 
+resultado:
+
+echo $this->Html->url(
+  array(
+    "controller" => "posts",
+    "action" => "view",
+    "bar"
+  )
+);
+// Output
+/posts/view/bar
+
+Algunos ej.'s de uso adicionales:
+
+URL con parámetros nombrados:
+
+echo $this->Html->url(
+  array(
+    "controller" => "posts",
+    "action" => "view",
+    "foo" => "bar"
+  )
+);
+// Output
+/posts/view/foo:bar
+
+URL con extensión:
+
+echo $this->Html->url(
+  array(
+    "controller" => "posts",
+    "action" => "list",
+    "ext" => "rss"
+  )
+);
+// Output
+/posts/list.rss
+
+URL (arrancando con '/') con la URL base completa pre-anexada:
+
+echo $this->Html->url(’/posts’, true);
+// Output
+http://somedomain.com/posts
+
+URL con parámetros GET y ancla nombrada:
+
+echo $this->Html->url(
+  array(
+    "controller" => "posts",
+    "action" => "search",
+    "?" => array("foo" => "bar"),
+    "#" => "first"
+  )
+);
+// Output
+/posts/search?foo=bar#first
+
+SEGUIR(149/203)
