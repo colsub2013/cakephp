@@ -4247,9 +4247,244 @@ Opciones
 • url: La URL a la que quiere que envíe la petición XHR.
 • confirm: Mensaje de confirmación exhibido antes de enviar la petición. Usar 
   confirm, no reemplaza ninguno de los métodos callback en el XmlHttpRequest generado.
-• buffer - Disable the buffering and return a script tag in addition to the link.
-•wrapCallbacks - Set to false to disable automatic callback wrapping.
+• buffer: Inhabilita el buffering y retorna una etiqueta script en adición al enlace.
+• wrapCallbacks: Se fija a false para inhabilitar envoltura de callback automática.
 
-Example use:
+Ejemplo de uso:
 
-SEGUIR(161/203)
+echo $this->Js->submit(’Save’, array(’update’ => ’#content’));
+
+Creará un botón de envío con un evento onclick anexado. El evento click será buffered
+por defecto:
+
+echo $this->Js->submit(’Save’, 
+  array(
+    ’update’ => ’#content’,
+    ’div’ => false,
+    ’type’ => ’json’,
+    ’async’ => false
+  )
+);
+
+Muestra como uno puede combinar opciones para ambos FormHelper::submit() and
+JsHelper::request() al usar el submit.
+
+JsHelper::link($title, $url = null, $options = array())
+.......................................................
+Crea un elemento anchor (ancla) HTML que tiene un evento click ligado a este. 
+Las opciones pueden incluir ambos de esos HtmlHelper::link() y JsHelper::request(), 
+JsHelper::event(), $options es un array de atributos html que son anexados al 
+elemento anchor generado. Si una opción no es parte de los atributos estándar
+ó $htmlAttributes este será pasado a JsHelper::request() como una opción. Si una
+id no es suministrada, será creado uno generado aleatoriamente para cada enlace
+generado.
+
+Opciones
+........
+• confirm: Genera un diálog confirm() antes de enviar el evento.
+• id: Usa un id personalizado.
+• htmlAttributes: htmlAttributes adicionales no estándar. Los atributos estándar
+  son clase, id, rel, title, escape, onblur y onfocus.
+• buffer: Inhabilita el buffering y retorna una etiqueta script en adición al enlace.
+
+Ejemplo de uso:
+
+echo $this->Js->link(
+  ’Page 2’,
+  array(’page’ => 2),
+  array(’update’ => ’#content’)
+);
+
+Creará un enlace apuntando a /page:2 y actualiza #content con la respuesta.
+
+Uno puede usar la opción htmlAttributes para agregar atributos personalizados
+adicionales:
+
+echo $this->Js->link(’Page 2’, array(’page’ => 2), 
+  array(
+    ’update’ => ’#content’,
+    ’htmlAttributes’ => array(’other’ => ’value’)
+  )
+);
+
+Produce el siguiente HTML:
+
+<a href="/posts/index/page:2" other="value">Page 2</a>
+
+JsHelper::serializeForm($options = array())
+...........................................
+Serializa el formulario anexado a $selector. Pasa true para $isForm si la selección
+actual es un elemento formulario. Convierte el formulario ó el elemento form 
+anexado a la selección actual en un objeto string/json (dependiendo de la 
+implementación de librería) para uso con operaciones XHR.
+
+Opciones
+........
+• isForm: Es la selección actual un formulario, ó un input? (por defecto false)
+• inline: Está la sentencia renderizada para usarse dentro de otra sentencia JS?
+  (por defecto false)
+
+Fijar inline == false le permite quitar la cola (trailing) ;. Útil cuando necesita
+serializar un elemento form como parte de otra operación JavaScript, ó usar el
+método serialize en un literal Object.
+
+JsHelper::redirect($url)
+........................
+Redirige la página a $url usando window.location.
+
+JsHelper::value($value)
+.......................
+Convierte una variable PHP-nativa de cualquier tipo a una representación 
+JSON equivalente. Escapa cualquiera de los valores de string en strings 
+compatibles con JSON. Los caracteres UTF-8 serán escapados.
+
+Paginación AJAX
+---------------
+Semejante a la paginación AJAX en 1.2, uno puede usar JsHelper para manejar la
+creación de enlaces de paginación AJAX en vez de enlaces HTML planos.
+
+Hacer enlaces AJAX 
+..................
+Antes de que uno pueda crear enlaces AJAX uno debe incluir la librería JavaScript
+que coincide con el adaptador que uno está usando con JsHelper. Por defecto JsHelper 
+usa jQuery. Así en su layout incluir jQuery (ó cualquier librería que uno esté 
+usando). También asegurarse de incluir RequestHandlerComponent en sus componentes.
+Agregar lo siguiente a su controlador:
+
+public $components = array(’RequestHandler’);
+public $helpers = array(’Js’);
+
+Luego enlazar la librería JavaScript que uno quiere usar. Para esto estaremos usando
+jQuery:
+
+echo $this->Html->script(’jquery’);
+
+Similar a 1.2 necesita decirle al PaginatorHelper que uno quiere hacer enlaces
+JavaScript mejorados en vez de HTML planos. Para hacer esto usar options():
+
+$this->Paginator->options(
+  array(
+    ’update’ => ’#content’,
+    ’evalScripts’ => true
+  )
+);
+
+El PaginatorHelper sabe ahora como hacer enlaces JavaScript mejorados, y que 
+aquellos enlaces deberían actualizar el elemento #content. Por supuesto este
+elemento debe existir, y con frecuencia las veces que uno quiere envolver 
+$content_for_layout con un div que coincide con la id usada para la opción update.
+Uno también debería fijar evalScripts a true si uno está usando los adaptadores
+Mootools ó Prototype, sin evalScripts estas librerías no serán capaces de encadenar
+peticiones juntas. La opción indicator no es soportada por JsHelper y será ignorada.
+
+Uno crea luego todos los enlaces que necesite para sus características de paginación.
+Ya que JsHelper hace buffer automático de todo el contenido de script generado para
+reducir el nro. de etiquetas <script> en su código fuente uno debe escribir el buffer.
+
+Al fondo de su archivo de vista asegúrese de incluir:
+
+echo $this->Js->writeBuffer();
+
+Si uno omite esto no será capaz de encadenar enlaces de paginación AJAX. Cuando
+uno escribe el buffer, también es limpiado (cleared), así uno no tiene que 
+preocuparse respecto al mismo JavaScript siendo producido 2 veces.
+
+Agregar efectos y transiciones
+..............................
+Ya que el indicador ya no es soportado, debe agregar cualquiera de los efectos
+indicador uno mismo:
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <?php echo $this->Html->script(’jquery’); ?>
+    //more stuff here.
+  </head>
+  <body>
+    <div id="content">
+      <?php echo $this->fetch(’content’); ?>
+    </div>
+      <?php
+        echo $this->Html->image(
+          ’indicator.gif’,
+          array(’id’ => ’busy-indicator’)
+        );
+      ?>
+  </body>
+</html>
+
+Recordar poner el archivo indicator.gif dentro de la carpeta app/webroot/img. Puede
+ver una situación donde indicator.gif se exhibe inmediatamente sobre la carga de
+la página. Necesita poner este CSS #busy-indicator { display:none; } en su archivo
+CSS principal.
+
+Con el layout de arriba, hemos incluído un archivo de imagen indicador, que exhibirá
+una animación indicadora de ocupado (busy) que mostraremos y esconderemos con el
+JsHelper. Para hacer eso necesitaremos actualizar nuestra función options():
+
+$this->Paginator->options(
+  array(                 
+    ’update’ => ’#content’,
+    ’evalScripts’ => true,
+    ’before’ => $this->Js->get(’#busy-indicator’)->effect(
+      ’fadeIn’,
+      array(’buffer’ => false)
+    ),
+    ’complete’ => $this->Js->get(’#busy-indicator’)->effect(
+      ’fadeOut’,
+      array(’buffer’ => false)
+    ),
+  )
+);
+
+Esto mostrará / esconderá el elemento indicador de ocupado antes y después que
+el div #content es actualizado. Aunque el indicador ha sido quitado, las 
+características nuevas ofrecidas por JsHelper permiten más control y que sean 
+creados más efectos complejos.
+
+NumberHelper
+------------
+class NumberHelper(View $view, array $settings = array())
+.........................................................
+
+
+The NumberHelper contains convenient methods that enable display numbers in common formats in your
+views. These methods include ways to format currency, percentages, data sizes, format numbers to specific
+precisions and also to give you more flexibility with formatting numbers.
+
+Changed in version 2.1: NumberHelper have been refactored into CakeNumber class to allow easier
+use outside of the View layer. Within a view, these methods are accessible via the NumberHelper class
+and you can call it as you would call a normal helper method: $this->Number->method($args);.
+
+All of these functions return the formatted number; They do not automatically echo the output into the view.
+
+NumberHelper::currency(mixed $number, string $currency = ‘USD’, array $options = array())
+.........................................................................................
+
+Parameters
+• $number (float) – The value to covert.
+• $currency (string) – The known currency format to use.
+• $options (array) – Options, see below.
+
+This method is used to display a number in common currency formats (EUR,GBP,USD). Usage in a
+view looks like:
+
+// called as NumberHelper
+echo $this->Number->currency($number, $currency);
+
+// called as CakeNumber
+App::uses(’CakeNumber’, ’Utility’);
+echo CakeNumber::currency($number, $currency);
+
+The first parameter, $number, should be a floating point number that represents the amount of money
+you are expressing. The second parameter is used to choose a predefined currency formatting scheme:
+
+$currency 1234.56, formatted by currency type
+EUR C1.234,56
+GBP £1,234.56
+USD $1,234.56
+
+The third parameter is an array of options for further defining the output. The following options are
+available:
+
+SEGUIR(165/203)
