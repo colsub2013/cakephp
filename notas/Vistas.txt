@@ -4462,7 +4462,7 @@ de la salida dentro de la vista.
 NumberHelper::currency(mixed $number, string $currency = ‘USD’, array $options = array())
 .........................................................................................
 
-Parameters
+Parámetros
 ..........
 • $number (float): El valor a convertir.
 • $currency (string): El formato de moneda conocido a usar.
@@ -4493,4 +4493,164 @@ un esquema de formato de moneda predefinido:
 El 3er parámetor es un array de opciones para definir adicionalmente la salida.
 Siguientes opciones disponibles:
 
-SEGUIR(165/203)
+-------------------------------------------------------------------------------------------
+| Opción            | Descripción                                                         |
+-------------------------------------------------------------------------------------------
+| before            | El símbolo de moneda para poner antes de los números. Ej.: '$'      |
+|                   |                                                                     |
+| after             | El símbolo de moneda para poner después de los números decimales.   |
+|                   | Ej.: 'c'. Se fija a boolean false para no usar símbolos decimales.  |                                                                  |
+|                   | Ej.: 0.35 => $0.35.                                                 |
+|                   |                                                                     |
+| zero              | El texto a usar para valores 0, puede ser un string ó un nro.       |
+|                   | Ej.: 0, 'Free!'                                                     |
+|                   |                                                                     |
+| places            | Número de ubicaciones decimales a usar. Ej.: 2                      |
+|                   |                                                                     |
+| thousands         | Separador miles. Ej.: ','                                           |
+|                   |                                                                     |
+| decimals          | Símbolo de separador decimal. Ej.: '.'                              |
+|                   |                                                                     |
+| negative          | Símbolo para números negativos. Si es igual a '()', el número       |
+|                   | será envuelto con ( y )                                             |
+|                   |                                                                     |
+| escape            | Debería ser la salida escapado con htmlentity? Por defecto en true  | 
+|                   |                                                                     |
+| wholeSymbol       | String a usar para todos los números. Ej.: 'dollars'                |
+|                   |                                                                     |
+| wholePosition     | Ya sea 'antes' ó 'después' de ubicar el símbolo entero              |
+|                   |                                                                     |
+| fractionSymbol    | String a usar para números fraccionales. Ej: 'cents' (centavos)     |
+|                   |                                                                     |
+| fractionPosition  | Ya sea 'antes' ó 'después' de colocar el símbolo de fracción        |
+|                   |                                                                     |
+| fractionExponent  | Exponente fracción de esta moneda específica. Por defecto en 2      |
+|                   |                                                                     |
+-------------------------------------------------------------------------------------------
+
+Si un valor $currency no reconocido es suministrado, este es preanexado a un
+número formateado en USD. Ej.:
+
+// called as NumberHelper
+echo $this->Number->currency(’1234.56’, ’FOO’);
+
+// Outputs
+FOO 1,234.56
+
+// called as CakeNumber
+App::uses(’CakeNumber’, ’Utility’);
+echo CakeNumber::currency(’1234.56’, ’FOO’);
+
+Cambiado en v.2.4: Se agregó la opción fractionExponent.
+
+NumberHelper::defaultCurrency(string $currency)
+...............................................
+
+Parámetros
+..........
+• $currency (string): Fija una moneda conocida para CakeNumber::currency().
+
+Setter/getter para la moneda por defecto. Este quita la necesidad de siempre
+pasar la moneda a CakeNumber::currency() y cambiar todas las salidas de moneda
+fijando otro valor por defecto.
+
+Este método se agregó en v.2.3.
+
+NumberHelper::addFormat(string $formatName, array $options)
+...........................................................
+Parámetros
+..........
+
+• $formatName (string): El nombre de formato a usarse en el futuro.
+
+• $options (array): El array de opciones para este formato. Usa las mismas claves
+  $options que CakeNumber::currency().
+
+Agregar un formato de moneda al helper Number. Facilita la reutilización de 
+formatos de moneda:
+
+// called as NumberHelper
+$this->Number->addFormat('BRL', array('before' => 'R$', 'thousands' => '.', 'decimals' => ','));
+App::uses(’CakeNumber’, ’Utility’);
+CakeNumber::addFormat('BRL', array('before' => 'R$', 'thousands' => '.', 'decimals' => ','));
+
+Puede ahora usar a BRL como una forma corta al formatear montos de moneda:
+
+// called as NumberHelper
+echo $this->Number->currency($value, ’BRL’);
+
+// called as CakeNumber
+App::uses(’CakeNumber’, ’Utility’);
+echo CakeNumber::currency($value, ’BRL’);
+Added formats are merged with the following defaults:
+array(
+  ’wholeSymbol’ => ’’,
+  ’wholePosition’ => ’before’,
+  ’fractionSymbol’ => false,
+  ’fractionPosition’ => ’after’,
+  ’zero’ => 0,
+  ’places’ => 2,
+  ’thousands’ => ’,’,
+  ’decimals’ => ’.’,
+  ’negative’ => ’()’,
+  ’escape’ => true,
+  ’fractionExponent’ => 2
+)
+
+NumberHelper::precision(mixed $number, int $precision = 3)
+..........................................................
+
+Parámetros
+..........
+• $number (float): Valor a convertir
+• $precision (integer): El número de lugares decimales a exhibir
+
+Este método exhibe un número con el monto de precisión especificado (lugares
+decimales). Este redondeará en orden de mantener el nivel de precisión definida:
+
+// called as NumberHelper
+echo $this->Number->precision(456.91873645, 2);
+
+// Outputs
+456.92
+
+// called as CakeNumber
+App::uses(’CakeNumber’, ’Utility’);
+echo CakeNumber::precision(456.91873645, 2);
+
+NumberHelper::toPercentage(mixed $number, int $precision = 2, array $options = array())
+.......................................................................................
+Parameters
+• $number (float) – The value to covert.
+• $precision (integer) – The number of decimal places to display.
+• $options (array) – Options, see below.
+Option Description
+multiply
+Boolean to indicate whether the value has to be multiplied by 100. Useful for decimal
+percentages.
+Like precision(), this method formats a number according to the supplied precision (where numbers
+are rounded to meet the given precision). This method also expresses the number as a percentage and
+prepends the output with a percent sign.:
+// Called as NumberHelper. Output: 45.69%
+echo $this->Number->toPercentage(45.691873645);
+// Called as CakeNumber. Output: 45.69%
+App::uses(’CakeNumber’, ’Utility’);
+echo CakeNumber::toPercentage(45.691873645);
+// Called with multiply. Output: 45.69%
+echo CakeNumber::toPercentage(0.45691, 2, array(
+’multiply’ => true
+));
+New in version 2.4: The $options argument with the multiply option was added.
+NumberHelper::fromReadableSize(string $size, $default)
+Parameters
+• $size (string) – The formatted human readable value.
+This method unformats a number from a human readable byte size to an integer number of bytes.
+New in version 2.3: This method was added in 2.3
+NumberHelper::toReadableSize(string $dataSize)
+Parameters
+• $dataSize (string) – The number of bytes to make readable.
+This method formats data sizes in human readable forms. It provides a shortcut way to convert bytes
+to KB, MB, GB, and TB. The size is displayed with a two-digit precision level, according to the size
+of data supplied (i.e. higher sizes are expressed in larger terms):
+
+SEGUIR(168/203)
