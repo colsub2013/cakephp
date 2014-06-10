@@ -4446,28 +4446,30 @@ NumberHelper
 ------------
 class NumberHelper(View $view, array $settings = array())
 .........................................................
+NumberHelper contiene métodos convenientes que habilitan exhibir números en 
+formatos comunes en sus vistas. Estos métodos incluyen modos de formatear monedas,
+porcentajes, tamaño de datos, formatear números a precisiones específicas y también
+darle a uno más flexibilidad con números formateados.
 
+Cambiado en v.2.1: NumberHelper ha sido refactorizado en la clase CakeNumber para
+permitir un uso fácil fuera de la capa View. Dentro de una vista, estos métodos
+son accesibles vía la clase NumberHelper y uno puede llamarla como si llamara a
+un método helper normal: $this->Number->method($args);.
 
-The NumberHelper contains convenient methods that enable display numbers in common formats in your
-views. These methods include ways to format currency, percentages, data sizes, format numbers to specific
-precisions and also to give you more flexibility with formatting numbers.
-
-Changed in version 2.1: NumberHelper have been refactored into CakeNumber class to allow easier
-use outside of the View layer. Within a view, these methods are accessible via the NumberHelper class
-and you can call it as you would call a normal helper method: $this->Number->method($args);.
-
-All of these functions return the formatted number; They do not automatically echo the output into the view.
+Todas estas funciones retornan el número formateado; Estos no hacen echo automático
+de la salida dentro de la vista.
 
 NumberHelper::currency(mixed $number, string $currency = ‘USD’, array $options = array())
 .........................................................................................
 
 Parameters
-• $number (float) – The value to covert.
-• $currency (string) – The known currency format to use.
-• $options (array) – Options, see below.
+..........
+• $number (float): El valor a convertir.
+• $currency (string): El formato de moneda conocido a usar.
+• $options (array): Opciones, ver abajo.
 
-This method is used to display a number in common currency formats (EUR,GBP,USD). Usage in a
-view looks like:
+Este método se usa para exhibir un número en formatos de moneda común (EUR,GBP,USD).
+El uso en una vista luce como:
 
 // called as NumberHelper
 echo $this->Number->currency($number, $currency);
@@ -4476,15 +4478,19 @@ echo $this->Number->currency($number, $currency);
 App::uses(’CakeNumber’, ’Utility’);
 echo CakeNumber::currency($number, $currency);
 
-The first parameter, $number, should be a floating point number that represents the amount of money
-you are expressing. The second parameter is used to choose a predefined currency formatting scheme:
+El 1er parámetro, $number, debería ser un número en punto flotante que representa
+la cantidad de dinero que uno está expresando. El 2do parámetro se usa para elegir
+un esquema de formato de moneda predefinido:
 
-$currency 1234.56, formatted by currency type
-EUR C1.234,56
-GBP £1,234.56
-USD $1,234.56
+---------------------------------------------------
+| $currency | 1234.56, formatted by currency type |
+---------------------------------------------------
+| EUR       | C1.234,56                           |
+| GBP       | £1,234.56                           |
+| USD       | $1,234.56                           |
+---------------------------------------------------
 
-The third parameter is an array of options for further defining the output. The following options are
-available:
+El 3er parámetor es un array de opciones para definir adicionalmente la salida.
+Siguientes opciones disponibles:
 
 SEGUIR(165/203)
