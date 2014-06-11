@@ -3882,7 +3882,7 @@ características extra agregadas vía el parámetro $options.
 
 Opciones:
 
-•prefix: String preanexado a los datos retornados.
+•prefix: String añadido a los datos retornados.
 •postfix: String anexado a los datos retornados.
 
 Ejemplo de uso:
@@ -4528,7 +4528,7 @@ Siguientes opciones disponibles:
 |                   |                                                                     |
 -------------------------------------------------------------------------------------------
 
-Si un valor $currency no reconocido es suministrado, este es preanexado a un
+Si un valor $currency no reconocido es suministrado, este es añadido a un
 número formateado en USD. Ej.:
 
 // called as NumberHelper
@@ -4620,37 +4620,62 @@ echo CakeNumber::precision(456.91873645, 2);
 
 NumberHelper::toPercentage(mixed $number, int $precision = 2, array $options = array())
 .......................................................................................
-Parameters
-• $number (float) – The value to covert.
-• $precision (integer) – The number of decimal places to display.
-• $options (array) – Options, see below.
-Option Description
-multiply
-Boolean to indicate whether the value has to be multiplied by 100. Useful for decimal
-percentages.
-Like precision(), this method formats a number according to the supplied precision (where numbers
-are rounded to meet the given precision). This method also expresses the number as a percentage and
-prepends the output with a percent sign.:
+
+Parámetros
+..........
+• $number (float): El valor a convertir.
+• $precision (integer): El número de ubicaciones decimales a exhibir.
+• $options (array): Opciones, ver abajo.
+
+-------------------------------------------------------------------------------------
+| Opción    | Descripción                                                           |
+-------------------------------------------------------------------------------------
+| multiply  | Boolean para indicar si el valor tiene que ser multiplicado por 100.  |
+|           | Útil para porcentajes decimales.                                      |
+-------------------------------------------------------------------------------------
+
+Como precision(), este método formatea un número de acuerdo a la precisión 
+suministrada (donde los números son redondeados para cumplir la precisión deseada).
+Este método también expresa el número como un porcentaje y añade la salida con
+un signo de '%':
+
 // Called as NumberHelper. Output: 45.69%
 echo $this->Number->toPercentage(45.691873645);
+
 // Called as CakeNumber. Output: 45.69%
 App::uses(’CakeNumber’, ’Utility’);
 echo CakeNumber::toPercentage(45.691873645);
+
 // Called with multiply. Output: 45.69%
 echo CakeNumber::toPercentage(0.45691, 2, array(
-’multiply’ => true
+  ’multiply’ => true
 ));
-New in version 2.4: The $options argument with the multiply option was added.
+
+Nuevo en v.2.4: El argumento $options con la opción multiply.
+
 NumberHelper::fromReadableSize(string $size, $default)
-Parameters
-• $size (string) – The formatted human readable value.
-This method unformats a number from a human readable byte size to an integer number of bytes.
-New in version 2.3: This method was added in 2.3
+......................................................
+
+Parámetros
+..........
+
+• $size (string): Valor legible por el humano formateado. Este método desformatea
+  un número desde un tamaño de byte legible al humano a un número entero de bytes.
+  
+Agregado en v.2.3.
+
 NumberHelper::toReadableSize(string $dataSize)
-Parameters
-• $dataSize (string) – The number of bytes to make readable.
-This method formats data sizes in human readable forms. It provides a shortcut way to convert bytes
-to KB, MB, GB, and TB. The size is displayed with a two-digit precision level, according to the size
-of data supplied (i.e. higher sizes are expressed in larger terms):
+..............................................
+
+Parámetros
+..........
+
+• $dataSize (string): Número de bytes para hacerlo legible. 
+
+Este método formatea tamaños de datos en formularios legibles al humano. Este
+provee un modo de acceso directo para convertir bytes a KB, MB, GB, and TB. El 
+tamaño es exhibido con nivel de precisión de 2 dígitos, de acuerdo al tamaño
+de datos suministrados (ej.: tamaños más grandes son expresados en plazos (terms)
+más grandes):
 
 SEGUIR(168/203)
