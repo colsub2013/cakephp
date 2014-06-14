@@ -4678,4 +4678,233 @@ tamaño es exhibido con nivel de precisión de 2 dígitos, de acuerdo al tamaño
 de datos suministrados (ej.: tamaños más grandes son expresados en plazos (terms)
 más grandes):
 
-SEGUIR(168/203)
+// called as NumberHelper
+echo $this->Number->toReadableSize(0); // 0 Bytes
+echo $this->Number->toReadableSize(1024); // 1 KB
+echo $this->Number->toReadableSize(1321205.76); // 1.26 MB
+echo $this->Number->toReadableSize(5368709120); // 5.00 GB
+
+// called as CakeNumber
+App::uses(’CakeNumber’, ’Utility’);
+echo CakeNumber::toReadableSize(0); // 0 Bytes
+echo CakeNumber::toReadableSize(1024); // 1 KB
+echo CakeNumber::toReadableSize(1321205.76); // 1.26 MB
+echo CakeNumber::toReadableSize(5368709120); // 5.00 GB
+
+NumberHelper::format(mixed $number, mixed $options=false)
+.........................................................
+Este método da mas control sobre el formateo de números para usarse en sus 
+vistas (y se usa como el método principal para la mayoría de los otros métodos
+NumberHelper). Usar este método puede lucir como:
+
+// called as NumberHelper
+$this->Number->format($number, $options);
+
+// called as CakeNumber
+CakeNumber::format($number, $options);
+
+El parámetro $number es el número que uno está planeando formatear para la salida.
+Sin $options suministrado, el número 1236.334 produciría 1,236. La precisión por
+defecto es 0 lugares decimales.
+
+El parámetro $options es donde reside lo mejor de este método.
+
+• Si pasa un integer este luego se convierte en el monto de precisión ó lugares
+  para la función
+  
+• Si uno pasa un array asociado, puede usar las claves siguientes:
+
+  – places (integer): El monto de precisión deseada
+  – before (string): Para ponerse antes del número producido (outputted)
+  – escape (boolean): Si uno quiere el valor dentro (in) antes de ser escapado
+  – decimals (string): Usado para delimitar los lugares decimales en un número
+  – thousands (string): Usado para delimitar miles, millones, ... de lugares
+
+Ejemplo:
+
+// called as NumberHelper
+echo $this->Number->format(’123456.7890’, 
+  array(
+    ’places’ => 2,
+    ’before’ => ’¥ ’,
+    ’escape’ => false,
+    ’decimals’ => ’.’,
+    ’thousands’ => ’,’
+  )
+);
+// output ’¥ 123,456.79’
+
+// called as CakeNumber
+App::uses(’CakeNumber’, ’Utility’);
+echo CakeNumber::format(’123456.7890’, 
+  array(
+    ’places’ => 2,
+    ’before’ => ’¥ ’,
+    ’escape’ => false,
+    ’decimals’ => ’.’,
+    ’thousands’ => ’,’
+  )
+);
+// output ’¥ 123,456.79’
+
+NumberHelper::formatDelta(mixed $number, mixed $options=array())
+................................................................
+Este método exhibe diferencias en valor como un número signado:
+
+// called as NumberHelper
+$this->Number->formatDelta($number, $options);
+
+// called as CakeNumber
+CakeNumber::formatDelta($number, $options);
+
+El parámetro $number es el número que uno está planeando formatear para la salida.
+Sin $options suministrado, 1236.334 produciría 1,236. La precisión por defecto
+es 0 lugares decimales.
+
+El parámetro $options toma las mismas claves que el mismo CakeNumber::format():
+
+  • places (integer): El monto de precisión deseada
+  • before (string): Para ponerse antes del número producido (outputted)
+  • after (string): Para ponerse después del número producido (outputted)
+  • decimals (string): Usado para delimitar los lugares decimales en un número
+  • thousands (string): Usado para marcar miles, millones, ... de lugares
+
+Ejemplo:
+
+// called as NumberHelper
+echo $this->Number->formatDelta(’123456.7890’, 
+  array(
+    ’places’ => 2,
+    ’decimals’ => ’.’,
+    ’thousands’ => ’,’
+  )
+);
+// output ’+123,456.79’
+
+// called as CakeNumber
+App::uses(’CakeNumber’, ’Utility’);
+echo CakeNumber::formatDelta(’123456.7890’, 
+  array(
+    ’places’ => 2,
+    ’decimals’ => ’.’,
+    ’thousands’ => ’,’
+  )
+);
+// output ’+123,456.79’
+
+Este método se agregó en v.2.3.
+
+Advertencia: Desde v.2.4 los símbolos son ahora UTF-8. 
+
+Paginator
+---------
+class PaginatorHelper(View $view, array $settings = array())
+............................................................
+El helper de Pagination se usa para producir controles de paginación como números
+de página y enlaces anterior/siguiente. Trabaja en tandem con PaginatorComponent. 
+
+Crear enlaces ordenados (sort)
+..............................
+
+PaginatorHelper::sort($key, $title = null, $options = array())
+..............................................................
+
+Parámetros
+..........
+• $key (string): El nombre de la clave que el recordset debería ser ordenado
+• $title (string): Título para el enlace. Si $title es null $key será usado para
+  el título y será generado por inflexión
+• $options (array): Opciones para enlace de ordenamiento (sorting).
+
+Genera un enlace de ordenamiento. Fija parámetros named ó querystring para el
+ordenamiento y dirección. Los enlaces estarán por defecto para ordenar por 'asc'.
+Después del 1er clic, los enlaces generados con sort() manejarán conmutación 
+de dirección de forma automática. El ordenamiento de enlace es por defecto 'asc'.
+Si el resultset es ordenado ‘asc’ por la clave especificada el enlace retornado
+ordenará por ‘desc’.
+
+Claves aceptadas para $options:
+
+• escape: Si uno quiere a los contenidos HTML entity encoded, por defecto a true.
+• model: El modelo a usar, por defecto a PaginatorHelper::defaultModel().
+• direction: La dirección por defecto a usar cuando este enlace no está activo.
+• lock: Dirección de bloqueo (Lock). Usará sólo la dirección por defecto, por
+  defecto a false.
+  Nuevo en v.2.5: Puede fijar la opción lock a true para bloquear la dirección de
+  ordenamiento en la dirección especificada
+  
+Asumiendo que uno está paginando algunos posts, y están en la página 1:
+
+echo $this->Paginator->sort(’user_id’);
+
+Produce:
+
+<a href="/posts/index/page:1/sort:user_id/direction:asc/">User Id</a>
+
+Puede usar el parámetro 'title' para crear texto personalizado para su enlace:
+
+echo $this->Paginator->sort(’user_id’, ’User account’);
+
+Produce:
+
+<a href="/posts/index/page:1/sort:user_id/direction:asc/">User account</a>
+
+Si uno está usando HTML como imágenes en sus enlaces recordar fijar el
+escapado (escaping off):
+
+echo $this->Paginator->sort(
+  ’user_id’,
+  ’<em>User account</em>’,
+  array(’escape’ => false)
+);
+
+Produce:
+
+<a href="/posts/index/page:1/sort:user_id/direction:asc/">
+  <em>User account</em>
+</a>
+
+La opción 'direction' puede usarse para fijar la dirección por defecto para un
+enlace. Activo un enlace, este conmutará direcciones automáticamente como normal:
+
+echo $this->Paginator->sort(’user_id’, null, array(’direction’ => ’desc’));
+
+Produce:
+
+<a href="/posts/index/page:1/sort:user_id/direction:desc/">User Id</a>
+
+La opción 'lock' puede usarse para bloquear el ordenamiento en la dirección
+especificada:
+
+echo $this->Paginator->sort(’user_id’, null, array(’direction’ => ’asc’, ’lock’ => true));
+
+PaginatorHelper::sortDir(string $model = null, mixed $options = array())
+........................................................................
+Obtiene la dirección actual en que el recordset es ordenado.
+
+PaginatorHelper::sortKey(string $model = null, mixed $options = array())
+........................................................................
+Obtiene la clave actual por la cual el recordset es ordenado.
+
+Crear enlaces de número de página
+---------------------------------
+
+PaginatorHelper::numbers($options = array())
+............................................
+Retorna el set de números para el result set paginado. Usa un módulo (modulus)
+para decidir cuantos números mostrar en cada lado de la página actual. Por defecto
+serán creados 8 enlaces en cada lado de la página actual si existen esas páginas.
+Los enlaces no serán generados para páginas que no existen. La página actual no
+es un enlace también.
+
+Opciones soportadas:
+
+
+• before: Contenido a ser insertado antes de los números.
+• after: Contenido a ser insertado después de los números.
+• model: Modelo para crear números, por defecto a PaginatorHelper::defaultModel().
+
+SEGUIR(172/203)
+
+
+
