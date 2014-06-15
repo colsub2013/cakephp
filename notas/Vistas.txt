@@ -4899,12 +4899,381 @@ es un enlace también.
 
 Opciones soportadas:
 
-
 • before: Contenido a ser insertado antes de los números.
 • after: Contenido a ser insertado después de los números.
 • model: Modelo para crear números, por defecto a PaginatorHelper::defaultModel().
+• modulus: Cuantos números incluir en cada lado de la página actual, por defecto en 8.
+• separator: Contenido separador por defecto en "|".
+• tag: La etiqueta a envolver los enlaces, por defecto a 'span'.
+• first: Si uno quiere los primeros enlaces generados, fijado a un integer para
+  definir el número de 'Primeros' enlaces a generar. Por defecto en false. Si un
+  string es fijado se generará un enlace a la 1er página con el valor como el título:
+  
+  echo $this->Paginator->numbers(array(’first’ => ’First page’));
 
-SEGUIR(172/203)
+• last: Si uno quiere los últimos enlaces generados, fijado a un integer para definir
+  el número de 'últimos' enlaces a generar. Por defecto en false. Sigue la misma
+  lógica que la opción 'first'. Hay un método last() para usarse separadamente.    
+• ellipsis: Contenido de Elipse, por defecto a '...'
+• class: El nombre de clase usado en la etiqueta de envoltura (wrapping).
+• currentClass: El nombre de clase a usarse en el enlace current/active. Por 
+  defecto en current.
+• currentTag: Etiqueta a usar para el número de página actual, por defecto a null.
+  Esto le permite por ej. generar Twitter Bootstrap como enlaces con el número de
+  página actual envuelto en una etiqueta 'a' ó 'span' extra.
+    
+Mientras este método permite mucha personalización para su salida, también puede
+llamarlo sin ningún parámetro:
 
+echo $this->Paginator->numbers();
 
+Usando las opciones primero y último uno puede crear enlaces al principio y fin
+del set de página. Lo siguiente crearía un set de enlaces de página que incluyen
+enlaces a las 2 primeras y 2 últimas páginas en los resultados paginados:
 
+echo $this->Paginator->numbers(array(’first’ => 2, ’last’ => 2));
+
+La opción currentClass se agregó en 2.1.
+
+La opción currentTag se agregó en 2.3.
+
+Crear enlaces de salto (jump)
+-----------------------------
+Puede con frecuencia quere enlaces que van a los enlaces anterior y siguiente,
+primeras y últimas páginas en el set de datos paginado.
+
+PaginatorHelper::prev($title = ‘<< Previous’, $options = array(), $disabledTitle = null, $disabledOptions = array())
+....................................................................................................................
+
+Parámetros
+..........
+• $title (string): Título para el enlace.
+• $options (mixed): Opciones para el enlace de paginación
+• $disabledTitle (string): Título que cuando el enlace está inhabilitado, como
+  cuando uno ya está en la 1er página, sin página previa a ir
+• $disabledOptions (mixed): Opciones para el enlace de paginación inhabilitado
+
+Genera un enlace a la página anterior en un set de registros paginados.
+
+$options y $disabledOptions soportan las claves siguientes:
+
+• tag: La etiqueta (tag) envolvente que uno quiere usar, por defecto en 'span'.
+  Fijar esto a false para inhabilitar esta opción
+• escape: Si uno quiere a los contenidos HTML entity encoded, por defecto a true.
+• model: El modelo a usar, por defecto a PaginatorHelper::defaultModel().
+• disabledTag: Etiqueta a usarse en vez de una etiqueta (tag) A cuando no hay
+  página anterior
+  
+Un ej. sería:
+
+echo $this->Paginator->prev(
+  ’ << ’ . __(’previous’),
+  array(),
+  null,
+  array(’class’ => ’prev disabled’)
+);
+
+Si uno estuviese actualmente en la 2da página de los posteos, obtendría lo 
+siguiente:
+
+<span class="prev">
+  <a rel="prev" href="/posts/index/page:1/sort:title/order:desc">
+    << previous
+  </a>
+</span>
+
+Si no hubiese páginas anteriores uno obtendría:
+
+<span class="prev disabled"><< previous</span>
+
+Puede cambiar la etiqueta (tag) envolvente usando la opción tag:
+
+echo $this->Paginator->prev(__(’previous’), array(’tag’ => ’li’));
+
+Produce:
+
+<li class="prev">
+  <a rel="prev" href="/posts/index/page:1/sort:title/order:desc">
+    previous
+  </a>
+</li>
+
+Puede también inhabilitar la etiqueta envolvente:
+
+echo $this->Paginator->prev(__(’previous’), array(’tag’ => false));
+
+Produce:
+
+<a class="prev" rel="prev" href="/posts/index/page:1/sort:title/order:desc">
+  previous
+</a>
+
+Cambiado en v.2.3: Para métodos: PaginatorHelper::prev() y PaginatorHelper::next()
+es posible fijar la opción tag a false para inhabilitar el wrapper. Han sido
+agregadas opciones nuevas disabledTag.
+
+Si uno deja a $disabledOptions vacío se usará el parámetro $options. Esto puede
+ahorrar algún tipeo adicional sin ambos sets de opciones son los mismos.
+
+PaginatorHelper::next($title = ‘Next >>’, $options = array(), $disabledTitle = null, $disabledOptions = array())
+................................................................................................................
+Este método es idéntico a prev() con algunas excepciones. Este crea enlaces 
+apuntando a la siguiente página en vez de a la página previa. Este también usa
+a 'next' como el valor de atributo 'rel' en vez de 'prev'.
+
+PaginatorHelper::first($first = ‘<< first’, $options = array())
+...............................................................
+Retorna un primer ó set de números para las primeras páginas. Si es dado un string,
+luego solo será creado sólo un enlace a la primer página con el texto provisto:
+
+echo $this->Paginator->first(’< first’);
+
+Lo de arriba crea un único enlace para la primer página. No producirá nada si uno 
+está en la 1er página. Puede también usar un integer para indicar cuantos enlaces
+de primera página uno quiere generar:
+
+echo $this->Paginator->first(3);
+
+Lo de arriba creará enlaces para las 3 primeras páginas, una vez que uno alcance
+a la tercer página ó mayor. Anterior a eso no se producirá ninguna salida.
+
+El parámetro options acepta lo siguiente:
+
+• tag:  La etiqueta (tag) envolvente que uno quiere usar, por defecto a 'span'
+• after:  Contenido a insertar después del enlace/etiqueta (link/tag)
+• model:  Modelo a usar por defecto para PaginatorHelper::defaultModel()
+• separator: Contenido entre los enlaces generados, por defecto a '|'
+• ellipsis: Contenido para la elipse, por defecto a '...'
+
+PaginatorHelper::last($last = ‘last >>’, $options = array())
+............................................................
+Similar a first(). No generará ningún enlace si uno está en la última página 
+para valores de un string de $last. Para un valor integer de $last no se 
+generarán enlaces una vez que el usuario está dentro del rango de las últimas
+páginas.
+
+PaginatorHelper::current(string $model = null)
+..............................................
+Obtiene la página actual del recordset para el modelo dado:
+
+// Our URL is: http://example.com/comments/view/page:3
+echo $this->Paginator->current(’Comment’);
+// Output is 3
+
+PaginatorHelper::hasNext(string $model = null)
+..............................................
+Retorna true si el set de resultado dado no está en la última página.
+
+PaginatorHelper::hasPrev(string $model = null)
+..............................................
+Retorna true si el set de resultado dado no está en la primer página.
+
+PaginatorHelper::hasPage(string $model = null, integer $page = 1)
+.................................................................
+Retorna true si el set de resultado dado tiene el número de página dado por $page.
+
+Crear un contador de página
+---------------------------
+
+PaginatorHelper::counter($options = array())
+............................................
+Retorna un string contador para el set de resultado (result set) paginado. Usando
+un string de formato provisto y un número de opciones puede crear indicadores
+específicos de la aplicación y localizados de donde un usuario está en el set
+de datos paginados. 
+
+Hay un número de opciones para counter(). Los soportados son:
+
+• format: Formato del contador. Formatos soportados son ‘range’, ‘pages’ y custom. 
+  Por defecto a páginas que producirían como '1 de 10'. En el modo custom el
+  string suministrado es parseado y los tokens son reemplazados con los valores
+  actuales. Los tokens disponibles son:
+  
+  – {:page}: La página actual exhibida.
+  – {:pages}: El número total de páginas.
+  – {:current}: El número actual de registros siendo mostrados.
+  – {:count}: El número total de registros en el result set.
+  – {:start}:  - number of the first record being displayed.
+  – {:end} - number of the last record being displayed.
+  – {:model} - The pluralized human form of the model name. If your model was ‘RecipePage’,
+    {:model} would be ‘recipe pages’. This option was added in 2.0.
+
+  Uno podría también suministrar sólo un string al método counter usando los tokens
+  disponibles. Ej.:
+
+  echo $this->Paginator->counter(
+    ’Page {:page} of {:pages}, showing {:current} records out of
+    {:count} total, starting on record {:start}, ending on {:end}’
+  );
+
+  Fijar 'format' a 'range' (rango) produciría algo como ‘1 - 3 of 13’: 
+
+  echo $this->Paginator->counter(
+    array(
+      ’format’ => ’range’
+    )
+  );
+
+• separator: El separador entre la página actual y el número de páginas. Por defecto
+  a 'of'. Esto se usa en conjunción con ‘format’ = ‘pages’ el cual es de valor
+  por defecto ‘format’:
+    
+  echo $this->Paginator->counter(
+    array(
+      ’separator’ => ’ of a total of ’
+    )
+  );
+
+• model: El nombre del modelo siendo paginado, por defecto a PaginatorHelper::defaultModel().
+  Este se usa en conjunción con el string custom en opción 'format'.
+  
+Modificar las opciones que usa PaginatorHelper 
+----------------------------------------------
+
+PaginatorHelper::options($options = array())
+............................................
+Parámetros
+..........
+
+• $options (mixed): Opciones por defecto para enlaces de paginación. Suministrado
+  un string - este se usa como elemento id del DOM para actualizar.
+
+Fija todas las opciones para el Paginator Helper. Opciones soportados:
+
+• url: La URL de la acción de paginación. Subopciones de ‘url’:
+
+  – sort: La clave por que los registros son ordenados.
+  – direction: La dirección del ordenamiento. Por defecto a ‘ASC’.
+  – page: El número de página a exhibir.
+
+Las opciones mencionadas arriba pueden usarse para forzar direcciones / páginas
+particulares. Puede también anexar contenido de URL adicional en todas las URLs
+generadas en el helper:
+
+$this->Paginator->options(
+  array(
+    ’url’ => array(
+      ’sort’ => ’email’, ’direction’ => ’desc’, ’page’ => 6,
+      ’lang’ => ’en’
+    )
+  )
+);
+
+Lo de arriba agrega el parámetro de ruta 'en' a todos los enlaces que el helper 
+generará. Este también creará enlaces con valores de página, dirección y ordenamiento 
+específico. Por defecto PaginatorHelper mergeará (merge in) todos los parámetros
+nombrados y pasados (pass) actuales. Así no tiene que hacer eso en cada archivo
+de vista.
+
+• escape: Define si el campo title para los enlaces debería ser HTML escaped. 
+  Por defecto en true.
+    
+• update: El selector CSS del elemento a actualizar con los resultados de las
+  llamadas de paginación AJAX. Si no se especifica, serán creados enlaces regulares:
+  
+  $this->Paginator->options(array(’update’ => ’#content’));
+
+  Útil al hacer Paginación AJAX. El valor de update puede ser cualquier selector
+  CSS válido, pero a veces es más simple usar un selector de id
+
+• model:  El nombre del modelo siendo paginado, por defecto a PaginatorHelper::defaultModel(). 
+
+Usar parámetros GET para paginación
+...................................
+Normalmente la Paginación en CakePHP usa parámetros Named. Hay veces que uno 
+quiere usar en vez de eso parámetros GET. Mientras la opción de configuración 
+principal para esta característica está en PaginatorComponent, tiene algún
+control adicional en la vista. Puede usar options() para indicar que uno quiere
+que otros parámetros named sean convertidos:
+
+$this->Paginator->options(
+  array(
+    ’convertKeys’ => array(’your’, ’keys’, ’here’)
+  )
+);
+
+Configurar el PaginatorHelper para usar un helper JavaScript
+............................................................
+Por defecto PaginatorHelper usa JsHelper para hacer características AJAX. Pero,
+si uno no quiere eso y quiere usar un helper personalizado para enlaces AJAX,
+puede hacer eso cambiando el array $helpers en su controlador. Después de 
+correr paginate() hacer lo siguiente:
+
+// In your controller action.
+$this->set(’posts’, $this->paginate());
+$this->helpers[’Paginator’] = array(’ajax’ => ’CustomJs’);
+
+Cambiará el PaginatorHelper para usar el CustomJs para operaciones AJAX. Uno podría
+también fijar la clave ‘ajax’ para ser cualquier helper, tan pronto esa clase
+implemente un métodos link() que se comporta como HtmlHelper::link().
+
+Paginación en Views
+...................
+
+It’s up to you to decide how to show records to the user, but most often this will be done inside HTML
+tables. The examples below assume a tabular layout, but the PaginatorHelper available in views doesn’t
+always need to be restricted as such.
+See the details on PaginatorHelper4 in the API. As mentioned, the PaginatorHelper also offers sorting features
+which can be easily integrated into your table column headers:
+// app/View/Posts/index.ctp
+<table>
+<tr>
+<th><?php echo $this->Paginator->sort(’id’, ’ID’); ?></th>
+<th><?php echo $this->Paginator->sort(’title’, ’Title’); ?></th>
+</tr>
+<?php foreach ($data as $recipe): ?>
+<tr>
+<td><?php echo $recipe[’Recipe’][’id’]; ?> </td>
+<td><?php echo h($recipe[’Recipe’][’title’]); ?> </td>
+</tr>
+<?php endforeach; ?>
+</table>
+The links output from the sort() method of the PaginatorHelper allow users to click on table headers
+to toggle the sorting of the data by a given field.
+It is also possible to sort a column based on associations:
+<table>
+<tr>
+<th><?php echo $this->Paginator->sort(’title’, ’Title’); ?></th>
+<th><?php echo $this->Paginator->sort(’Author.name’, ’Author’); ?></th>
+</tr>
+<?php foreach ($data as $recipe): ?>
+<tr>
+<td><?php echo h($recipe[’Recipe’][’title’]); ?> </td>
+<td><?php echo h($recipe[’Author’][’name’]); ?> </td>
+</tr>
+<?php endforeach; ?>
+</table>
+The final ingredient to pagination display in views is the addition of page navigation, also supplied by the
+PaginationHelper:
+// Shows the page numbers
+echo $this->Paginator->numbers();
+// Shows the next and previous links
+echo $this->Paginator->prev(
+’« Previous’,
+null,
+null,
+array(’class’ => ’disabled’)
+);
+echo $this->Paginator->next(
+’Next »’,
+null,
+null,
+array(’class’ => ’disabled’)
+);
+// prints X of Y, where X is current page and Y is number of pages
+echo $this->Paginator->counter();
+The wording output by the counter() method can also be customized using special markers:
+echo $this->Paginator->counter(array(
+’format’ => ’Page {:page} of {:pages}, showing {:current} records out of
+{:count} total, starting on record {:start}, ending on {:end}’
+));
+Other Methods
+PaginatorHelper::link($title, $url = array(), $options = array())
+Parameters
+• $title (string) – Title for the link.
+• $url (mixed) – Url for the action. See Router::url()
+• $options (array) – Options for the link. See options() for list of keys.
+Accepted keys for $options:
+•update The Id of the DOM element you wish to update. Creates AJAX enabled links.
+
+SEGUIR(179/203)
