@@ -5208,72 +5208,329 @@ también fijar la clave ‘ajax’ para ser cualquier helper, tan pronto esa clase
 implemente un métodos link() que se comporta como HtmlHelper::link().
 
 Paginación en Views
-...................
+-------------------
+Va en uno decidir como mostrar registros al usuario, pero con mayor frecuencia
+esto será hecho dentro de tablas HTML. Los ej.'s de abajo asumen layout tabular,
+pero el PaginatorHelper disponible en vistas no siempre necesita ser restringido
+como tal.
 
-It’s up to you to decide how to show records to the user, but most often this will be done inside HTML
-tables. The examples below assume a tabular layout, but the PaginatorHelper available in views doesn’t
-always need to be restricted as such.
-See the details on PaginatorHelper4 in the API. As mentioned, the PaginatorHelper also offers sorting features
-which can be easily integrated into your table column headers:
+PaginatorHelper también ofrece características de ordenamiento (sorting) que 
+pueden integrarse fácilmente en sus headers de columna de tabla:
+
 // app/View/Posts/index.ctp
 <table>
-<tr>
-<th><?php echo $this->Paginator->sort(’id’, ’ID’); ?></th>
-<th><?php echo $this->Paginator->sort(’title’, ’Title’); ?></th>
-</tr>
-<?php foreach ($data as $recipe): ?>
-<tr>
-<td><?php echo $recipe[’Recipe’][’id’]; ?> </td>
-<td><?php echo h($recipe[’Recipe’][’title’]); ?> </td>
-</tr>
-<?php endforeach; ?>
+  <tr>
+    <th><?php echo $this->Paginator->sort(’id’, ’ID’); ?></th>
+    <th><?php echo $this->Paginator->sort(’title’, ’Title’); ?></th>
+  </tr>
+  <?php foreach ($data as $recipe): ?>
+  <tr>
+    <td><?php echo $recipe[’Recipe’][’id’]; ?> </td>
+    <td><?php echo h($recipe[’Recipe’][’title’]); ?> </td>
+  </tr>
+  <?php endforeach; ?>
 </table>
-The links output from the sort() method of the PaginatorHelper allow users to click on table headers
-to toggle the sorting of the data by a given field.
-It is also possible to sort a column based on associations:
+
+La salida de enlaces desde el método sort() del PaginatorHelper le permite a los
+usuario hacer clic en headers de tabla para alternar(toggle) el ordenamiento de
+los datos para un campo dado.
+
+También es posible ordenar algo basado en columna en asociaciones:
+
 <table>
-<tr>
-<th><?php echo $this->Paginator->sort(’title’, ’Title’); ?></th>
-<th><?php echo $this->Paginator->sort(’Author.name’, ’Author’); ?></th>
-</tr>
-<?php foreach ($data as $recipe): ?>
-<tr>
-<td><?php echo h($recipe[’Recipe’][’title’]); ?> </td>
-<td><?php echo h($recipe[’Author’][’name’]); ?> </td>
-</tr>
-<?php endforeach; ?>
+  <tr>
+    <th><?php echo $this->Paginator->sort(’title’, ’Title’); ?></th>
+    <th><?php echo $this->Paginator->sort(’Author.name’, ’Author’); ?></th>
+  </tr>
+  <?php foreach ($data as $recipe): ?>
+  <tr>
+    <td><?php echo h($recipe[’Recipe’][’title’]); ?> </td>
+    <td><?php echo h($recipe[’Author’][’name’]); ?> </td>
+  </tr>
+  <?php endforeach; ?>
 </table>
-The final ingredient to pagination display in views is the addition of page navigation, also supplied by the
-PaginationHelper:
+
+El ingrediente final para la exhibir paginación en vistas es el agregado de
+navegación de página, también suministrado por el PaginationHelper:
+
 // Shows the page numbers
 echo $this->Paginator->numbers();
+
 // Shows the next and previous links
 echo $this->Paginator->prev(
-’« Previous’,
-null,
-null,
-array(’class’ => ’disabled’)
+  ’« Previous’,
+  null,
+  null,
+  array(’class’ => ’disabled’)
 );
 echo $this->Paginator->next(
-’Next »’,
-null,
-null,
-array(’class’ => ’disabled’)
+  ’Next »’,
+  null,
+  null,
+  array(’class’ => ’disabled’)
 );
+
 // prints X of Y, where X is current page and Y is number of pages
 echo $this->Paginator->counter();
-The wording output by the counter() method can also be customized using special markers:
-echo $this->Paginator->counter(array(
-’format’ => ’Page {:page} of {:pages}, showing {:current} records out of
-{:count} total, starting on record {:start}, ending on {:end}’
-));
-Other Methods
-PaginatorHelper::link($title, $url = array(), $options = array())
-Parameters
-• $title (string) – Title for the link.
-• $url (mixed) – Url for the action. See Router::url()
-• $options (array) – Options for the link. See options() for list of keys.
-Accepted keys for $options:
-•update The Id of the DOM element you wish to update. Creates AJAX enabled links.
 
-SEGUIR(179/203)
+La salida de redacción (wording output) del método counter() puede también
+personalizarse usando marcadores especiales:
+
+echo $this->Paginator->counter(
+  array(
+    ’format’ => ’Page {:page} of {:pages}, showing {:current} records out of
+    {:count} total, starting on record {:start}, ending on {:end}’
+  )
+);
+
+Otros métodos
+-------------
+PaginatorHelper::link($title, $url = array(), $options = array())
+.................................................................
+
+Parámetros
+..........
+• $title (string): Título para el enlace.
+• $url (mixed): Url para la acción. Ver Router::url().
+• $options (array): Opciones para el enlace. Ver options() para la lista de claves.
+
+Claves aceptadas para $options:
+
+• update: El Id del elemento DOM que uno quiere actualizar. Crea enlaces habilitados
+  AJAX.
+• escape: Si uno quiere a los contenidos HTML entity encoded, por defecto a true.
+• model:  El modelo a usar, por defecto a PaginatorHelper::defaultModel().
+
+Crea un enlace AJAX ó regular con parámetros de paginación:
+
+echo $this->Paginator->link(
+  ’Sort by title on page 5’,
+  array(’sort’ => ’title’, ’page’ => 5, ’direction’ => ’desc’)
+);
+
+Si se creó en la vista para /posts/index crearía un enlace apuntando a 
+'/posts/index/page:5/sort:title/direction:desc'.
+
+PaginatorHelper::url($options = array(), $asArray = false, $model = null)
+.........................................................................
+Parámetros
+..........
+
+• $options (array): Array de opciones Pagination/URL. Como se usa en el método
+  options() ó link().
+  
+• $asArray (boolean): Retorna la URL como un array, ó un string URI. Por defecto
+  en false.
+  
+• $model (string): Que modelo paginar
+
+Por defecto retorna un string URL de paginación completa para uso en contextos
+no estándar (ej. JavaScript):
+
+echo $this->Paginator->url(
+  array(’sort’ => ’title’), true
+);
+
+PaginatorHelper::defaultModel()
+...............................
+Obtiene el modelo por defecto de los sets paginados ó null si la paginación no
+es inicializada.
+
+PaginatorHelper::params(string $model = null)
+.............................................
+Obtiene los parámetros de paginación actuales desde el resulset para el modelo
+dado:
+
+debug($this->Paginator->params());
+/*
+Array
+(
+  [page] => 2
+  [current] => 2
+  [count] => 43
+  [prevPage] => 1
+  [nextPage] => 3
+  [pageCount] => 3
+  [order] =>
+  [limit] => 20
+  [options] => Array
+    (
+      [page] => 2
+      [conditions] => Array
+        (
+        )
+    )
+  [paramType] => named
+)
+*/
+
+PaginatorHelper::param(string $key, string $model = null)
+.........................................................
+Obtiene el parámetro de paginación específico desde el resultset para un modelo
+dado:
+
+debug($this->Paginator->param(’count’));
+/*
+(int)43
+*/
+
+Se agregó el método param() en v.2.4.
+
+RSS
+---
+class RssHelper(View $view, array $settings = array())
+......................................................
+El helper RSS facilita generar XML para alimentaciones RSS.
+
+Crear una alimentación (feed) RSS con el RssHelper
+..................................................
+Este ej. asume que uno tiene ya creado un Posts Controller y Post Model y quiere
+hacer una vista alternativa para RSS.
+
+Crear una versión xml/rss de posts/index es un chasquido con CakePHP. Después de
+unos simples pasos puede anexar la extensión deseada .rss a posts/index haciendo
+su URL posts/index.rss. Para hacer esto primero parseExtensions necesita ser
+activado, esto es hecho en app/Config/routes.php:
+
+Router::parseExtensions(’rss’);
+
+En la llamada de arriba hemos activado la extensión .rss. Al usar Router::parseExtensions() 
+uno puede pasar tantos argumentos ó extensiones uno desee. Esto activará cada
+extension/content-type para usar en su aplicación. Ahora cuando la dirección  
+posts/index.rss es peticionada uno obtendrá una versión xml de su posts/index. 
+Sin embargo, primero necesitamos editar el controlador para agregar en el código
+específico de rss.
+
+Código Controlador 
+..................
+Es buena idea agregar RequestHandler a su array $components de PostsController.
+Esto le permitirá que ocurra un montón de magia:
+
+public $components = array(’RequestHandler’);
+
+Nuestra vista también usará el TextHelper para formateo, así eso debería agregarse
+también al controlador:
+
+public $helpers = array(’Text’);
+
+Antes de que hagamos una versión RSS de nuestro posts/index necesitamos arreglar
+algunas cosas. Puede ser tentador poner el metadata del canal en la acción 
+controlador y pasarla a su vista usando el método Controller::set() pero esto
+no es apropiado. Esa información puede también ir en la vista. Eso vendrá después,
+por ahora si uno tiene un set de lógica diferente para los datos usados para 
+hacer a la alimentación RSS y los datos para la vista HTML uno puede usar el 
+método RequestHandler::isRss(), de otro modo su controlador puede permanecer igual:
+
+// Modify the Posts Controller action that corresponds to
+// the action which deliver the rss feed, which is the
+// index action in our example
+public function index() {
+  if ($this->RequestHandler->isRss() ) {
+    $posts = $this->Post->find(
+      ’all’,
+      array(’limit’ => 20, ’order’ => ’Post.created DESC’)
+    );
+    return $this->set(compact(’posts’));
+  }
+  // this is not an Rss request, so deliver
+  // data used by website’s interface
+  $this->paginate[’Post’] = array(
+    ’order’ => ’Post.created DESC’,
+    ’limit’ => 10
+  );
+  $posts = $this->paginate();
+  $this->set(compact(’posts’));
+}
+
+Con todas las variables View fijadas necesitamos crear un layout rss.
+
+Layout 
+......
+Para un layout Rss poner los siguientes contenidos en app/View/Layouts/rss/default.ctp:
+
+if (!isset($documentData)) {
+  $documentData = array();
+}
+
+if (!isset($channelData)) {
+  $channelData = array();
+}
+
+if (!isset($channelData[’title’])) {
+  $channelData[’title’] = $this->fetch(’title’);
+}
+
+$channel = $this->Rss->channel(array(), $channelData, $this->fetch(’content’));
+echo $this->Rss->document($documentData, $channel);
+
+No hemos fijado $documentData ó $channelData en el controlador, pero en CakePHP
+sus vistas pueden pasar variables de vuelta al layout. El cual es donde nuestro
+array $channelData vendrá desde fijar todos los datos meta para nuestra 
+alimentación.
+
+Luego está el archivo de vista para mi posts/index. Como el archivo de layout
+que creamos, necesitamos crear un directorio View/Posts/rss/ y crear un nuevo
+index.ctp dentro de esa carpeta. Los contenidos del archivo están abajo.
+
+View 
+....
+Our view, located at app/View/Posts/rss/index.ctp, begins by setting the
+$documentData and $channelData variables for the layout, these contain all the metadata for
+our RSS feed. This is done by using the View::set()‘ method which is analogous to the Controller::
+set() method. Here though we are passing the channel’s metadata back to the layout:
+
+$this->set(’channelData’, 
+  array(
+    ’title’ => __("Most Recent Posts"),
+    ’link’ => $this->Html->url(’/’, true),
+    ’description’ => __("Most recent posts."),
+    ’language’ => ’en-us’
+  )
+);
+
+The second part of the view generates the elements for the actual records of the feed. This is accomplished
+by looping through the data that has been passed to the view ($items) and using the RssHelper::item()
+method. The other method you can use, RssHelper::items() which takes a callback and an array
+of items for the feed. (The method I have seen used for the callback has always been called
+transformRss(). There is one downfall to this method, which is that you cannot use any of the other
+helper classes to prepare your data inside the callback method because the scope inside the method does not
+include anything that is not passed inside, thus not giving access to the TimeHelper or any other helper that
+you may need. The RssHelper::item() transforms the associative array into an element for each key
+value pair.
+
+Note: You will need to modify the $postLink variable as appropriate to your application.
+
+foreach ($posts as $post) {
+  $postTime = strtotime($post[’Post’][’created’]);
+  
+  $postLink = array(
+    ’controller’ => ’posts’,
+    ’action’ => ’view’,
+    ’year’ => date(’Y’, $postTime),
+    ’month’ => date(’m’, $postTime),
+    ’day’ => date(’d’, $postTime),
+    $post[’Post’][’slug’]
+  );
+  
+  // Remove & escape any HTML to make sure the feed content will validate.
+  $bodyText = h(strip_tags($post[’Post’][’body’]));
+  $bodyText = $this->Text->truncate($bodyText, 400, 
+    array(
+      ’ending’ => ’...’,
+      ’exact’ => true,
+      ’html’ => true,
+    )
+  );
+
+  echo $this->Rss->item(array(), 
+    array(
+      ’title’ => $post[’Post’][’title’],
+      ’link’ => $postLink,
+      ’guid’ => array(’url’ => $postLink, ’isPermaLink’ => ’true’),
+      ’description’ => $bodyText,
+      ’pubDate’ => $post[’Post’][’created’]
+    )
+  );
+}
+
+SEGUIR(183/203)
