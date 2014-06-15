@@ -5474,10 +5474,11 @@ index.ctp dentro de esa carpeta. Los contenidos del archivo están abajo.
 
 View 
 ....
-Our view, located at app/View/Posts/rss/index.ctp, begins by setting the
-$documentData and $channelData variables for the layout, these contain all the metadata for
-our RSS feed. This is done by using the View::set()‘ method which is analogous to the Controller::
-set() method. Here though we are passing the channel’s metadata back to the layout:
+Nuestra vista, ubicada en app/View/Posts/rss/index.ctp, comienza fijando las 
+variables $documentData y $channelData para el layout, estas contienen toda la
+metadata para nuestra alimentación RSS. Esto es hecho usando el método View::set()
+que es análogo al método Controller::set(). Aquí se está pasando la metadata del
+canal de vuelta al layout:
 
 $this->set(’channelData’, 
   array(
@@ -5488,17 +5489,21 @@ $this->set(’channelData’,
   )
 );
 
-The second part of the view generates the elements for the actual records of the feed. This is accomplished
-by looping through the data that has been passed to the view ($items) and using the RssHelper::item()
-method. The other method you can use, RssHelper::items() which takes a callback and an array
-of items for the feed. (The method I have seen used for the callback has always been called
-transformRss(). There is one downfall to this method, which is that you cannot use any of the other
-helper classes to prepare your data inside the callback method because the scope inside the method does not
-include anything that is not passed inside, thus not giving access to the TimeHelper or any other helper that
-you may need. The RssHelper::item() transforms the associative array into an element for each key
-value pair.
+La segunda parte de la vista genera los elementos para los registros actuales de
+la alimentación. Esto se cumple con un bucle a través de los datos que han sido
+pasadas a la vista ($items) y usando el método RssHelper::item(). El otro método
+que puede usar, RssHelper::items() el que toma un callback y un array de items
+para la alimentación (El método que he visto usarse para el callback ha sido
+siempre llamado transformRss()). Hay un inconveniente para este método, que es 
+que uno no puede usar cualquiera de las otras clases helper para preparar sus
+datos dentro del método callback debido a que el ámbito dentro del método no
+incluye nada que no se le pase dentro, debido a que el ámbito dentro del método
+no incluye nada que no se pase dentro, así no dando acceso al TimeHelper ó 
+cualquier otro helper que uno puede necesitar. RssHelper::item() transforma el 
+array asociativo en un elemento para cada par clave-valor.
 
-Note: You will need to modify the $postLink variable as appropriate to your application.
+Nota: Necesitará modificar la variable $postLink como sea apropiado para su 
+aplicación.
 
 foreach ($posts as $post) {
   $postTime = strtotime($post[’Post’][’created’]);
@@ -5533,4 +5538,505 @@ foreach ($posts as $post) {
   );
 }
 
-SEGUIR(183/203)
+De arriba podemos usar el bucle para preparar los datos a ser transformados en 
+elementos XML. Hay que filtrar cualquiera de los caracteres de texto no planos
+fuera de la descripción, especialmente si uno está usando un editor de texto
+rico para el cuerpo de su blog. En el código de arriba usamos  strip_tags() y h()
+para quitar/escapar cualquiera de los caracteres especiales XML del contenido,
+ya que estos podrían causar errores de validación. Una vez que hemos configurado
+los datos para la alimentación, podemos usar el método RssHelper::item() para 
+crear el XML en formato RSS. Hecha toda esta configuración, puede testear su
+alimentación RSS yendo a su sitio /posts/index.rss y uno verá su nueva alimentación.
+Hay que validar su alimentación RSS antes de hacerla vivir. Esto puede hacerse
+visitando sitios que validan el XML tales como Feed Validator ó el sitio w3c
+en http://validator.w3.org/feed/.
+
+Nota: Puede necesitar fijar el valor de ‘debug’ en su configuración núcleo a 1 ó
+a 0 para obtener una alimentación válida, ya que la variada información de debug
+agregada automáticamente bajo configuraciones de debug más altas que rompen la
+sintaxis XML ó reglas de validación de alimentación.
+
+API Rss Helper 
+--------------
+
+Propiedad RssHelper::$action
+............................
+Acción actual.
+
+Propiedad RssHelper::$base
+..........................
+URL base.
+
+Propiedad RssHelper::$data
+..........................
+Datos de modelo POSTed.
+
+Propiedad RssHelper::$field
+...........................
+Nombre del campo actual.
+
+Propiedad RssHelper::$helpers
+.............................
+Helpers utilizados por el RSS Helper.
+
+Propiedad RssHelper::$here
+..........................
+URL a la acción actual.
+
+Propiedad RssHelper::$model
+...........................
+Nombre del modelo actual.
+
+Propiedad RssHelper::$params
+............................
+Array de parámetro.
+
+property RssHelper::$version
+............................
+Versión de especificación por defecto del RSS generado.
+
+RssHelper::channel(array $attrib = array (), array $elements = array (), mixed $content = null)
+...............................................................................................
+Tipo de retorno string.
+Retorna un elemento RSS <channel />.
+
+RssHelper::document(array $attrib = array (), string $content = null)
+.....................................................................
+Tipo de retorno string.
+Retorna un documento RSS envuelto en etiquetas <rss />.
+
+RssHelper::elem(string $name, array $attrib = array (), mixed $content = null, boolean $endTag = true)
+......................................................................................................
+Tipo de retorno string.
+Genera un elemento XML.
+
+RssHelper::item(array $att = array (), array $elements = array ())
+..................................................................
+Tipo de retorno string.
+Convierte un array en un elemento <item /> y sus contenidos.
+
+RssHelper::items(array $items, mixed $callback = null)
+......................................................
+Tipo de retorno string.
+Transforma un array de datos usando un callback opcional, y lo mapea a un set de
+etiquetas <item />.
+
+RssHelper::time(mixed $time)
+............................
+Tipo de retorno string.
+Convierte un tiempo en cualquier formato a un tiempo RSS. Ver TimeHelper::toRSS().
+
+SessionHelper
+-------------
+
+class SessionHelper(View $view, array $settings = array())
+..........................................................
+Como su contraparte natural al Session Component, el Session Helper replica la 
+mayoría de la funcionalidad de los componentes y los hace disponible en su vista.
+
+La mayor diferencia entre el Session Helper y el Session Component es que el helper
+no tiene la habilidad de escribir a la sesión.
+
+Como con el Session Component, los datos son leídos usando estructuras de array
+con notación de '.':
+
+array(’User’ => 
+  array(
+    ’username’ => ’super@example.com’
+  )
+);
+
+Dada la estructura de array previa, el nodo sería accedido por User.username, con
+el '.' indicando el array anidado. Esta notación se usa para todos los métodos
+Session helper donde sea que se use $key.
+
+SessionHelper::read(string $key)
+................................
+Tipo de retorno mixed.
+Lectura desde la sesión. Retorna un string ó array dependiendo de los contenidos
+de la sesión.
+
+SessionHelper::check(string $key)
+.................................
+Tipo de retorno boolean.
+Chequea para ver si una clave está en la Session. Retorna un boolean en la 
+existencia de la clave.
+
+SessionHelper::error()
+......................
+Tipo de retorno string.
+Retorna el último error encontrado en una sesión.
+
+SessionHelper::valid()
+......................
+Tipo de retorno boolean.
+Usado para chequear si una sesión es válida en una vista.
+
+Exhibir notificaciones ó mensajes flash
+---------------------------------------
+
+SessionHelper::flash(string $key = ‘flash’, array $params = array())
+....................................................................
+Tipo de retorno string.
+
+Como se explicó al Crear mensajes de notificación uno puede crear notificaciones
+de un-tiempo para feedback. Después de crear mensajes con SessionComponent::setFlash()
+uno querrá exhibirlos. Exhibido el mensaje, este será quitado y no se mostrará 
+de nuevo:
+
+echo $this->Session->flash();
+
+Lo de arriba producirá un único mensaje, con el siguiente HTML:
+
+<div id="flashMessage" class="message">
+  Your stuff has been saved.
+</div>
+
+Como con el método component uno puede fijar propiedades adicionales y personalizar
+que elemento se usa. En el controlador puede tener código como:
+
+// in a controller
+$this->Session->setFlash(’The user could not be deleted.’);
+
+Al producir este mensaje, puede elegir el elemento usado para exhibir este mensaje:
+
+// in a layout.
+echo $this->Session->flash(’flash’, array(’element’ => ’failure’));
+
+Este usaría View/Elements/failure.ctp para renderizar el mensaje. El texto de 
+mensaje estaría disponible como $message en el elemento.
+
+Dentro del archivo elemento de falla sería algo como:
+
+<div class="flash flash-failure">
+  <?php echo h($message); ?>
+</div>
+
+Puede también pasar parámetros adicionales dentro del método flash(), que le permite
+generar mensajes personalizados:
+
+// In the controller
+$this->Session->setFlash(’Thanks for your payment.’);
+
+// In the layout.
+echo $this->Session->flash(’flash’, 
+  array(
+    ’params’ => array(’name’ => $user[’User’][’name’])
+    ’element’ => ’payment’
+  )
+);
+
+// View/Elements/payment.ctp
+<div class="flash payment">
+  <?php printf($message, h($name)); ?>
+</div>
+
+Nota: Por defecto CakePHP no hace escape HTML de mensajes flash. Si uno está usando
+cualquier petición ó datos de usuario en sus mensajes flash uno debería escaparlo
+con h al formatear sus mensajes.
+
+TextHelper
+----------
+class TextHelper(View $view, array $settings = array())
+.......................................................
+TextHelper auxilia en habilitar enlaces, formatear URL's, crear extractos (excerpts)
+de texto alrededor de frases ó palabras elegidas, resaltando (highlighting) palabras
+clave en bloques de texto, y truncando exitosamente largos tramos (stretches) de texto.
+
+Cambiado en v.2.1: Varios de los métodos TextHelper han sido movidos dentro de la
+clase String para permitir un uso más fácil fuera de la capa View. Dentro de una
+vista, estos métodos son accesibles vía la clase TextHelper y puede llamarla
+como si llamara a un método helper normal: $this->Text->method($args);.
+
+TextHelper::autoLinkEmails(string $text, array $options=array())
+................................................................
+
+Parámetros
+..........
+• $text (string): El texto a convertir.
+
+• $options (array): Un array de atributos html para los enlaces generados.
+
+Agrega enlaces a las direcciones de e-mail bien formadas en $text, de acuerdo a
+cualquiera de las opciones definidas en $htmlOptions (ver HtmlHelper::link()).:
+
+$myText = ’For more information regarding our world-famous ’ .
+  ’pastries and desserts, contact info@example.com’;
+$linkedText = $this->Text->autoLinkEmails($myText);
+
+Produce:
+
+For more information regarding our world-famous pastries and desserts,
+contact <a href="mailto:info@example.com">info@example.com</a>
+
+En v.2.1 este método escapa su input automáticamente. Usar la opción escape
+para inhabilitar esto si es necesario.
+
+TextHelper::autoLinkUrls(string $text, array $htmlOptions=array())
+..................................................................
+
+Parámetros
+..........
+• $text (string): El texto a convertir.
+• $htmlOptions (array): Un array de atributos html para los enlaces generados.
+
+Como en autoLinkEmails(), este método sólo busca strings que arrancan con https,
+http, ftp, ó nntp y enlazarlos apropiadamente.
+
+En v.2.1 este método escapa automáticamente su input. Usar la opción escape 
+para inhabilitar esto si es necesario.
+
+TextHelper::autoLink(string $text, array $htmlOptions=array())
+..............................................................
+
+Parámetros
+..........
+• $text (string): El texto autolink.
+• $htmlOptions (array): Un array de atributos html para los enlaces generados.
+
+Realiza la funcionalidad en ambos autoLinkUrls() y autoLinkEmails() en el $text
+suministrado. Todas las URLs y e-mails son enlazados apropiadamente dado el 
+$htmlOptions suministrado.  
+
+En v.2.1 este método escapa su input automáticamente. Usar la opción escape 
+para inhabilitarlo si es necesario.
+
+TextHelper::autoParagraph(string $text)
+.......................................
+
+Parámetros
+..........
+• $text (string): El texto a convertir.
+
+Agrega el <p> apropiado alrededor del texto donde retorna doble-línea y <br>
+donde retorna única-linea son hallados:
+ 
+$myText = ’For more information
+regarding our world-famous pastries and desserts.
+contact info@example.com’;
+$formattedText = $this->Text->autoParagraph($myText);
+
+Produce:
+
+<p>For more information<br />
+regarding our world-famous pastries and desserts.<p>
+<p>contact info@example.com</p>
+
+Nuevo en v.2.4.
+
+TextHelper::highlight(string $haystack, string $needle, array $options = array())
+.................................................................................
+Parámetros
+..........
+• $haystack (string): El string a buscar.
+• $needle (string): El string a hallar.
+• $options (array): Un array de opciones, ver abajo.
+
+Resalta $needle en $haystack usando el string $options[’format’] especificado ó un
+string por defecto.
+
+Opciones:
+
+• ‘format’ - string: La pieza de HTML con la que la frase será resaltada.
+• ‘html’ - bool: Si es true, ignorará cualquiera de las etiquetas HTML, asegurándose
+  que se resalte sólo el texto correcto.
+
+Ejemplo:
+
+// called as TextHelper
+echo $this->Text->highlight(
+  $lastSentence,
+  ’using’,
+  array(’format’ => ’<span class="highlight">\1</span>’)
+);
+
+// called as String
+App::uses(’String’, ’Utility’);
+echo String::highlight(
+  $lastSentence,
+  ’using’,
+  array(’format’ => ’<span class="highlight">\1</span>’)
+);
+
+Produce:
+
+Highlights $needle in $haystack <span class="highlight">using</span>
+the $options[’format’] string specified or a default string.
+
+TextHelper::stripLinks($text)
+.............................
+Desnuda (Strips) el $text suministrado de cualquiera de los enlaces HTML.
+
+TextHelper::truncate(string $text, int $length=100, array $options)
+...................................................................
+Parámetros
+..........
+
+• $text (string): El texto a truncar.
+• $length (int): La longitud a recortar (trim).
+• $options (array): Un array de opciones a usar.
+
+Corta un string a $length y agrega un sufijo con ’ellipsis’ si el texto es más
+largo que $length. Si ’exact’ se pasa como false, el truncado ocurrirá después
+que termine la palabra siguiente. Si ’html’ es pasado como true, las etiquetas
+HTML serán respetadas y no se cortarán (cut off).
+
+$options se usa para pasar todos los parámetros extra, y tiene las siguientes
+claves posibles por defecto, todas ellas opcionales:
+
+array(
+  ’ellipsis’ => ’...’,
+  ’exact’ => true,
+  ’html’ => false
+)
+
+Ejemplo:
+
+// called as TextHelper
+echo $this->Text->truncate(
+  ’The killer crept forward and tripped on the rug.’,
+  22,
+  array(
+    ’ellipsis’ => ’...’,
+    ’exact’ => false
+  )
+);
+
+// called as String
+App::uses(’String’, ’Utility’);
+echo String::truncate(
+  ’The killer crept forward and tripped on the rug.’,
+  22,
+  array(
+    ’ellipsis’ => ’...’,
+    ’exact’ => false
+  )
+);
+
+Produce:
+
+The killer crept...
+
+En v.2.3: ending ha sido reemplazado por ellipsis.
+
+TextHelper::tail(string $text, int $length=100, array $options)
+...............................................................
+
+Parámetros
+..........
+• $text (string): El texto a truncar.
+• $length (int): La longitud a recortar (trim).
+• $options (array): Un array de opciones a usar.
+
+Corta un string al $length y agrega un prefijo con ’ellipsis’ si el texto es más
+largo que $length. Si ’exact’ es pasado como false, el truncado ocurrirá antes
+que la finalización de la siguiente palabra.    
+
+$options se usa para pasar todos los parámetros extra, y tiene por defecto las
+siguientes claves posibles, todas ellas opcionales:
+
+array(
+  ’ellipsis’ => ’...’,
+  ’exact’ => true
+)
+
+Nuevo en v.2.3.
+
+Ejemplo:
+
+$sampleText = ’I packed my bag and in it I put a PSP, a PS3, a TV, ’ .
+’a C# program that can divide by zero, death metal t-shirts’
+
+// called as TextHelper
+echo $this->Text->tail(
+  $sampleText,
+  70,
+  array(
+    ’ellipsis’ => ’...’,
+    ’exact’ => false
+  )
+);
+
+// called as String
+App::uses(’String’, ’Utility’);
+echo String::tail(
+  $sampleText,
+  70,
+  array(
+    ’ellipsis’ => ’...’,
+    ’exact’ => false
+  )
+);
+
+Produce:
+
+...a TV, a C# program that can divide by zero, death metal t-shirts
+
+TextHelper::excerpt(string $haystack, string $needle, integer $radius=100, string $ellipsis=”...”)
+..................................................................................................
+Parámetros
+..........
+• $haystack (string): El string a buscar.
+• $needle (string): El string a extraer (excerpt).
+• $radius (int): El número de caracteres en cada lado de $needle que uno quiere incluir.
+• $ellipsis (string): Texto a anexar/preanexar (append/prepend) al principio ó
+  fin del resultado.
+
+Extrae un extracto (excerpt) desde $haystack rodeando el $needle con un número de
+caracteres en cada lado determinado por $radius, y prefijo/sufijo con $ellipsis.
+Método útil para resultados de búsqueda. Las palabras clave (keywords) ó query
+strings pueden mostrarse dentro del documento resultante:
+
+// called as TextHelper
+echo $this->Text->excerpt($lastParagraph, ’method’, 50, ’...’);
+
+// called as String
+App::uses(’String’, ’Utility’);
+echo String::excerpt($lastParagraph, ’method’, 50, ’...’);
+
+Produce:
+
+... by $radius, and prefix/suffix with $ellipsis. This method is
+especially handy for search results. The query...
+
+TextHelper::toList(array $list, $and=’and’)
+...........................................
+Parámetros
+..........
+• $list (array): Array de elementos a combinar dentro de una sentencia de lista.
+• $and (string): La palabra usada para el último join.
+
+Crea una lista separada por comas donde los 2 últimos items son unidos con ‘and’.:
+
+// called as TextHelper
+echo $this->Text->toList($colors);
+
+// called as String
+App::uses(’String’, ’Utility’);
+echo String::toList($colors);
+
+Produce:
+
+red, orange, yellow, green, blue, indigo and violet
+
+TimeHelper
+----------
+class TimeHelper(View $view, array $settings = array())
+The Time Helper does what it says on the tin: saves you time. It allows for the quick processing of time
+related information. The Time Helper has two main tasks that it can perform:
+1. It can format time strings.
+2. It can test time (but cannot bend time, sorry).
+Changed in version 2.1: TimeHelper has been refactored into the CakeTime class to allow easier use
+outside of the View layer. Within a view, these methods are accessible via the TimeHelper class and you
+can call it as you would call a normal helper method: $this->Time->method($args);.
+Using the Helper
+A common use of the Time Helper is to offset the date and time to match a user’s time zone. Lets use a
+forum as an example. Your forum has many users who may post messages at any time from any part of the
+world. An easy way to manage the time is to save all dates and times as GMT+0 or UTC. Uncomment the
+line date_default_timezone_set(’UTC’); in app/Config/core.php to ensure your application’s
+time zone is set to GMT+0.
+Next add a time zone field to your users table and make the necessary modifications to allow your users to
+set their time zone. Now that we know the time zone of the logged in user we can correct the date and time
+on our posts using the Time Helper:
+
+SEGUIR(190/203)
