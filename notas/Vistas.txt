@@ -6022,21 +6022,233 @@ red, orange, yellow, green, blue, indigo and violet
 TimeHelper
 ----------
 class TimeHelper(View $view, array $settings = array())
-The Time Helper does what it says on the tin: saves you time. It allows for the quick processing of time
-related information. The Time Helper has two main tasks that it can perform:
-1. It can format time strings.
-2. It can test time (but cannot bend time, sorry).
-Changed in version 2.1: TimeHelper has been refactored into the CakeTime class to allow easier use
-outside of the View layer. Within a view, these methods are accessible via the TimeHelper class and you
-can call it as you would call a normal helper method: $this->Time->method($args);.
-Using the Helper
-A common use of the Time Helper is to offset the date and time to match a user’s time zone. Lets use a
-forum as an example. Your forum has many users who may post messages at any time from any part of the
-world. An easy way to manage the time is to save all dates and times as GMT+0 or UTC. Uncomment the
-line date_default_timezone_set(’UTC’); in app/Config/core.php to ensure your application’s
-time zone is set to GMT+0.
-Next add a time zone field to your users table and make the necessary modifications to allow your users to
-set their time zone. Now that we know the time zone of the logged in user we can correct the date and time
-on our posts using the Time Helper:
+.......................................................
+El Time Helper ahorra su tiempo. Esto permite el procesamiento rápido de información
+relacionada al tiempo. Time Helper tiene 2 tareas principales:
 
-SEGUIR(190/203)
+1. Puede formatear strings de tiempo.
+2. Puede testear tiempo.
+
+Cambiado en v.2.1: TimeHelper ha sido refactorizado dentro de la clase CakeTime 
+para uso más fácil fuera de la capa View. Dentro de una vista, estos métodos son
+accesibles vía la clase TimeHelper y uno puede llamarla como llamaría a un método
+helper normal: $this->Time->method($args);.
+
+Usar el Helper
+--------------
+Un uso común del Time Helper es desfasar (offset) fecha y hora para coincidir con
+una zona de tiempo de usuario. Se va a usar un foro como ejemplo. Su foro tiene
+varios usuarios quienes pueden postear mensajes a cualquier tiempo desde cualquier
+parte del mundo. Una forma de manejar el tiempo es guardar todos las fechas y 
+horas como GMT+0 ó UTC. Descomentar la línea date_default_timezone_set(’UTC’); en 
+app/Config/core.php para asegurarse que la zona de tiempo (time zone) de su 
+aplicación se fije a GMT+0.
+
+Primero agregar un campo time zone a su tabla users y haga la modificaciones 
+necesarias para permitir a los usuarios fijar sus time zone. Ahora que se sabe el
+time zone del usuario logueado podemos corregir la fecha y hora en nuestros posts
+usando el Time Helper:
+
+echo $this->Time->format(
+  ’F jS, Y h:i A’,
+  $post[’Post’][’created’],
+  null,
+  $user[’User’][’time_zone’]
+);
+// Will display August 22nd, 2011 11:53 PM for a user in GMT+0
+// August 22nd, 2011 03:53 PM for a user in GMT-8
+// and August 23rd, 2011 09:53 AM GMT+10
+
+La mayoría de los métodos Time Helper tienen un parámetro $timezone. El parámetro
+$timezone acepta un string identificador de timezone válido ó una instancia de la
+clase DateTimeZone.
+
+Formateo
+--------
+TimeHelper::convert($serverTime, $timezone = NULL)
+..................................................
+Retorna tipo integer.
+
+Convierte un tiempo dado (en time zone del servidor) al tiempo local del usuario,
+dado su timezone:
+
+// called via TimeHelper
+echo $this->Time->convert(time(), ’Asia/Jakarta’);
+
+// 1321038036
+// called as CakeTime
+App::uses(’CakeTime’, ’Utility’);
+echo CakeTime::convert(time(), new DateTimeZone(’Asia/Jakarta’));
+
+Cambiado en v.2.2: el parámetro $timezone reemplaza el parámetro $userOffset usado
+en 2.1 y más bajo.
+
+TimeHelper::convertSpecifiers($format, $time = NULL)
+....................................................
+Retorna un tipo string.
+
+Convierte un string representando el formato para la función strftime y retorna
+un formato windows safe y consciente de i18n.
+
+TimeHelper::dayAsSql($dateString, $field_name, $timezone = NULL)
+................................................................
+Retorna un tipo string.
+
+Crea un string en el mismo formato que daysAsSql pero sólo necesita un único objeto
+date:
+
+// called via TimeHelper
+echo $this->Time->dayAsSql(’Aug 22, 2011’, ’modified’);
+// (modified >= ’2011-08-22 00:00:00’) AND
+// (modified <= ’2011-08-22 23:59:59’)
+
+// called as CakeTime
+App::uses(’CakeTime’, ’Utility’);
+echo CakeTime::dayAsSql(’Aug 22, 2011’, ’modified’);
+
+Cambiado en v.2.2: el parámetro  $timezone reemplaza al parámetro $userOffset usado
+en v.2.1 y más abajo.
+
+Nuevo en v.2.2: el parámetro $dateString acepta ahora un objeto DateTime.
+
+TimeHelper::daysAsSql($begin, $end, $fieldName, $timezone = NULL)
+.................................................................
+Retorna un tipo string.
+
+Retorna un string en el formato “($field_name >= ‘2008-01-21 00:00:00’) AND 
+($field_name <= ‘2008- 01-25 23:59:59’)”. Útil si necesita buscar los registros 
+entre 2 fechas de forma inclusiva:
+
+// called via TimeHelper
+echo $this->Time->daysAsSql(’Aug 22, 2011’, ’Aug 25, 2011’, ’created’);
+// (created >= ’2011-08-22 00:00:00’) AND
+// (created <= ’2011-08-25 23:59:59’)
+
+// called as CakeTime
+App::uses(’CakeTime’, ’Utility’);
+echo CakeTime::daysAsSql(’Aug 22, 2011’, ’Aug 25, 2011’, ’created’);
+
+Cambiado en v.2.2: el parámetro $timezone reemplaza el parámetro $userOffset usado
+en 2.1 y más abajo.
+
+Nuevo en v.2.2: el parámetro $dateString ahora acepta un objeto DateTime.
+
+TimeHelper::format($date, $format = NULL, $default = false, $timezone = NULL)
+.............................................................................
+Retorna un tipo string.
+
+Retornará un string formateado al formato dado usando las opciones de formateo 
+de PHP strftime():
+
+// called via TimeHelper
+echo $this->Time->format(’2011-08-22 11:53:00’, ’%B %e, %Y %H:%M %p’);
+// August 22, 2011 11:53 AM
+
+echo $this->Time->format(’+2 days’, ’%c’);
+// 2 days from now formatted as Sun, 13 Nov 2011 03:36:10 AM EET
+
+// called as CakeTime
+App::uses(’CakeTime’, ’Utility’);
+echo CakeTime::format(’2011-08-22 11:53:00’, ’%B %e, %Y %H:%M %p’);
+echo CakeTime::format(’+2 days’, ’%c’);
+
+Puede también proveer la fecha/hora como el 1er argumento. Al hacer esto uno
+debería usar el formato compatible strftime. Esta firma de llamada le permite
+impulsar formateo de fecha consciente de locale que no es posible usando el 
+formateo compatible de date():
+
+// called via TimeHelper
+echo $this->Time->format(’2012-01-13’, ’%d-%m-%Y’, ’invalid’);
+
+// called as CakeTime
+App::uses(’CakeTime’, ’Utility’);
+echo CakeTime::format(’2011-08-22’, ’%d-%m-%Y’);
+
+Cambiado en v2.2: los parámetros $format y $date están en orden opuesto que los
+usados en v.2.1 y más abajo. El parámetro $timezone reemplaza el parámetro
+$userOffset usado en v.2.1 y más abajo. El parámetro $default reemplaza el 
+parámetro $invalid usado en v.2.1 y más abajo.
+
+Nuevo en v.2.2: El parámetro $date ahora acepta un objeto DateTime.
+
+TimeHelper::fromString($dateString, $timezone = NULL)
+.....................................................
+
+Return type string
+
+Takes a string and uses strtotime6 to convert it into a date integer:
+
+// called via TimeHelper
+echo $this->Time->fromString(’Aug 22, 2011’);
+// 1313971200
+
+echo $this->Time->fromString(’+1 days’);
+// 1321074066 (+1 day from current date)
+// called as CakeTime
+App::uses(’CakeTime’, ’Utility’);
+echo CakeTime::fromString(’Aug 22, 2011’);
+echo CakeTime::fromString(’+1 days’);
+
+Changed in version 2.2: $timezone parameter replaces $userOffset parameter used in 2.1 and
+below.
+
+New in version 2.2: $dateString parameter now also accepts a DateTime object.
+
+TimeHelper::gmt($dateString = NULL)
+...................................
+Return type integer
+Will return the date as an integer set to Greenwich Mean Time (GMT).:
+// called via TimeHelper
+echo $this->Time->gmt(’Aug 22, 2011’);
+// 1313971200
+// called as CakeTime
+App::uses(’CakeTime’, ’Utility’);
+echo CakeTime::gmt(’Aug 22, 2011’);
+TimeHelper::i18nFormat($date, $format = NULL, $invalid = false, $timezone = NULL)
+Return type string
+Returns a formatted date string, given either a UNIX timestamp or a valid strtotime() date string. It
+take in account the default date format for the current language if a LC_TIME file is used. For more
+info about LC_TIME file check here.
+Changed in version 2.2: $timezone parameter replaces $userOffset parameter used in 2.1 and
+below.
+TimeHelper::nice($dateString = NULL, $timezone = NULL, $format = null)
+Return type string
+Takes a date string and outputs it in the format “Tue, Jan 1st 2008, 19:25” or as per optional $format
+param passed:
+// called via TimeHelper
+echo $this->Time->nice(’2011-08-22 11:53:00’);
+// Mon, Aug 22nd 2011, 11:53
+// called as CakeTime
+App::uses(’CakeTime’, ’Utility’);
+echo CakeTime::nice(’2011-08-22 11:53:00’);
+TimeHelper::niceShort($dateString = NULL, $timezone = NULL)
+Return type string
+Takes a date string and outputs it in the format “Jan 1st 2008, 19:25”. If the date object is today, the
+format will be “Today, 19:25”. If the date object is yesterday, the format will be “Yesterday, 19:25”:
+// called via TimeHelper
+echo $this->Time->niceShort(’2011-08-22 11:53:00’);
+// Aug 22nd, 11:53
+// called as CakeTime
+App::uses(’CakeTime’, ’Utility’);
+echo CakeTime::niceShort(’2011-08-22 11:53:00’);
+Changed in version 2.2: $timezone parameter replaces $userOffset parameter used in 2.1 and
+below.
+New in version 2.2: $dateString parameter now also accepts a DateTime object.
+TimeHelper::serverOffset()
+Return type integer
+Returns server’s offset from GMT in seconds.
+TimeHelper::timeAgoInWords($dateString, $options = array())
+Return type string
+Will take a datetime string (anything that is parsable by PHP’s strtotime() function or MySQL’s datetime
+format) and convert it into a friendly word format like, “3 weeks, 3 days ago”:
+// called via TimeHelper
+echo $this->Time->timeAgoInWords(’Aug 22, 2011’);
+// on 22/8/11
+// on August 22nd, 2011
+echo $this->Time->timeAgoInWords(
+’Aug 22, 2011’,
+array(’format’ => ’F jS, Y’)
+);
+// called as CakeTime
+
+SEGUIR(196/203)
