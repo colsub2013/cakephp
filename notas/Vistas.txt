@@ -6390,7 +6390,116 @@ Nuevo en v.2.2: Retorna un date formateado en el timezone del servidor.
 TimeHelper::timezone($timezone = NULL)
 ......................................
 Retorno de tipo DateTimeZone.
- 
 
+Nuevo en v.2.2: Retorna un objeto timezone desde un string ó el objeto timezone
+del usuario. Si la función es llamada sin ningún parámetro este intenta obtener
+un timezone desde la variable de configuración ‘Config.timezone’.
 
-SEGUIR(198/203)
+TimeHelper::listTimezones($filter = null, $country = null, $group = true)                                     
+.........................................................................
+Retorno de tipo array.                   
+
+Nuevo en v.2.2: Retorna una lista de identificadores de timezone.
+                                     
+Testing Time
+''''''''''''
+TimeHelper::isToday($dateString, $timezone = NULL)
+
+TimeHelper::isThisWeek($dateString, $timezone = NULL)
+
+TimeHelper::isThisMonth($dateString, $timezone = NULL)
+
+TimeHelper::isThisYear($dateString, $timezone = NULL)
+
+TimeHelper::wasYesterday($dateString, $timezone = NULL)
+
+TimeHelper::isTomorrow($dateString, $timezone = NULL)
+
+TimeHelper::isFuture($dateString, $timezone = NULL)
+Nuevo en v.2.4.
+
+TimeHelper::isPast($dateString, $timezone = NULL)
+Nuevo en v.2.4.
+
+TimeHelper::wasWithinLast($timeInterval, $dateString, $timezone = NULL)
+Cambiado en v.2.2: el parámetro $timezone reemplaza al parámetro $userOffset usado
+en v.2.1 y anterior.
+  
+Nuevo en v.2.2: el parámetro $dateString ahora acepta un objeto DateTime.
+
+Todas las funciones de arriba retornan true ó false cuando se le pasen un date string.
+wasWithinLast toma una opción $timeInterval adicional:
+
+// called via TimeHelper
+$this->Time->wasWithinLast($timeInterval, $dateString);
+
+// called as CakeTime
+App::uses(’CakeTime’, ’Utility’);
+CakeTime::wasWithinLast($timeInterval, $dateString);
+
+wasWithinLast takes a time interval which is a string in the format “3 months” and accepts a time
+interval of seconds, minutes, hours, days, weeks, months and years (plural and not). If a time interval
+is not recognized (for example, if it is mistyped) then it will default to days.
+
+Usar y configurar Helpers
+'''''''''''''''''''''''''
+Uno habilita a helpers en CakePHP haciendo a un controlador consciente de ellos.
+Cada controlador tiene una propiedad $helpers que lista a los helpers a estar
+disponibles en la vista. Para habilitar un helper en su vista, agregar el nombre
+del helper al array $helpers del controlador:
+
+class BakeriesController extends AppController {
+  public $helpers = array(’Form’, ’Html’, ’Js’, ’Time’);
+}
+
+Agregar helpers desde plugins usa la sintaxis plugin usada en cualquier otro lado
+en CakePHP:
+
+class BakeriesController extends AppController {
+  public $helpers = array(’Blog.Comment’);
+}
+
+Puede también agregar helpers desde dentro de una acción, así ellos solo estarán
+disponibles a esa acción y no a otras acciones en el controlador. Esto ahorra 
+potencia de procesamiento para las otras acciones que no usan el helper así como
+ayuda a mantenerlo más organizado:
+
+class BakeriesController extends AppController {
+  public function bake() {
+    $this->helpers[] = ’Time’;
+  }
+  public function mix() {
+    // The Time helper is not loaded here and thus not available
+  }
+}
+
+Si necesita habilitar un helper para todos los controladores agregue el nombre del
+helper al array $helpers en /app/Controller/AppController.php (ó crearlo si no
+está presente). Recuerde incluir el Html por defecto y helpers de Form:
+
+class AppController extends Controller {
+  public $helpers = array(’Form’, ’Html’, ’Js’, ’Time’);
+}
+
+Puede pasar opciones a helpers. Estas opciones pueden usarse para fijar valores
+de atributo ó modificar el comportamiento de un helper:
+
+class AwesomeHelper extends AppHelper {
+  public function __construct(View $view, $settings = array()) {
+    parent::__construct($view, $settings);
+    debug($settings);
+  }
+}
+
+class AwesomeController extends AppController {
+  public $helpers = array(’Awesome’ => array(’option1’ => ’value1’));
+}
+
+Como en v.2.3 las opciones son mergeadas con la propiedad Helper::$settings del
+helper.
+
+Un ajuste común a usar es la opción className, que le permite crear helpers alias
+en sus vistas. Esta característica es útil cunado uno quiere reemplazar $this->Html
+ú otra referencia Helper común con una implementación personalizada:
+
+SEGUIR(200/203)    
