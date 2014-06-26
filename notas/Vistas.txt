@@ -6502,4 +6502,178 @@ Un ajuste común a usar es la opción className, que le permite crear helpers alia
 en sus vistas. Esta característica es útil cunado uno quiere reemplazar $this->Html
 ú otra referencia Helper común con una implementación personalizada:
 
-SEGUIR(200/203)    
+// app/Controller/PostsController.php
+class PostsController extends AppController {
+  public $helpers = array(
+    ’Html’ => array(
+      ’className’ => ’MyHtml’
+    )
+  );
+}
+
+// app/View/Helper/MyHtmlHelper.php
+App::uses(’HtmlHelper’, ’View/Helper’);
+class MyHtmlHelper extends HtmlHelper {
+  // Add your code to override the core HtmlHelper
+}
+
+Lo de arriba haría de alias MyHtmlHelper a $this->Html en sus vistas.
+
+Note: Hacer alias de un helper reemplaza esa instancia en cualquier lado que se 
+use el helper, incluyendo dentro de otros helpers.
+
+Usar ajustes (settings) de helper le permiten configurar declarativamente sus
+helpers y mantener la lógica de configuración fuera de sus acciones controlador.
+Si tiene opciones de configuración que no pueden ser incluidas como parte de una
+declaración de clase, puede fijar aquellas en su callback beforeRender de su 
+controlador:
+
+class PostsController extends AppController {
+  public function beforeRender() {
+    parent::beforeRender();
+    $this->helpers[’CustomStuff’] = $this->_getCustomStuffSettings();
+  }
+}
+
+Usar Helpers
+............
+Configurado que helpers usar en su controlador, cada helper se expone como una
+propiedad pública en la vista. Ej.: si estuviese usando HtmlHelper debería ser
+capaz de accederlo haciendo lo siguiente:
+
+echo $this->Html->css(’styles’);
+
+Lo de arriba llamaría al método css en el HtmlHelper. Puede acceder a cualquier
+helper cargado usando $this->{$helperName}. Puede llegarse el caso en que necesite
+cargar dinámicamente un helper desde dentro de una vista. Para hacer esto 
+puede usar HelperCollection de la vista:
+
+$mediaHelper = $this->Helpers->load(’Media’, $mediaSettings);
+
+HelperCollection es una colección y soporta la colección API usada en cualquier
+otro lado en CakePHP.
+
+Métodos Callback
+................
+Los Helpers ofrecen varios callbacks que le permiten aumentar el proceso de 
+renderizado de la vista.
+
+Crear Helpers
+.............
+Por ej. se quiere crear un helper que podría usarse para producir un enlace con
+estilo CSS diseñado específicamente para varios lugares diferentes en su aplicación. 
+Para hacer encajar su lógica para la estructura helper existente de CakePHP, 
+necesitará crear una clase nueva en /app/View/Helper. Se llamará a nuestro helper
+LinkHelper. El archivo de clase PHP actual lucirá como:
+
+/* /app/View/Helper/LinkHelper.php */
+App::uses(’AppHelper’, ’View/Helper’);
+
+class LinkHelper extends AppHelper {
+  public function makeEdit($title, $url) {
+    // Logic to create specially formatted link goes here...
+  }
+}
+
+Nota: Los Helpers deben extender ya sea AppHelper ó Helper ó implementar todos
+los callbacks en la API del Helper.
+
+Incluir otros Helpers
+.....................
+Puede querer usar alguna funcionalidad ya existente en otro helper. Para hacerlo,
+puede especificar los helpers a usar con el array $helpers, formateado justo como
+lo haría en un controlador:
+
+/* /app/View/Helper/LinkHelper.php (using other helpers) */
+App::uses(’AppHelper’, ’View/Helper’);
+class LinkHelper extends AppHelper {
+  public $helpers = array(’Html’);
+  public function makeEdit($title, $url) {
+    // Use the HTML helper to output
+    // formatted data:
+    $link = $this->Html->link($title, $url, array(’class’ => ’edit’));
+    return ’<div class="editOuter">’ . $link . ’</div>’;
+  }
+}
+
+Usar su Helper
+..............
+Creado su helper y puesto en /app/View/Helper/, será capaz de incluirlo en sus
+controladores usando la variable especial $helpers: 
+
+class PostsController extends AppController {
+  public $helpers = array(’Link’);
+}
+
+Consciente su controlador de esta nueva clase, puede usarlo en sus vistas 
+accediendo a un objeto nombrado después del helper:
+
+<!-- make a link using the new helper -->
+<?php echo $this->Link->makeEdit(’Change this Recipe’, ’/recipes/edit/5’); ?>
+
+Crear funcionalidad para todos los Helpers
+..........................................
+Todos los helpers extienden una clase especial AppHelper (tal como los models
+extienden AppModel y los controladores AppController). Para crear funcionalidad
+que estaría disponible para todos los helpers, crear
+/app/View/Helper/AppHelper.php:
+
+App::uses(’Helper’, ’View’);
+class AppHelper extends Helper {
+  public function customMethod() {
+  }
+}
+
+API Helper 
+----------
+
+clase Helper
+............
+Clase base para Helpers. Provee métodos de utilidad y características para cargar
+otros helpers.
+
+Helper::webroot($file)
+''''''''''''''''''''''
+Resuelve un nombre de archivo al webroot de la aplicación. Si un theme está 
+activo y el archivo existe en el webroot del theme actual, será retornada la ruta 
+al archivo themed.
+
+Helper::url($url, $full = false)
+Genera una URL escapada HTML, delega a Router::url().
+
+Helper::value($options = array(), $field = null, $key = ‘value’)
+Obtiene el valor para un nombre de input dado.
+
+Helper::domId($options = null, $id = ‘id’)
+Genera un valor de id CamelCased para el campo seleccionado actualmente. Redefinir
+este método en su AppHelper le permitirá cambiar como CakePHP genera atributos ID.
+
+Callbacks
+.........
+
+Helper::beforeRenderFile($viewFile)
+Llamada antes de que cada archivo de vista sea renderizado. Incluye elementos,
+vistas, vistas padres y layouts.
+
+Helper::afterRenderFile($viewFile, $content)
+Es llamado después de que cada archivo de vista es renderizado. Este incluye 
+elementos, vistas, vistas padre y layouts. Un callback puede modificar y retornar
+$content para cambiar como el contenido renderizado será exhibido en el navegador.
+
+Helper::beforeRender($viewFile)
+Es llamado después que el método beforeRender del controlador pero antes que el 
+controlador renderiza vista y layout. Recibe el archivo siendo renderizado como
+un argumento.
+
+Helper::afterRender($viewFile)
+Es llamado después que la vista ha sido renderizada pero antes que la renderización
+de layout se haya iniciado. 
+
+Helper::beforeLayout($layoutFile)
+Es llamado antes que se inicie la renderización del layout. Recibe el nombre de
+archivo de layout como un argumento.
+
+Helper::afterLayout($layoutFile)
+Es llamado después que el renderizado del layout se complete. Recibe el nombre
+de archivo layout como un argumento.
+  
