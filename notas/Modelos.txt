@@ -930,11 +930,11 @@ correcta para que la nueva asociación funcione de forma apropiada.
 
 Múltiples relaciones para el mismo modelo
 -----------------------------------------
-
-There are cases where a Model has more than one relation to another Model. For example, you might have
-a Message model that has two relations to the User model: one relation to the user who sends a message,
-and a second to the user who receives the message. The messages table will have a field user_id, but also a
-field recipient_id. Now your Message model can look something like:
+Hay casos donde un Model tiene más que una relación a otro Model. Ej.: Puede 
+tener un modelo Message que tiene 2 relaciones al modelo User: una relación al
+usuario quién envía el mensaje, y un segundo al usuario quién recibe el mensaje.
+La tabla de mensajes tendrá un campo user_id, pero también un campo recipient_id.
+Ahora su modelo Message puede lucir como:
 
 class Message extends AppModel {
   public $belongsTo = array(
@@ -949,7 +949,8 @@ class Message extends AppModel {
   );
 }
 
-Recipient is an alias for the User model. Now let’s see what the User model would look like:
+Recipient es un alias para el modelo User. Ahora veamos como luciría el modelo 
+User:
 
 class User extends AppModel {
   public $hasMany = array(
@@ -963,4 +964,170 @@ class User extends AppModel {
     )
   );
 }
-(223/336)
+
+Es también posible crear auto asociaciones como se muestra abajo:
+
+class Post extends AppModel {
+  public $belongsTo = array(
+    ’Parent’ => array(
+      ’className’ => ’Post’,
+      ’foreignKey’ => ’parent_id’
+    )
+  );
+
+  public $hasMany = array(
+    ’Children’ => array(
+      ’className’ => ’Post’,
+      ’foreignKey’ => ’parent_id’
+    )
+  );
+}
+
+Extraer un array anidado de registros asociados
+-----------------------------------------------
+Si su tabla tiene un campo parent_id, puede también usar find(‘threaded’) para 
+extraer un array anidado de registros usando una única consulta sin la puesta
+a punto de ninguna asociación.
+
+Unir (joining) de tablas
+........................
+En SQL, puede combinar tablas relacionadas usando la sentencia JOIN. Esto le 
+permite realizar búsquedas complejas a través de múltiples tablas (ej.: 
+buscar posts dadas varias etiquetas (tags)).
+
+En CakePHP, algunas asociaciones (belongsTo y hasOne) realizan joins de forma
+automática para recobrar datos, así uno puede emitir consultas para recobrar 
+modelos basados en datos en el relacionado.
+
+Pero este no es el caso con asociaciones hasMany y hasAndBelongsToMany. Para 
+solucionar esto hay que forzar joins. Uno sólo tiene que definir los joins 
+necesarios para combinar tablas y obtener los resultados deseados para su 
+consulta.
+
+Nota: Necesita fijar la recursión a -1 para que esto funcione:
+$this->Channel->recursive = -1;
+
+Para forzar un join entre tablas, necesita usar la sintaxis 'moderna' para
+Model::find(), agregando una clave 'joins' al array $options. Ej.:
+
+$options[’joins’] = array(
+  array(’table’ => ’channels’,
+    ’alias’ => ’Channel’,
+    ’type’ => ’LEFT’,
+    ’conditions’ => array(
+      ’Channel.id = Item.channel_id’,
+    )
+  )
+);
+$Item->find(’all’, $options);
+
+Note: Los arrays 'join' no tienen claves (keyed).
+
+En el ej. de arriba, a un modelo llamado Item se le hace un left join a la tabla
+channels. Puede hacer alias de la tabla con el nombre Model, así los datos
+recobrados cumplen con la estructura de datos de CakePHP.
+
+Las claves que definen el join son:
+
+• table: Tabla para el join.
+• alias: Alias a la tabla. El nombre del modelo asociado con la tabla es la 
+  mejor apuesta.
+• type: El tipo de join: inner, left ó right.
+• conditions: condiciones a realizar el join.
+
+Con joins, podría agregar condiciones basadas en campos de modelo Relacionados:
+
+$options[’joins’] = array(
+  array(’table’ => ’channels’,
+    ’alias’ => ’Channel’,
+    ’type’ => ’LEFT’,
+    ’conditions’ => array(
+      ’Channel.id = Item.channel_id’,
+    )
+  )
+);
+
+$options[’conditions’] = array(
+  ’Channel.private’ => 1
+);
+
+$privateItems = $Item->find(’all’, $options);
+
+Podría realizar varios joins como necesite en hasAndBelongsToMany.
+
+Suponer que hay una asociación Book hasAndBelongsToMany Tag. Esta relación usa
+una tabla books_tags como una tabla de join, así necesita unir la tabla books
+a la tabla books_tags, y esto con la tabla tags:
+
+$options[’joins’] = array(
+  array(’table’ => ’books_tags’,
+    ’alias’ => ’BooksTag’,
+    ’type’ => ’inner’,
+    ’conditions’ => array(
+      ’Book.id = BooksTag.book_id’
+    )
+  ),
+  array(’table’ => ’tags’,
+    ’alias’ => ’Tag’,
+    ’type’ => ’inner’,
+    ’conditions’ => array(
+      ’BooksTag.tag_id = Tag.id’
+    )
+  )
+);
+
+$options[’conditions’] = array(
+  ’Tag.tag’ => ’Novel’
+);
+
+$books = $Book->find(’all’, $options);
+
+Usar joins le permite tener máxima flexibilidad en como CakePHP maneja asociaciones
+y extrae los datos. Pero, puede usar otras herramientas para lograr los mismos
+resultados tales como definir asociaciones correctamente, hacer binding de modelos
+al vuelo y usar el comportamiento Containable. Esta característica podría llevar
+a consultas SQL mal formadas si se combinan con las técnicas de asociación de
+modelos.
+
+Recobrar sus datos
+------------------
+Uno de los roles de la capa Model es obtener datos desde múltiples tipos de
+almacenamiento. La clase Model de CakePHP viene con algunas funciones que le 
+ayudarán a buscar estos datos, ordenarlos, paginarlos, y filtrarlos. La función
+más común que usará en modelos es Model::find().
+
+find
+----
+find(string $type = ’first’, array $params = array())
+.....................................................
+Find es el caballo de fuerza multifuncional de todas las funciones de recobramiento
+de datos del modelo. $type puede ser ’all’, ’first’, ’count’, ’list’, ’neighbors’ ó 
+’threaded’, ó cualquier finder personalizado que uno pueda definir. $type es 
+case-sensitive. Usar un caracter mayúsculas (por ej., All) no producirá los
+resultados esperados.
+
+$params se usa para pasar todos los parámetros a los tipos variados de find(),
+y tiene las siguientes claves posibles por defecto, todas opcionales:
+
+array(
+  ’conditions’ => array(’Model.field’ => $thisValue), //array of conditions
+  ’recursive’ => 1, //int
+  //array of field names
+  ’fields’ => array(’Model.field1’, ’DISTINCT Model.field2’),
+  //string or array defining order
+  ’order’ => array(’Model.created’, ’Model.field3 DESC’),
+  ’group’ => array(’Model.field’), //fields to GROUP BY
+  ’limit’ => n, //int
+  ’page’ => n, //int
+  ’offset’ => n, //int
+  ’callbacks’ => true //other possible values are false, ’before’, ’after’
+)
+
+Es también posible agregar y usar otros parámetro. Algunos tipos de find() y
+comportamientos hacen uso de esta habilidad, y sus propios métodos modelos 
+también pueden.
+
+Si su operación find() falla en coincidir algún registro, obtendrá un array 
+vacío.
+
+(226/336)
