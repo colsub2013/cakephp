@@ -1399,13 +1399,14 @@ Array
   )
 )
 
-The order in which results appear can be changed, as it is influenced by the order of processing. For example,
-if ’order’ => ’name ASC’ is passed in the params to find(’threaded’), the results will appear
-in name order. Any order can be used; there is no built-in requirement of this method for the top result to be
-returned first.
+Puede cambiarse el orden en que aparecen los resultados, ya que este es 
+influenciado por el orden de procesamiento. Ej.: si se pasa ’order’ => ’name ASC’
+en los parámetros a find(’threaded’), los resultados aparecerán orden de nombre.
+Puede usarse cualquier orden; no hay ningún requerimiento incorporado de este 
+método para que el resultado de más arriba sea retornado primero.
 
-Warning: If you specify fields, you need to always include the id and parent_id (or their current
-aliases):
+Advertencia: Si especifica campos (fields), siempre necesita incluir el id y 
+parent_id (ó sus alias actuales):
 
 public function some_function() {
   $categories = $this->Category->find(’threaded’, array(
@@ -1413,12 +1414,13 @@ public function some_function() {
   ));
 }
 
-Otherwise, the returned array will not be of the expected nested structure from above.
+De otro modo, el array retornado no será de la estructura anidada esperada de
+arriba.
 
 find(‘neighbors’)
 .................
-find(’neighbors’, $params) will perform a find similar to ‘first’, but will return the row before
-and after the one you request. Below is a simple (controller code) example:
+find(’neighbors’, $params) realizará un find similar a ‘first’, pero retornará
+la fila antes y después del que uno peticione. Ej. (código controlador):  
 
 public function some_function() {
   $neighbors = $this->Article->find(
@@ -1427,9 +1429,11 @@ public function some_function() {
   );
 }
 
-You can see in this example the two required elements of the $params array: field and value. Other
-elements are still allowed as with any other find. (For example: If your model acts as containable, then you
-can specify ‘contain’ in $params.) The result returned from a find(’neighbors’) call is in the form:
+Puede ver en este ej. los 2 elementos requeridos del array $params: campo (field) 
+y valor. Otros elementos son también permitidos así como con cualquier otro find
+(Ej.: Si su modelo actúa como contenible (containable)), puede luego especificar
+‘contain’ en $params. El resultado retornado desde una llamada find(’neighbors’)
+está en la forma:
   
 Array
 (
@@ -1469,20 +1473,407 @@ Array
   )
 )
 
-Note: Note how the result always contains only two root elements: prev and next. This function does not
-honor a model’s default recursive var. The recursive setting must be passed in the parameters on each call.
+Nota: Notar como el resultado siempre contiene sólo 2 elementos raíz: prev y next.
+Esta función no hace honor a una variable (var) recursiva por defecto del modelo.
 
-Creating custom find types
+El ajuste recursivo debe ser pasado en los parámetros de cada llamada.
 
-The find method is flexible enough to accept your custom finders. This is done by declaring your own
-types in a model variable and by implementing a special function in your model class.
+Crear tipos find personalizados
+...............................
+El método find es lo suficientemente flexible para aceptar sus finders personalizados.
+Esto es hecho declarando sus tipos propios en una variable modelo e implementando
+una función especial en su clase modelo.
 
-A Model Find Type is a shortcut to find() options. For example, the following two finds are equivalent
+Un Find Model Type es un acceso directo a opciones find(). Ej.: los siguientes
+2 finds son equivalentes:
 
 $this->User->find(’first’);
 $this->User->find(’all’, array(’limit’ => 1));  
   
-(232/336)
+Los siguientes son tipos find núcleo:
 
-317-9
-375-6
+• first
+• all
+• count
+• list
+• threaded
+• neighbors
+
+Respecto a los otros tipos, supongamos que quiere un finder para todos los artículos
+publicados en su DB. El 1er cambio que necesita es agregar su tipo a la variable
+Model::$findMethods en el modelo:
+
+class Article extends AppModel {
+  public $findMethods = array(’available’ => true);
+}
+
+Basicamente esto le dice a CakePHP que acepte el valor disponible como el 1er
+argumento de la función find. El próximo paso es implementar el función 
+_findAvailable. Esto es hecho por convención. Si uno quiere implementar un finder
+llamado myFancySearch, el método a implementar sería nombrado _findMyFancySearch. 
+ 
+class Article extends AppModel {
+  public $findMethods = array(’available’ => true);
+  protected function _findAvailable($state, $query, $results = array()) {
+    if ($state === ’before’) {
+      $query[’conditions’][’Article.published’] = true;
+      return $query;
+    }
+    return $results;
+  }
+}
+
+Todo esto viene junto al siguiente ejemplo (código controlador):
+
+class ArticlesController extends AppController {
+  // Will find all published articles and order them by the created column
+  public function index() {
+    $articles = $this->Article->find(’available’, array(
+      ’order’ => array(’created’ => ’desc’)
+    ));
+  }
+}
+
+Los método _find[Type] especiales reciben 3 argumentos como se mostró arriba.
+El primero significa el estado de la ejecución de la consulta, el cual podría
+ser ya sea antes ó después. Esto es hecho de esta forma ya que esta función
+es sólo un ordenamiento (sort) de función callback que tiene la habilidad de 
+modificar la consulta antes que esta esté hecha, ó de modificar los resultados
+después que estos son extraídos.
+
+Típicamente lo primero a chequear en su función find personalizada es el estado
+de la consulta. El estado 'before' es el momento para modificar la consulta, 
+ligar (bind) asociaciones nuevas, aplicar más comportamientos, e interpretar
+cualquier clave que es pasada en el 2do argumento de find. Este estado requiere
+que uno retorne el argumento $query (modificado ó no).
+
+El estado 'after' es el lugar para inspeccionar los resultados, inyectar datos
+nuevos, procesarlos de la forma de retornarlo en otro formato, ó lo que quiera
+hacer a los datos extraídos recientemente. Este estado requiere que uno retorne
+el array $results (modificado ó no).
+ 
+Puede crear cuantos finders personalizados como uno quiera, y estos son una gran
+manera de reutilizar código en su aplicación a través de modelos.
+
+Es también posible paginar vía un tipo find personalizado como sigue:
+
+class ArticlesController extends AppController {
+  // Will paginate all published articles
+  public function index() {
+    $this->paginate = array(’available’);
+    $articles = $this->paginate();
+    $this->set(compact(’articles’));
+  }
+}
+
+Fijar la propiedad $this->paginate como arriba en el controlador resultará en el
+tipo de find volviéndose disponible, y también le permitirá continuar en modificar
+los resultados de find.  
+
+Si su conteo de paginación de página se corrompe, puede necesitarse agregar el
+código siguiente a su AppModel, el que arreglaría el conteo de paginación:
+
+class AppModel extends Model {
+  /**
+  * Removes ’fields’ key from count query on custom finds when it is an array,
+  * as it will completely break the Model::_findCount() call
+  *
+  * @param string $state Either "before" or "after"
+  * @param array $query
+  * @param array $results
+  * @return int The number of records found, or false
+  * @access protected
+  * @see Model::find()
+  */
+  protected function _findCount($state, $query, $results = array()) {
+    if ($state === ’before’) {
+      if (isset($query[’type’]) && isset($this->findMethods[$query[’type’]])) {
+        $query = $this->{
+          ’_find’ . ucfirst($query[’type’])
+        }(’before’, $query);
+        if (!empty($query[’fields’]) && is_array($query[’fields’])) {
+          if (!preg_match(’/^count/i’, current($query[’fields’]))) {
+            unset($query[’fields’]);
+          }
+        }
+      }
+    }
+    return parent::_findCount($state, $query, $results);
+  }
+}
+?>
+
+Cambiado en v.2.2.
+
+Ya no necesita más redefinir _findCount para arreglar resultados de conteo 
+incorrecto. El estado 'before' de su finder personalizado será llamado de vuelta
+ahora con $query[’operation’] = ‘count’. El $query retornado será usado en 
+_findCount(). Si es necesario, puede distinguir chequeando la clave 'operation'
+y retornar un $query diferente:
+
+protected function _findAvailable($state, $query, $results = array()) {
+  if ($state === ’before’) {
+    $query[’conditions’][’Article.published’] = true;
+    if (!empty($query[’operation’]) && $query[’operation’] === ’count’) {
+      return $query;
+    }
+    $query[’joins’] = array(
+      //array of required joins
+    );
+    return $query;
+  }
+  return $results;
+}
+
+Magic Find Types
+----------------
+Estas funciones mágicas pueden usarse como acceso directo a buscar sus tablas 
+por un cierto campo. Sólo agregar el nombre del campo (en formato Camel Case) al
+final de estas funciones, y suministrar el criterio para ese campo como el 1er 
+parámetro.
+
+Las funciones findAllBy() retornarán los resultados en un formato como find(’all’), 
+mientras findBy() retorna en el mismo formato que find(’first’).
+   
+findAllBy
+.........
+findAllBy<fieldName>(string $value, array $fields, array $order, int $limit, int $page, int $recursive)  
+
+--------------------------------------------------------------------------------------
+| findAllBy<x>                                  | Ej. que corresponde al fragmento SQL |                          |
+--------------------------------------------------------------------------------------
+| $this->Product->findAllByOrderStatus(’3’);    | Product.order_status = 3           |
+|                                               |                                    |
+| $this->Recipe->findAllByType(’Cookie’);       | Recipe.type = ’Cookie’             |
+|                                               |                                    |
+| $this->User->findAllByLastName(’Anderson’);   | User.last_name = ’Anderson’        |
+|                                               |                                    |
+| $this->Cake->findAllById(7);                  | Cake.id = 7                        |
+|                                               |                                    |
+| $this->User->findAllByEmailOrUsername(        | User.email = ’jhon’ OR             |
+| ’jhon’, ’jhon’);                              | User.username = ’jhon’;            |
+|                                               |                                    |
+| $this->User->findAllByUsernameAndPassword(    | User.username = ’jhon’ AND         |
+| ’jhon’, ’123’);                               | User.password = ’123’;             |
+|                                               |                                    |
+|  $this->User->findAllByLastName(’psychic’,    | User.last_name = ’psychic’         |
+|  array(), array(’User.user_name => ’asc’));   | ORDER BY User.user_name ASC        |
+--------------------------------------------------------------------------------------
+
+El resultado retornado es un array formateado sólo como sería desde find(’all’).
+
+findBy
+......
+findBy<fieldName>(string $value);
+
+Las funciones mágicas findBy también aceptan algunos parámetros opcionales:
+
+findBy<fieldName>(string $value[, mixed $fields[, mixed $order]]);
+
+----------------------------------------------------------------------------------------
+| findBy<x>                                     | Ej. que corresponde al fragmento SQL |
+----------------------------------------------------------------------------------------
+| $this->Product->findByOrderStatus(’3’);       | Product.order_status = 3             |
+|                                               |                                      |
+| $this->Recipe->findByType(’Cookie’);          | Recipe.type = ’Cookie’               |
+|                                               |                                      |
+| $this->User->findByLastName(’Anderson’);      | User.last_name = ’Anderson’;         |
+|                                               |                                      |
+| $this->User->findByEmailOrUsername(           | User.email = ’jhon’ OR               |
+| ’jhon’, ’jhon’);                              | User.username = ’jhon’;              |
+|                                               |                                      |
+| $this->User->findByUsernameAndPassword(       | User.username = ’jhon’ AND           |
+| ’jhon’,’123’);                                | User.password = ’123’;               |
+|                                               |                                      |
+| $this->Cake->findById(7);                     | Cake.id = 7                          |
+----------------------------------------------------------------------------------------
+
+Las funciones findBy() retornan resultados como find(’first’).
+
+Model::query()
+..............
+query(string $query)
+
+Las llamadas SQL que uno no puede ó no quiere hacer vía otros métodos de modelo
+pueden hacerse usando el método query() del modelo.
+
+Si uno usa este método, escapar apropiadamente todos los parámetro usando el método
+value() en el driver de la DB. Fallar en escapar parámetros creará vulnerabilidades
+de inyección SQL.
+
+Nota: query() no hace honor a  $Model->cacheQueries a medida que su funcionalidad
+es inherentemente disjunto desde aquel del modelo llamante (calling). Para evitar
+las llamadas de caching para consulta (query), suministrar un 2do argumento de 
+false, ej.:
+
+query($query, $cachequeries = false)
+
+query() usa el nombre de tabla en la consulta como la clave de array para los
+datos retornados, en vez del nombre del modelo. Ej.:
+
+$this->Picture->query("SELECT * FROM pictures LIMIT 2;");
+
+Puede retornar:
+
+Array
+(
+  [0] => Array
+  (
+    [pictures] => Array
+    (
+      [id] => 1304
+      [user_id] => 759
+    )
+  )
+  [1] => Array
+  (
+    [pictures] => Array
+    (
+      [id] => 1305
+      [user_id] => 759
+    )
+  )
+)
+
+Para usar el nombre de modelo como la clave de array , y obtener un resultado
+consistente con aquel retornado por los métodos Find, la consulta puede ser
+reescrita:
+
+$this->Picture->query("SELECT * FROM pictures AS Picture LIMIT 2;");
+
+Que retorna:
+
+Array
+(
+  [0] => Array
+  (
+    [Picture] => Array
+    (
+      [id] => 1304
+      [user_id] => 759
+    )
+  )
+  [1] => Array
+  (
+    [Picture] => Array
+    (
+      [id] => 1305
+      [user_id] => 759
+    )
+  )
+)
+
+Nota: Esta sintaxis y la estructura de array correspondiente es válido sólo
+para MySQL. CakePHP no provee ninguna abstracción de datos al correr las consultas
+manualmente, así los resultados exactos variarán entre bases de datos.
+
+Model::field()
+..............
+field(string $name, array $conditions = null, string $order = null)
+
+Retorna el valor de un campo único, especificado como $name, desde el 1er registro
+coincidente por $conditions a medida que se ordena por $order. Si no se pasan 
+condiciones y el id del modelo es fijado (set), este retornará el valor del campo
+para el resultado del modelo actual. 
+
+Si no se halla ningún registro coincidente, este retorna false.
+
+$this->Post->id = 22;
+echo $this->Post->field(’name’); // echo the name for row id 22
+
+// echo the name of the last created instance
+echo $this->Post->field(
+  ’name’,
+  array(’created <’ => date(’Y-m-d H:i:s’)),
+  ’created DESC’
+);
+
+Model::read()
+.............
+read($fields, $id)
+
+read() es un método usado para fijar los datos del modelo actual (Model::$data)
+- tales como edición - pero este puede usarse también en otras circunstancias
+para recobrar un único registro desde la DB.
+
+$fields se usa para pasar un nombre de campo único, ó un array de nombres de campo;
+si se deja vacío, todos los campos serán recobrados.
+
+$id especifica la ID del registro a ser leído. Por defecto, se usa el registro 
+actualmente seleccionado, especificado por Model::$id. Pasar un valor diferente
+a $id causará que el registro sea seleccionado.
+
+read() siempre retorna un array (aún si es peticionado sólo un único nombre de
+campo). Usar field para recobrar el valor del campo único.
+
+Advertencia: Ya que el método read sobreescribe cualquier información almacenada
+en los datos y propiedad id del modelo, uno debería ser cuidadoso al usar esta
+función en general, especialmente usando este en las funciones callback del modelo
+tales como beforeValidate y beforeSave. Generalmente la función find provee un
+trabajo más fácil y robusto para funcionar con la API que el método read.
+
+Condiciones Find Complejas
+--------------------------
+La mayoría de las llamadas find del modelo involucran pasar sets de condiciones
+en un modo ú otro. En general, CakePHP prefiere usar arrays para expresar 
+cualquiera de las condiciones que necesitan ponerse detrás de la cláusula WHERE
+en cualquier consulta SQL.
+
+Usar arrays es más fácil y claro de leer, y también hace muy fácil construir 
+consultas. Este sintaxis también saca (breaks out) los elementos de su consulta
+(campos, valores, operadores, etc.) en partes discretas manipulables. Esto le 
+permite a CakePHP generar la consulta más eficiente posible, asegurar la sintaxis
+SQL apropiada, y escapar apropiadamente cada 
+
+ each individual part of the query. Using the array syntax also enables CakePHP to secure your queries
+against any SQL injection attack.
+
+At its most basic, an array-based query looks like this:
+
+$conditions = array("Post.title" => "This is a post", "Post.author_id" => 1);
+// Example usage with a model:
+$this->Post->find(’first’, array(’conditions’ => $conditions));
+
+The structure here is fairly self-explanatory: it will find any post where the title equals “This is a post” and
+the author id is equal to 1. Note that we could have used just “title” as the field name, but when building
+queries, it is good practice to always specify the model name, as it improves the clarity of the code, and
+helps prevent collisions in the future, should you choose to change your schema.
+
+What about other types of matches? These are equally simple. Let’s say we wanted to find all the posts
+where the title is not “This is a post”:
+
+array("Post.title !=" => "This is a post")
+
+Notice the ‘!=’ that follows the field name. CakePHP can parse out any valid SQL comparison operator,
+including match expressions using LIKE, BETWEEN, or REGEX, as long as you leave a space between
+field name and the operator. The one exception here is IN (...)-style matches. Let’s say you wanted to find
+posts where the title was in a given set of values:
+
+array(
+"Post.title" => array("First post", "Second post", "Third post")
+)
+
+To do a NOT IN(...) match to find posts where the title is not in the given set of values, do the following:
+
+array(
+"NOT" => array(
+"Post.title" => array("First post", "Second post", "Third post")
+)
+)
+
+Adding additional filters to the conditions is as simple as adding additional key/value pairs to the array:
+
+array (
+"Post.title" => array("First post", "Second post", "Third post"),
+"Post.created >" => date(’Y-m-d’, strtotime("-2 weeks"))
+)
+
+You can also create finds that compare two fields in the database:
+
+array("Post.created = Post.modified")
+
+The above example will return posts where the created date is equal to the modified date (that is, it will
+return posts that have never been modified).
+
+
+(240/336)
