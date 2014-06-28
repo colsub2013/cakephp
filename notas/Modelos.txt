@@ -1130,4 +1130,359 @@ también pueden.
 Si su operación find() falla en coincidir algún registro, obtendrá un array 
 vacío.
 
-(226/336)
+find(‘first’)
+.............
+find(’first’, $params) retornará un resultado. Ej.'s:
+
+public function some_function() {
+  // ...
+  $semiRandomArticle = $this->Article->find(’first’);
+  $lastCreated = $this->Article->find(’first’, array(
+    ’order’ => array(’Article.created’ => ’desc’)
+  ));
+  $specificallyThisOne = $this->Article->find(’first’, array(
+    ’conditions’ => array(’Article.id’ => 1)
+  ));
+  // ...
+}
+
+En el 1er ej., no se pasa ningún parámetro al find, así no se usarán ordenamiento
+por sort ó condiciones. El formato retornado desde la llamada find('first') es
+de la forma:
+
+Array
+(
+  [ModelName] => Array
+  (
+    [id] => 83
+    [field1] => value1
+    [field2] => value2
+    [field3] => value3
+  )
+  [AssociatedModelName] => Array
+  (
+    [id] => 1
+    [field1] => value1
+    [field2] => value2
+    [field3] => value3
+  )
+)
+
+find(‘count’)
+.............
+find(’count’, $params) retorna un valor entero. Abajo hay un par de ejemplos 
+simples (código controlador):
+
+public function some_function() {
+  // ...
+  $total = $this->Article->find(’count’);
+  $pending = $this->Article->find(’count’, array(
+    ’conditions’ => array(’Article.status’ => ’pending’)
+  ));
+  $authors = $this->Article->User->find(’count’);
+  $publishedAuthors = $this->Article->find(’count’, array(
+    ’fields’ => ’DISTINCT Article.user_id’,
+    ’conditions’ => array(’Article.status !=’ => ’pending’)
+  ));
+  // ...
+}
+
+Nota: No pase campos como un array a find('count'). Sólo necesitaría especificar
+campos para un conteo DISTINCT (ya que de otro modo el conteo es siempre el 
+mismo, dictado por las condiciones).
+
+find(‘all’)
+...........
+find(’all’, $params) retorna un array de potenciales resultados múltiples. Este
+es el mecanismo usado por todas las variantes de find(), así como se paginan.
+Ej.'s de código controlador simple:
+
+public function some_function() {
+  // ...
+  $allArticles = $this->Article->find(’all’);
+  $pending = $this->Article->find(’all’, array(
+    ’conditions’ => array(’Article.status’ => ’pending’)
+  ));
+  $allAuthors = $this->Article->User->find(’all’);
+  $allPublishedAuthors = $this->Article->User->find(’all’, array(
+    ’conditions’ => array(’Article.status !=’ => ’pending’)
+  ));
+  // ...
+}
+
+Nota: En el ej. de arriba, $allAuthors contendrá cada usuario en la tabla users.
+No habrá condición aplicada al find, ya que no fue pasado nada.
+
+Los resultados de una llamada a find(’all’) será de la forma siguiente:
+
+Array
+(
+  [0] => Array
+  (
+    [ModelName] => Array
+    (
+      [id] => 83
+      [field1] => value1
+      [field2] => value2
+      [field3] => value3
+    )
+    [AssociatedModelName] => Array
+    (
+      [id] => 1
+      [field1] => value1
+      [field2] => value2
+      [field3] => value3
+    )
+  )
+)
+
+find(‘list’)
+............
+find(’list’, $params) retorna un array indexado, útil para cualquier lugar 
+donde uno querría una lista, tal como popular cajas select de inputs. Ej.'s
+(código controlador):
+
+public function some_function() {
+  // ...
+  $allArticles = $this->Article->find(’list’);
+  $pending = $this->Article->find(’list’, array(
+    ’conditions’ => array(’Article.status’ => ’pending’)
+  ));
+  $allAuthors = $this->Article->User->find(’list’);
+  $allPublishedAuthors = $this->Article->find(’list’, array(
+    ’fields’ => array(’User.id’, ’User.name’),
+    ’conditions’ => array(’Article.status !=’ => ’pending’),
+    ’recursive’ => 0
+  ));
+  // ...
+}
+
+Nota: En el ej. de arriba, $allAuthors contendrá cada usuario en la tabla users.
+No habrá condición aplicada al find, ya que no se le pasó nada.
+
+Los resultados de una llamada a find(’list’) serán de la forma:
+
+Array
+(
+  //[id] => ’displayValue’,
+  [1] => ’displayValue1’,
+  [2] => ’displayValue2’,
+  [4] => ’displayValue4’,
+  [5] => ’displayValue5’,
+  [6] => ’displayValue6’,
+  [3] => ’displayValue3’,
+)
+
+Al llamar a find(’list’), los campos pasados son usados para determinar que 
+debería usarse como clave y valor del array, y opcionalmente que por que agregar
+los resultados. Por defecto, la clave primaria para el modelo se usa para la clave,
+y el campo de exhibición (display field) (que puede ser configurado usando el 
+modelo atributo displayField) se usa para el valor. Ej.'s para clarificar:
+
+public function some_function() {
+  // ...
+  $justusernames = $this->Article->User->find(’list’, array(
+    ’fields’ => array(’User.username’)
+  ));
+  $usernameMap = $this->Article->User->find(’list’, array(
+    ’fields’ => array(’User.username’, ’User.first_name’)
+  ));
+  $usernameGroups = $this->Article->User->find(’list’, array(
+    ’fields’ => array(’User.username’, ’User.first_name’, ’User.group’)
+  ));
+  // ...
+}
+
+Con el código de ejemplo de arriba, las variables resultantes lucirían como:
+
+$justusernames = Array
+(
+  //[id] => ’username’,
+  [213] => ’AD7six’,
+  [25] => ’_psychic_’,
+  [1] => ’PHPNut’,
+  [2] => ’gwoo’,
+  [400] => ’jperras’,
+)
+
+$usernameMap = Array
+(
+  //[username] => ’firstname’,
+  [’AD7six’] => ’Andy’,
+  [’_psychic_’] => ’John’,
+  [’PHPNut’] => ’Larry’,
+  [’gwoo’] => ’Gwoo’,
+  [’jperras’] => ’Joël’,
+)
+
+$usernameGroups = Array
+(
+  [’User’] => Array
+  (
+    [’PHPNut’] => ’Larry’,
+    [’gwoo’] => ’Gwoo’,
+  )
+  [’Admin’] => Array
+  (
+    [’_psychic_’] => ’John’,
+    [’AD7six’] => ’Andy’,
+    [’jperras’] => ’Joël’,
+  )
+)
+
+find(‘threaded’)
+................
+find(’threaded’, $params) retorna un array anidado, y es apropiado si uno quiere
+usar el campo parent_id de sus datos de modelo para construir resultados anidados.
+Abajo hay un par de ejemplos simples (código controlador):
+
+public function some_function() {
+  // ...
+  $allCategories = $this->Category->find(’threaded’);
+  $comments = $this->Comment->find(’threaded’, array(
+    ’conditions’ => array(’article_id’ => 50)
+  ));
+  // ...
+}
+
+Consejo: Una manera mejor de tratar con datos anidados es usar el comportamiento
+Tree.
+
+En el ej. de código de arriba, $allCategories contendrá un array anidado representando
+la estructura de categoría completa. Los resultados de una llamada a find(’threaded’)
+será de la forma siguiente:
+
+Array
+(
+  [0] => Array
+  (
+    [ModelName] => Array
+    (
+      [id] => 83
+      [parent_id] => null
+      [field1] => value1
+      [field2] => value2
+      [field3] => value3
+    )
+    [AssociatedModelName] => Array
+    (
+      [id] => 1
+      [field1] => value1
+      [field2] => value2
+      [field3] => value3
+    )
+    [children] => Array
+    (
+      [0] => Array
+      (
+        [ModelName] => Array
+        (
+          [id] => 42
+          [parent_id] => 83
+          [field1] => value1
+          [field2] => value2
+          [field3] => value3
+        ) 
+        [AssociatedModelName] => Array
+        (
+          [id] => 2
+          [field1] => value1
+          [field2] => value2
+          [field3] => value3
+        )
+        [children] => Array
+        (
+        )
+      )
+    ...
+    )
+  )
+)
+
+The order in which results appear can be changed, as it is influenced by the order of processing. For example,
+if ’order’ => ’name ASC’ is passed in the params to find(’threaded’), the results will appear
+in name order. Any order can be used; there is no built-in requirement of this method for the top result to be
+returned first.
+
+Warning: If you specify fields, you need to always include the id and parent_id (or their current
+aliases):
+
+public function some_function() {
+  $categories = $this->Category->find(’threaded’, array(
+    ’fields’ => array(’id’, ’name’, ’parent_id’)
+  ));
+}
+
+Otherwise, the returned array will not be of the expected nested structure from above.
+
+find(‘neighbors’)
+.................
+find(’neighbors’, $params) will perform a find similar to ‘first’, but will return the row before
+and after the one you request. Below is a simple (controller code) example:
+
+public function some_function() {
+  $neighbors = $this->Article->find(
+    ’neighbors’,
+    array(’field’ => ’id’, ’value’ => 3)
+  );
+}
+
+You can see in this example the two required elements of the $params array: field and value. Other
+elements are still allowed as with any other find. (For example: If your model acts as containable, then you
+can specify ‘contain’ in $params.) The result returned from a find(’neighbors’) call is in the form:
+  
+Array
+(
+  [prev] => Array
+  (
+    [ModelName] => Array
+    (
+      [id] => 2
+      [field1] => value1
+      [field2] => value2
+      ...
+    )
+    [AssociatedModelName] => Array
+    (
+      [id] => 151
+      [field1] => value1
+      [field2] => value2
+      ...
+    )
+  )
+  [next] => Array
+  (
+    [ModelName] => Array
+    (
+      [id] => 4
+      [field1] => value1
+      [field2] => value2
+      ...
+    )
+    [AssociatedModelName] => Array
+    (
+      [id] => 122
+      [field1] => value1
+      [field2] => value2
+      ...
+    )
+  )
+)
+
+Note: Note how the result always contains only two root elements: prev and next. This function does not
+honor a model’s default recursive var. The recursive setting must be passed in the parameters on each call.
+
+Creating custom find types
+
+The find method is flexible enough to accept your custom finders. This is done by declaring your own
+types in a model variable and by implementing a special function in your model class.
+
+A Model Find Type is a shortcut to find() options. For example, the following two finds are equivalent
+
+$this->User->find(’first’);
+$this->User->find(’all’, array(’limit’ => 1));  
+  
+(232/336)
+
+317-9
+375-6
