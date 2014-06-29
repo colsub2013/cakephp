@@ -1823,57 +1823,279 @@ Usar arrays es más fácil y claro de leer, y también hace muy fácil construir
 consultas. Este sintaxis también saca (breaks out) los elementos de su consulta
 (campos, valores, operadores, etc.) en partes discretas manipulables. Esto le 
 permite a CakePHP generar la consulta más eficiente posible, asegurar la sintaxis
-SQL apropiada, y escapar apropiadamente cada 
+SQL apropiada, y escapar apropiadamente cada parte individual de la consulta. 
+Usar la sintaxis array también habilita a CakePHP a asegurar sus consultas 
+contra cualquier ataque de inyección SQL.
 
- each individual part of the query. Using the array syntax also enables CakePHP to secure your queries
-against any SQL injection attack.
-
-At its most basic, an array-based query looks like this:
+Una consulta basada en array luce como:
 
 $conditions = array("Post.title" => "This is a post", "Post.author_id" => 1);
 // Example usage with a model:
 $this->Post->find(’first’, array(’conditions’ => $conditions));
 
-The structure here is fairly self-explanatory: it will find any post where the title equals “This is a post” and
-the author id is equal to 1. Note that we could have used just “title” as the field name, but when building
-queries, it is good practice to always specify the model name, as it improves the clarity of the code, and
-helps prevent collisions in the future, should you choose to change your schema.
+La estructura aquí es autoexplicativa: hallará cualquier post donde el título
+equivale a "This is a post" and y id de author es 1. Podríamos haber usado sólo
+"title" como nombre de campo, pero al construir consultas, es buena práctica 
+especificar siempre el nombre del modelo, ya que esto mejora la claridad del 
+código, y ayuda a evitar colisiones en el futuro, uno debería elegir cambiar
+su schema.
 
-What about other types of matches? These are equally simple. Let’s say we wanted to find all the posts
-where the title is not “This is a post”:
+Supongamos que se quiere hallar todos los posteos donde el título no es 
+"This is a post":
 
 array("Post.title !=" => "This is a post")
 
-Notice the ‘!=’ that follows the field name. CakePHP can parse out any valid SQL comparison operator,
-including match expressions using LIKE, BETWEEN, or REGEX, as long as you leave a space between
-field name and the operator. The one exception here is IN (...)-style matches. Let’s say you wanted to find
-posts where the title was in a given set of values:
+Notar el ‘!=’ que sigue el nombre del campo. CakePHP puede parsear cualquier operador
+de comparación SQL válido, incluyendo expresiones de coincidencia usando LIKE, BETWEEN, 
+ó REGEX, mientras uno deje un espacio entre el nombre de campo y el operador. Aquí
+la única excepción es en coincidencias estilo IN (...). Digamos que uno quiso
+hallar posteos donde el título estaba en un set de valores dado:
 
 array(
-"Post.title" => array("First post", "Second post", "Third post")
+  "Post.title" => array("First post", "Second post", "Third post")
 )
 
-To do a NOT IN(...) match to find posts where the title is not in the given set of values, do the following:
+Para hacer una coincidencia NOT IN(...) para hallar posteos donde el título no está
+en el set de valores dado, hacer lo siguiente:
 
 array(
-"NOT" => array(
-"Post.title" => array("First post", "Second post", "Third post")
-)
+  "NOT" => array(
+    "Post.title" => array("First post", "Second post", "Third post")
+  )
 )
 
-Adding additional filters to the conditions is as simple as adding additional key/value pairs to the array:
+Agregar filtros adicionales a las condiciones es tan simple como agregar pares
+clave/valor adicionales al array:
 
 array (
-"Post.title" => array("First post", "Second post", "Third post"),
-"Post.created >" => date(’Y-m-d’, strtotime("-2 weeks"))
+  "Post.title" => array("First post", "Second post", "Third post"),
+  "Post.created >" => date(’Y-m-d’, strtotime("-2 weeks"))
 )
 
-You can also create finds that compare two fields in the database:
+Puede crear finds que comparen 2 campos en la DB:
 
 array("Post.created = Post.modified")
 
-The above example will return posts where the created date is equal to the modified date (that is, it will
-return posts that have never been modified).
+El ej. de arriba retornará posteos donde la fecha creada es igual a la fecha
+modificada (ó sea, este retornará posteos que nunca han sido modificados).
 
+Recordar que si uno es incapaz de formar una cláusula WHERE en este método 
+(por ej.: operaciones boolean), puede siempre especificar esto como un string como:
 
-(240/336)
+array(
+  ’Model.field & 8 = 1’,
+  // other conditions as usual
+)
+
+Por defecto, CakePHP hace join de condiciones múltiples con el boolean AND. Esto
+significa que el fragmento de arriba sólo coincidiría con los posteos que han
+sido creados en las últimas 2 semanas, y tienen un título que coincide con el 
+set dado. Pero, podríamos hallar posteos fácilmente que son coincidentes con una
+u otra condición:
+
+array("OR" => array(
+  "Post.title" => array("First post", "Second post", "Third post"),
+  "Post.created >" => date(’Y-m-d’, strtotime("-2 weeks"))
+))
+
+CakePHP acepta todas las operaciones boolean SQL válidas, incluyendo AND, OR, 
+NOT, XOR, etc., y estos pueden ser en mayúsculas ó minúsculas, según prefiera.
+Estas condiciones son también infinitamente anidables. Digamos que uno tuvo una
+relación belongsTo entre Posts y Authors. Digamos que uno quiso hallar todos los
+posteos que contuvieron una cierta palabra clave (keyword) ('magic') ó fue creado
+en las pasadas 2 semanas, pero quiso restringir su búsqueda a posteos escritos
+por Bob:
+
+array(
+  "Author.name" => "Bob",
+  "OR" => array(
+    "Post.title LIKE" => "%magic%",
+    "Post.created >" => date(’Y-m-d’, strtotime("-2 weeks"))
+  )
+)
+
+Si necesita fijar condiciones múltiples en el mismo campo, como cuando uno quiere
+hacer una búsqueda LIKE con condiciones (terms) múltiples, puede hacer esto usando
+condiciones similares a:
+
+array(’OR’ => array(
+  array(’Post.title LIKE’ => ’%one%’),
+  array(’Post.title LIKE’ => ’%two%’)
+))
+
+CakePHP puede también chequear por campos null. En este ej., la consulta retornará
+registros donde el título del post no es null:
+
+array("NOT" => array(
+    "Post.title" => null
+  )
+)
+
+Para manejar consultas BETWEEN, puede usar lo siguiente:
+
+array(’Post.read_count BETWEEN ? AND ?’ => array(1,10))
+
+Nota: CakePHP citará los valores numéricos dependiendo del tipo de campo en su DB.
+
+Qué tal el GROUP BY?:
+
+array(
+  ’fields’ => array(
+    ’Product.type’,
+    ’MIN(Product.price) as price’
+  ),
+  ’group’ => ’Product.type’
+)
+
+Los datos retornados para esto deberían estar en el siguiente formato:
+
+Array
+(
+  [0] => Array
+  (
+    [Product] => Array
+    ( 
+      [type] => Clothing
+    )
+    [0] => Array
+    (
+      [price] => 32
+    )
+  )
+  [1] => Array
+  ...
+
+Un ej. de hacer una consulta DISTINCT. Puede usar otros operadores, tales como
+MIN(), MAX(), etc., de una manera similar:
+
+array(
+  ’fields’ => array(’DISTINCT (User.name) AS my_column_name’),
+  ’order’ = >array(’User.id DESC’)
+)
+
+Puede crear condiciones muy complejas anidando arrays de condición múltiples:
+
+array(
+  ’OR’ => array(
+    array(’Company.name’ => ’Future Holdings’),
+    array(’Company.city’ => ’CA’)
+  ),
+  ’AND’ => array(
+    array(
+      ’OR’ => array(
+        array(’Company.status’ => ’active’),
+        ’NOT’ => array(
+          array(’Company.status’ => array(’inactive’, ’suspended’))
+        )
+      )
+    )
+  )
+)
+
+que produce el siguiente SQL:
+
+SELECT ‘Company‘.‘id‘, ‘Company‘.‘name‘,
+‘Company‘.‘description‘, ‘Company‘.‘location‘,
+‘Company‘.‘created‘, ‘Company‘.‘status‘, ‘Company‘.‘size‘
+FROM
+  ‘companies‘ AS ‘Company‘
+WHERE
+  ((‘Company‘.‘name‘ = ’Future Holdings’)
+  OR
+  (‘Company‘.‘city‘ = ’CA’))
+AND
+  ((‘Company‘.‘status‘ = ’active’)
+  OR (NOT (‘Company‘.‘status‘ IN (’inactive’, ’suspended’))))
+
+Sub-queries
+-----------
+Para este ej., imagine que tenemos una tabla “users” con “id”, “name” y “status”.
+El status puede ser “A”, “B” or “C”. Queremos recobrar todos los usuarios que tienen
+status que no sea “B” usando una sub-query.
+
+Para hacerlo, vamos a obtener la fuente de datos del modelo y pedirle a este que
+construya la consulta como si se estuviese llamando a un método find(), pero este
+sólo retornará la sentencia SQL. Después de eso hacemos una expresión y la 
+agregamos al array de condiciones:
+
+$conditionsSubQuery[’"User2"."status"’] = ’B’;
+
+$db = $this->User->getDataSource();
+$subQuery = $db->buildStatement(
+  array(
+    ’fields’ => array(’"User2"."id"’),
+    ’table’ => $db->fullTableName($this->User),
+    ’alias’ => ’User2’,
+    ’limit’ => null,
+    ’offset’ => null,
+    ’joins’ => array(),
+    ’conditions’ => $conditionsSubQuery,
+    ’order’ => null,
+    ’group’ => null
+  ),
+  $this->User
+);
+$subQuery = ’ "User"."id" NOT IN (’ . $subQuery . ’) ’;
+$subQueryExpression = $db->expression($subQuery);
+
+$conditions[] = $subQueryExpression;
+
+$this->User->find(’all’, compact(’conditions’));
+
+Esto debería generar el SQL siguiente:
+
+SELECT
+  "User"."id" AS "User__id",
+  "User"."name" AS "User__name",
+  "User"."status" AS "User__status"
+FROM
+  "users" AS "User"
+WHERE
+  "User"."id" NOT IN (
+    SELECT
+      "User2"."id"
+    FROM
+      "users" AS "User2"
+    WHERE
+      "User2"."status" = ’B’
+  )
+
+También, si necesita pasar sólo parte de su query como el SQL crudo (raw) de arriba,
+las expresiones datasource con SQL crudo trabajan para cualquier parte de la query
+find.
+
+Prepared Statements
+-------------------
+Should you need even more control over your queries, you can make use of prepared statements. This allows
+you to talk directly to the database driver and send any custom query you like:
+
+$db = $this->getDataSource();
+$db->fetchAll(
+  ’SELECT * from users where username = ? AND password = ?’,
+  array(’jhon’, ’12345’)
+);
+$db->fetchAll(
+  ’SELECT * from users where username = :username AND password = :password’,
+  array(’username’ => ’jhon’,’password’ => ’12345’)
+);
+
+Saving Your Data
+----------------
+CakePHP makes saving model data a snap. Data ready to be saved should be passed to the model’s save()
+method using the following basic format:
+
+Array
+(
+  [ModelName] => Array
+  (
+    [fieldname1] => ’value’
+    [fieldname2] => ’value’
+  )
+)
+
+Most of the time you won’t even need to worry about this format: CakePHP’s FormHelper, and model find
+methods all package data in this format. If you’re using either of the helpers, the data is also conveniently
+available in $this->request->data for quick usage.
+
+(244/336)
+
